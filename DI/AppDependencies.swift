@@ -16,7 +16,7 @@
 // Core/DI/AppDependencies.swift
 import Foundation
 import SwiftData
-@MainActor
+
 class AppDependencies {
     
     
