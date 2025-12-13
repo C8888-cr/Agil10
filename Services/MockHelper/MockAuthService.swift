@@ -1,0 +1,124 @@
+//
+//  MockAuthService.swift
+//  Agil
+//
+//  Created by Christiane Roth on 30.11.25.
+//
+
+
+import Foundation
+final class MockAuthService {
+    
+    // 🎭 Fake-Datenbank
+    var mockUsers: [String: MockUserRecord] = [
+        "patient@agil.de": MockUserRecord(
+            id: UUID(),
+            email: "patient@agil.de",
+            firstName: "Max",
+            lastName: "Mustermann",
+            password: "patient1",
+            isTherapist: false
+        ),
+        "therapist@agil.de": MockUserRecord(
+            id: UUID(),
+            email: "therapist@agil.de",
+            firstName: "Christiane",
+            lastName: "Roth",
+            password: "therapist1",
+            isTherapist: true
+        )
+    ]
+    
+    // ✅ Statische Mock-User für Preview
+    static let mockPatient = User(
+        id: UUID(),
+        firstName: "Max",
+        lastName: "Mustermann",
+        passwordHash: "patient1"
+    )
+    
+    static let mockTherapist = User(
+        id: UUID(),
+        firstName: "Christiane",
+        lastName: "Roth",
+        passwordHash: "therapist1"
+    )
+    
+    struct MockUserRecord {
+        let id: UUID
+        let email: String
+        let firstName: String
+        let lastName: String
+        let password: String
+        let isTherapist: Bool
+    }
+    
+    // 🔐 LOGIN
+    func login(email: String, password: String) async throws -> (user: User, sessionToken: String) {
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+        
+        guard let record = mockUsers[email.lowercased()] else {
+            throw AuthError.userNotFound
+        }
+        
+        guard record.password == password else {
+            throw AuthError.invalidCredentials
+        }
+        
+        let user = User(
+            id: record.id,
+            firstName: record.firstName,
+            lastName: record.lastName,
+            passwordHash: record.password
+        )
+        
+        let sessionToken = UUID().uuidString
+        print("✅ Mock Login erfolgreich für: \(email)")
+        return (user, sessionToken)
+    }
+    
+    // 📧 PASSWORD RESET - Link senden
+    func sendPasswordResetEmail(email: String) async throws -> String {
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        guard mockUsers[email.lowercased()] != nil else {
+            throw AuthError.userNotFound
+        }
+        
+        let resetCode = String(UUID().uuidString.prefix(6))
+        print("📧 Password Reset Code für \(email): \(resetCode)")
+        
+        return resetCode
+    }
+    
+    // 🔑 PASSWORD RESET - Bestätigen
+    func confirmPasswordReset(
+        email: String,
+        resetCode: String,
+        newPassword: String
+    ) async throws {
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        guard ValidationHelper.isValidPassword(newPassword) else {
+            throw AuthError.passwordTooShort
+        }
+        
+        guard mockUsers[email.lowercased()] != nil else {
+            throw AuthError.userNotFound
+        }
+        
+        if var record = mockUsers[email.lowercased()] {
+            record = MockUserRecord(
+                id: record.id,
+                email: record.email,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                password: newPassword,
+                isTherapist: record.isTherapist
+            )
+            mockUsers[email.lowercased()] = record
+        }
+        
+        print("✅ Passwort zurückgesetzt für: \(email)")
+    }
+}
