@@ -17,17 +17,19 @@
 import Foundation
 import SwiftData
 
+
+@MainActor
 class AppDependencies {
     
-    
-    // MARK: - Singleton
     static let shared = AppDependencies()
     
+    
+    
     // MARK: - Core
-      let modelContainer: ModelContainer  // ✅ Für später
-      let modelContext: ModelContext      // ✅ Für jetzt
-   
-  //  let locationService: LocationService
+    let modelContainer: ModelContainer  // ✅ Für später
+    let modelContext: ModelContext      // ✅ Für jetzt
+    
+    //  let locationService: LocationService
     
     // Repositories
     let appointmentRepository: AppointmentRepository
@@ -53,10 +55,10 @@ class AppDependencies {
         
         // 1. Container & Context
         self.modelContainer = PersistenceController.shared.container
-        self.modelContext = modelContainer.mainContext
+        self.modelContext = self.modelContainer.mainContext
         
         // Services
-    //    self.locationService = LocationService()
+        //    self.locationService = LocationService()
         
         // Repositories
         self.appointmentRepository = AppointmentRepository(modelContext: modelContext)
@@ -77,10 +79,10 @@ class AppDependencies {
         self.markAsNotifiedUseCase = MarkAsNotifiedUseCase(repository: appointmentRepository)
         self.loadAppointmentsUseCase = LoadAppointmentsUseCase(repository: appointmentRepository)
         self.parseAppointmentsFromEmailUseCase = ParseAppointmentsFromEmailUseCase(
-             repository: appointmentRepository,
-             emailParser: emailParser,
-             detectChangesUseCase: detectAppointmentChangesUseCase
-         )
+            repository: appointmentRepository,
+            emailParser: emailParser,
+            detectChangesUseCase: detectAppointmentChangesUseCase
+        )
         
         // ViewModel
         self.appointmentViewModel = AppointmentViewModel(
@@ -97,4 +99,5 @@ class AppDependencies {
             parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
         )
     }
+   
 }

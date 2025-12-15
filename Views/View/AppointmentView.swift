@@ -314,7 +314,7 @@ private var toolbarContent: some ToolbarContent {
         passwordHash: "hashedPassword123"
     )
     
-    let settingsVM = SettingsViewModel(user: testUser, modelContext: container.mainContext)
+    let settingsVM = SettingsViewModel(modelContext: container.mainContext)
     
     
     AppointmentView(

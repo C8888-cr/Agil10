@@ -295,7 +295,6 @@ enum WeekDay: String, CaseIterable, Identifiable {
 #Preview {
     SettingsView(user: User(email: "test@test.com", passwordHash: "123"))
         .environmentObject(SettingsViewModel(
-            user: User(email: "test@test.com", passwordHash: "123"),
             modelContext: ModelContext(
                 try! ModelContainer(
                     for: User.self,

@@ -7,34 +7,47 @@ class SettingsViewModel: ObservableObject {
     @Published var preferences: UserPreferences
     @Published var currentDayGoal: DayGoal?
     @Published var error: Error?
+    @Published var currentUser: User?
+    
     
    let modelContext: ModelContext
-    let user: User
+   
     
-    // ✅ ModelContext als Parameter!
-    init(user: User, modelContext: ModelContext) {
-        self.user = user
-        self.modelContext = modelContext
-        
-        if let prefs = user.preferences {
-            self.preferences = prefs  // ✅ DEINE bestehenden weeklyGoals laden!
-        } else {
-            let newPrefs = UserPreferences(user: user)  // ✅ DEIN Init mit 30 Min!
+    // ✅ KEIN let user mehr!
+        init(modelContext: ModelContext, currentUser: User? = nil) {
+            self.modelContext = modelContext
+            self.currentUser = currentUser
             
-            // ✅ ALLE auf 0 setzen (überschreibt dein Init):
-            newPrefs.weeklyGoals = (0..<7).map { day in
-                DayGoal(dayOfWeek: day, targetMinutes: 0, interVideoPauseSeconds: 30)
+            // ✅ Vorher Preferences laden oder Dummy erstellen
+            if let user = currentUser, let prefs = user.preferences {
+                self.preferences = prefs
+            } else {
+                // ✅ Dummy Preferences ohne User (für Preview/Init)
+                self.preferences = UserPreferences()  // ← Dein Init ohne User-Parameter!
+                print("✅ Dummy UserPreferences erstellt (kein User)")
             }
             
-            modelContext.insert(newPrefs)
-            user.preferences = newPrefs
-            self.preferences = newPrefs
-            try? modelContext.save()
-            print("✅ UserPreferences mit 0 Min Goals erstellt!")
+            loadGoalForDay(0)
         }
-        
-        loadGoalForDay(0)
-    }
+    
+    // ✅ User später setzen (nach Login)
+        func setUser(_ user: User) {
+            currentUser = user
+            if let prefs = user.preferences {
+                preferences = prefs
+            } else {
+                // Erstelle Preferences für echten User
+                let newPrefs = UserPreferences(user: user)
+                newPrefs.weeklyGoals = (0..<7).map { day in
+                    DayGoal(dayOfWeek: day, targetMinutes: 0, interVideoPauseSeconds: 30)
+                }
+                modelContext.insert(newPrefs)
+                user.preferences = newPrefs
+                preferences = newPrefs
+                try? modelContext.save()
+            }
+            loadGoalForDay(0)
+        }
 
         
     

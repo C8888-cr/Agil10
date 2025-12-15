@@ -342,7 +342,7 @@ struct FilterChip: View {
         email: "test@example.com",
         passwordHash: "hashedPassword123"
     )
-    let settingsVM = SettingsViewModel(user: testUser, modelContext: context)
+    let settingsVM = SettingsViewModel(modelContext: context)
  
                                        
     LibraryView(currentUser: testUser, repository: VideoRepository(modelContext: context))

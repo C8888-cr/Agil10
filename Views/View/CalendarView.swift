@@ -132,7 +132,7 @@ struct CalendarView: View {
         email: "test@example.com",
         passwordHash: "1234"
     )
-    let settingsVM = SettingsViewModel(user: testUser, modelContext: context)
+    let settingsVM = SettingsViewModel( modelContext: context)
     
     
     CalendarView(

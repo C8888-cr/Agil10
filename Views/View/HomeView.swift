@@ -3,6 +3,8 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
+    
+    @EnvironmentObject var appState: AppState  // ← HINZUFÜGEN!
     @State private var selectedScheduleId: UUID?  // ← NEU!
 
     @State private var showVideoPlayer = false  // ← NEU!
@@ -25,11 +27,16 @@ struct HomeView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.modelContext) private var modelContext
     
-    @State var currentUser: User
+
     
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
     
+    
+    // ✅ COMPUTED PROPERTY - immer verfügbar!
+       private var currentUser: User {
+           appState.currentUser!
+       }
     
     var body: some View {
      
@@ -66,7 +73,7 @@ struct HomeView: View {
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .settings:
-                    SettingsView(user: settingsVM.user)  // ← user Parameter
+                    SettingsView(user: currentUser) // ← user Parameter
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {  // ← WICHTIG!
@@ -356,23 +363,16 @@ struct HomeView: View {
     let container = PreviewHelper.createModelContainer()
     let context = ModelContext(container)
     
-    let testUser = User(
-        id: UUID(),
-        email: "test@example.com",
-        passwordHash: "hashedPassword123"
-    )
-    
     let progressVM = ProgressViewModel(modelContext: context)
     let videoLibraryVM = VideoLibraryViewModel(repository: VideoRepositoryMock())
-    let settingsVM = SettingsViewModel(user: testUser, modelContext: context)
-    let weeklySettings = WeeklySettings()
-    let trainingData = TrainingData(weeklySettings: weeklySettings)
-    
-    HomeView(currentUser: testUser)
+    let settingsVM = SettingsViewModel(modelContext: context)
+    let appState = AppState(modelContext: context)  // ← NEU!
+  
+    HomeView()  // ✅ KEIN Parameter!
         .modelContainer(container)
         .environmentObject(progressVM)
         .environmentObject(videoLibraryVM)
         .environmentObject(settingsVM)
-        .environmentObject(trainingData)
-        .environmentObject(weeklySettings)
+        .environmentObject(appState)  // ✅ NEU!
+        .environmentObject(TrainingData(weeklySettings: WeeklySettings()))
 }
