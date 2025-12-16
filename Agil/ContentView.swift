@@ -32,7 +32,10 @@ struct ContentView: View {
                 .tabItem { Label("Progress", systemImage: "chart.bar.xaxis") }
                 
                 NavigationStack {
-                    LibraryView(repository: AppDependencies.shared.videoRepository)
+                    LibraryView(repository: AppDependencies.shared.videoRepository,
+                                user: appState.currentUser)
+                    .environmentObject(AppDependencies.shared.settingsViewModel)
+                    .environmentObject(appState)
                 }
                 .tabItem { Label("Library", systemImage: "book.fill") }
             }

@@ -46,17 +46,3 @@ struct ExercisesForDateView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Video.self, configurations: config)
-    
-    ExercisesForDateView(
-        selectedDate: Date(),
-        onAddExercise: { print("Add exercise") }
-    )
-    .environmentObject(TrainingViewModel())
-    .environmentObject(VideoLibraryViewModel(
-        repository: VideoRepository(modelContext: ModelContext(container))
-    ))
-    .padding()
-}

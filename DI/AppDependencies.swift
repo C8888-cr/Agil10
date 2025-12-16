@@ -187,9 +187,10 @@ class AppDependencies {
     lazy var trainingViewModel = TrainingViewModel()
     
     lazy var videoLibraryVM = VideoLibraryViewModel(
-           repository: videoRepository,  // ✅ Jetzt passt es!
-           storageService: VideoStorageService.shared
-       )
+        repository: videoRepository,
+        user: appState.currentUser,  // ← NEU!
+        storageService: VideoStorageService.shared
+    )
 
   
 

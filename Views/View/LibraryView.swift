@@ -5,7 +5,7 @@ import SwiftData
 struct LibraryView: View {
     
     @EnvironmentObject var appState: AppState
-    
+    let user: User 
     
     @State private var showPlayer = false
     @State private var showFilterSheet = false
@@ -21,11 +21,19 @@ struct LibraryView: View {
 
     var onVideoSelected: ((Video) -> Void)? = nil
     
+    
     init(repository: VideoRepositoryProtocol,
-         onVideoSelected: ((Video) -> Void)? = nil) {
+            user: User,
+            onVideoSelected: ((Video) -> Void)? = nil) {
+        self.user = user
         self.onVideoSelected = onVideoSelected
-        _viewModel = StateObject(wrappedValue: VideoLibraryViewModel(repository: repository))
-    }
+           _viewModel = StateObject(
+               wrappedValue: VideoLibraryViewModel(
+                   repository: repository,
+                   user: user
+               )
+           )
+       }
     
     var body: some View {
      
@@ -60,7 +68,7 @@ struct LibraryView: View {
                 FilterSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $viewModel.showUploadSheet) {
-                VideoUploadSheet(viewModel: viewModel)
+                VideoUploadSheet(viewModel: viewModel, user: user)
             }
             .alert("Fehler", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) {}
@@ -83,7 +91,7 @@ struct LibraryView: View {
                 viewModel.setup()
             }
             .onAppear {
-                print("🔍 VideoLibraryView onAppear - User: \(currentUser.id)")
+                print("🔍 VideoLibraryView onAppear - User: \(appState.currentUser.id)")
                 viewModel.setup()
             }
             .sheet(isPresented: $showProfile) {
@@ -334,21 +342,9 @@ struct FilterChip: View {
         .clipShape(Capsule())
     }
 }
-// MARK: - Preview
 #Preview {
-    let container = PreviewHelper.createModelContainer()
-    let context = ModelContext(container)
-    
-    let testUser = User(
-        id: UUID(),
-        email: "test@example.com",
-        passwordHash: "hashedPassword123"
+    LibraryView(
+        repository: PreviewHelper.createVideoRepository(),
+        user: PreviewHelper.createSampleUser()  // ← Passt!
     )
-    let settingsVM = SettingsViewModel(modelContext: context)
- 
-                                       
-    LibraryView(repository: VideoRepository(modelContext: context))
-      
-    .modelContainer(container)
-    .environmentObject(settingsVM)
 }

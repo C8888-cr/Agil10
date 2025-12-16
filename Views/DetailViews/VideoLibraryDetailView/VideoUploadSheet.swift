@@ -194,22 +194,3 @@ struct VideoUploadSheet: View {
         }
     }
 }
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Video.self, configurations: config)
-    let context = ModelContext(container)
-    
-    let repository = VideoRepository(modelContext: context)
-    let viewModel = VideoLibraryViewModel(repository: repository)
-    
-    // Mock User für Preview
-    let mockUser = User(
-        id: UUID(),
-       
-        email: "preview@example.com", passwordHash: ""
-   
-    )
-    
-    VideoUploadSheet(viewModel: viewModel, user: mockUser)
-        .modelContainer(container)
-}

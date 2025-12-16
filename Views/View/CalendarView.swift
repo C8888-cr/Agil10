@@ -125,22 +125,3 @@ struct CalendarView: View {
     }
 }
 
-#Preview("CalendarView") {
-    let container = PreviewHelper.createModelContainer()
-    let context = ModelContext(container)
-
-    let settingsVM = SettingsViewModel( modelContext: context)
-    let appState = AppState(modelContext: context, authService: MockAuthService())
-    
-    CalendarView(
-        repository: PreviewHelper.createVideoRepository() // ✅ NEUER HELPER
-    )
-    .environmentObject(PreviewHelper.createAppointmentViewModel())
-    .environmentObject(CalendarViewModel())
-    .environmentObject(TrainingViewModel())
-    .environmentObject(VideoLibraryViewModel(repository: PreviewHelper.createVideoRepository()))
-    .modelContainer(container)
-    .environmentObject(settingsVM)
-    .modelContainer(container)
-    .environmentObject(appState)
-}

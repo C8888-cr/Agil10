@@ -12,16 +12,16 @@ struct AppRouter: View {
     @EnvironmentObject var appState: AppState
     
     var body: some View {
-        
         Group {
             if appState.isLoading {
                 LoadingView()
-            } else if appState.currentUser != nil {
-                ContentView()  // ← TABS mit User!
+            } else if appState.isAuthenticated {  // ← NEU!
+                ContentView()
             } else {
                 LoginView(authService: AppDependencies.shared.authService)
             }
         }
     }
 }
+
 

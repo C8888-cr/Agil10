@@ -67,26 +67,22 @@ struct HomeView: View {
                     SettingsView() // ← user Parameter
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
-                        .onDisappear {  // ← WICHTIG!
-                            if let user = appState.currentUser {
-                            progressVM.loadToday(for: user)
-                                           }
+                        .onDisappear {
+                            progressVM.loadToday(for: appState.currentUser)
                         }
+                        
                 case .profile:
                     ProfileView()
                 case .library:
                     LibraryView(
-                        
-                        repository: videoLibraryVM.repository,
+                        repository: AppDependencies.shared.videoRepository,
+                        user: appState.currentUser,  // ✅ Hinzufügen!
                         onVideoSelected: { video in
-                                      if let user = appState.currentUser {
-                                          progressVM.addVideo(video, for: user)
-                                      }
-                                       activeSheet = nil
-                            
-
+                            progressVM.addVideo(video, for: appState.currentUser)  // ✅ Direkt!
+                            activeSheet = nil
                         }
                     )
+
            /*     case .config:
                     if let video = selectedVideoForConfig {
                         NavigationStack {
@@ -134,10 +130,8 @@ struct HomeView: View {
                             schedule.customLoopDurationSeconds = playbackSettings.loopDurationSeconds
                             
                             print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
-                            
-                            if let user = appState.currentUser {
-                                progressVM.updateSchedule(schedule, for: user)
-                            }
+                            progressVM.updateSchedule(schedule, for: appState.currentUser)
+
                         }
            
                         selectedVideoForConfig = nil
@@ -163,10 +157,10 @@ struct HomeView: View {
             }
 
             .onAppear {
-                if let user = appState.currentUser {
-                    progressVM.loadToday(for: user)  // ← Safe unwrap!
-                }
+                progressVM.loadToday(for: appState.currentUser)
             }
+
+            
     }
     
     // MARK: - Fortschrittsring
@@ -251,15 +245,12 @@ struct HomeView: View {
                     schedule: schedule,
                     video: video,
                     onToggleCompletion: {
-                        if let user = appState.currentUser {
-                            progressVM.toggleCompletion(schedule, for: user)
-                        }
+                        progressVM.toggleCompletion(schedule, for: appState.currentUser)
                     },
                     onDelete: {
-                        if let user = appState.currentUser {
-                            progressVM.removeSchedule(schedule, for: user)
-                        }
+                        progressVM.removeSchedule(schedule, for: appState.currentUser)
                     },
+
                     onConfig: {
                         editingScheduleId = schedule.id
                         selectedVideoForConfig = video

@@ -11,8 +11,11 @@ import SwiftUI
 import SwiftData
 @MainActor
 class AppState: ObservableObject {
-    @Published var currentUser: User?
+    @Published var currentUser: User
     @Published var isLoading = true
+    @Published var isAuthenticated = false
+    
+    
     let modelContext: ModelContext
     
     private let authService: AuthServiceProtocol
@@ -20,11 +23,20 @@ class AppState: ObservableObject {
     init(modelContext: ModelContext, authService: AuthServiceProtocol) {
            self.modelContext = modelContext
            self.authService = authService
+           self.currentUser = MockAuthService.mockPatient
            Task { await loadUser() }
        }
-       
-       private func loadUser() async {
+    
+    
+    private func loadUser() async {
            defer { isLoading = false }
-           currentUser = try? await authService.fetchCurrentUser()
+           
+           if let fetchedUser = try? await authService.fetchCurrentUser() {
+               currentUser = fetchedUser
+               isAuthenticated = true  // ← Login-Status!
+           } else {
+               currentUser = MockAuthService.mockPatient
+               isAuthenticated = false  // ← Noch nicht "echt" eingeloggt
+           }
        }
    }

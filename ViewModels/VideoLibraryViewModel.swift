@@ -46,18 +46,23 @@ final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Dependencies
     let repository: VideoRepositoryProtocol
     private let storageService: VideoStorageService
-    private var currentUser: User?
+    private let user: User
     
     // MARK: - Init
-    init(repository: VideoRepositoryProtocol, storageService: VideoStorageService = .shared) {
-        self.repository = repository
-        self.storageService = storageService
-    }
+    init(
+           repository: VideoRepositoryProtocol,
+           user: User,
+           storageService: VideoStorageService = .shared
+       ) {
+           self.repository = repository
+           self.user = user
+           self.storageService = storageService
+       }
     
     // MARK: - Setup
-    func setup(user: User) {
+    func setup() {
         print("🟢 START: Setup ViewModel")
-        self.currentUser = user
+     
         Task {
             await loadVideos()
             updateStorageInfo()
@@ -71,10 +76,8 @@ final class VideoLibraryViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         
-        guard let user = currentUser else {
-            print("⚠️ No user available")
-            return
-        }
+        let user = self.user
+        
         
         do {
             // ✅ Safe fetch with corruption handling

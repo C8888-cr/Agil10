@@ -100,14 +100,3 @@ struct FilterSheet: View {
         }
     }
 }
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Video.self, configurations: config)
-    let context = ModelContext(container)
-    
-    let repository = VideoRepository(modelContext: context)
-    let viewModel = VideoLibraryViewModel(repository: repository)
-    
-    return FilterSheet(viewModel: viewModel)
-        .modelContainer(container)
-}
