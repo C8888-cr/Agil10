@@ -226,7 +226,7 @@ struct LoginView: View {
                    // showLoading = false
                    // loggedInUser = result.user
                     showLoading = false
-                    appState.currentUser = result.user  // ← HIER ÄNDERN
+                    appState.setLoggedIn(user: result.user) // ← HIER ÄNDERN
                     isLoading = false
                 }
             } catch let error as AuthError {

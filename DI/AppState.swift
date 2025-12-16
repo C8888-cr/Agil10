@@ -30,13 +30,18 @@ class AppState: ObservableObject {
     
     private func loadUser() async {
            defer { isLoading = false }
-           
-           if let fetchedUser = try? await authService.fetchCurrentUser() {
-               currentUser = fetchedUser
-               isAuthenticated = true  // ← Login-Status!
-           } else {
-               currentUser = MockAuthService.mockPatient
-               isAuthenticated = false  // ← Noch nicht "echt" eingeloggt
-           }
+
+           // Für dein Setup: es gibt erstmal keinen „persistierten“ User → nicht eingeloggt
+           isAuthenticated = false
+       }
+
+       func setLoggedIn(user: User) {
+           currentUser = user
+           isAuthenticated = true
+       }
+
+       func logout() {
+           isAuthenticated = false
+           // optional: currentUser auf Mock zurücksetzen
        }
    }
