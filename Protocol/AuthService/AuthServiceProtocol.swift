@@ -33,7 +33,7 @@ final class MockAuthService: AuthServiceProtocol {
     // 🎭 Fake-Datenbank
     var mockUsers: [String: MockUserRecord] = [
         "patient@agil.de": MockUserRecord(
-            id: UUID(),
+            id: MockAuthService.mockPatientId,
             email: "patient@agil.de",
             firstName: "Max",
             lastName: "Mustermann",
@@ -41,7 +41,7 @@ final class MockAuthService: AuthServiceProtocol {
             isTherapist: false
         ),
         "therapist@agil.de": MockUserRecord(
-            id: UUID(),
+            id: MockAuthService.mockTherapistId,
             email: "therapist@agil.de",
             firstName: "Christiane",
             lastName: "Roth",
@@ -49,17 +49,18 @@ final class MockAuthService: AuthServiceProtocol {
             isTherapist: true
         )
     ]
-    
+    // ✅ FESTER Mock-Patient mit STATISCHER UUID!
+     static let mockPatientId = UUID(uuidString: "12345678-1234-5678-1234-123456789ABC")!
     // ✅ Statische Mock-User für Preview
     static let mockPatient = User(
-        id: UUID(),
+        id: mockPatientId,
         firstName: "Max",
         lastName: "Mustermann",
         passwordHash: "patient1"
     )
-    
-    static let mockTherapist = User(
-        id: UUID(),
+    static let mockTherapistId = UUID(uuidString: "87654321-4321-8765-4321-CBA987654321")!
+      static let mockTherapist = User(
+        id: mockTherapistId,  // ← IMMER GLEICH!
         firstName: "Christiane",
         lastName: "Roth",
         passwordHash: "therapist1"

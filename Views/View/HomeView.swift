@@ -37,7 +37,7 @@ struct HomeView: View {
                    // compactRingView
                     DailyProgressCard()
                     // Liste der heutigen Videos
-                    exercisesSection
+                    ExercisesSection()
                     
                     // Restzeit
                     if progressVM.remainingMinutes > 0 {
@@ -163,78 +163,7 @@ struct HomeView: View {
             
     }
     
-    // MARK: - Fortschrittsring
-    private var compactRingView: some View {
-        VStack {
-            ZStack {
-                Circle()
-                    .stroke(Color.accent.opacity(0.2), lineWidth: 8)
-                    .frame(width: 100, height: 100)
-                
-                Circle()
-                    .trim(from: 0, to: CGFloat(progressVM.dailyProgress))
-                    .stroke(
-                        LinearGradient(colors: [.accent, .accent],
-                                       startPoint: .topLeading,
-                                       endPoint: .bottomTrailing),
-                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                    )
-                    .frame(width: 100, height: 100)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut, value: progressVM.dailyProgress)
-                
-                Text("\(Int(progressVM.dailyProgress * 100))%")
-                    .font(.headline)
-                    .foregroundColor(.accent)
-            }
-            Text("Tagesziel")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-    }
- /*
-    // MARK: - Übungen Section - VIDEO SCHEDULE ROW
-    private var exercisesSection: some View {
-        VStack(spacing: 0) {
-            ForEach(progressVM.todaysSchedules, id: \.id) { schedule in  // ← VideoSchedule!
-                VideoScheduleRow(
-                    schedule: schedule,
-                    video: schedule.video ?? Video.previewMobility,
-                    onToggleCompletion: {
-                        progressVM.toggleCompletion(schedule, for: currentUser)
-                    },
-                    onDelete: {
-                        progressVM.removeSchedule(schedule, for: currentUser)
-                    },
-                    onConfig: {                                        editingScheduleId = schedule.id  // ← WICHTIG!
-                                        selectedVideoForConfig = schedule.video ?? Video.previewMobility
-                                        playbackSettings = PlaybackSettings(
-                                            repetitions: schedule.effectiveRepetitions,  // ← Schedule!
-                                            pauseSeconds: schedule.effectivePauseSeconds,  // ← Schedule!
-                                            loopDurationSeconds: schedule.effectiveLoopDurationSeconds  // ← Schedule!
-                            )
-                        }
-                   
-                )
-                Divider()
-            }
-            
-            if progressVM.canAddMoreVideos {
-                Button {
-                    activeSheet = .library
-                } label: {
-                    Label("Video hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-                .padding()
-            }
-        }
-    }
-*/
+
     
     private var exercisesSection: some View {
         VStack(spacing: 0) {
