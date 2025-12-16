@@ -17,8 +17,10 @@
 import Foundation
 import SwiftData
 
-
+/*
 @MainActor
+
+
 class AppDependencies {
     
     static let shared = AppDependencies()
@@ -100,4 +102,80 @@ class AppDependencies {
         )
     }
    
+}
+*/
+
+@MainActor
+class AppDependencies {
+    static let shared = AppDependencies()
+    
+    // MARK: - Core
+    let modelContainer: ModelContainer
+    let modelContext: ModelContext
+    let authService: AuthServiceProtocol  // ← NEU!
+    
+    // MARK: - AppState (LAZY)
+    // LAZY - jetzt korrekt!
+       lazy var appState = AppState(
+           modelContext: modelContext,  // ✅
+           authService: authService     // ✅
+       )
+    
+    
+    // MARK: - Repositories (LAZY)
+    lazy var appointmentRepository = AppointmentRepository(modelContext: modelContext)
+    lazy var videoRepository = VideoRepository(modelContext: modelContext)
+    
+    // MARK: - Services
+    let emailParser: EmailParserService
+    let emailService: EmailService
+    
+    // MARK: - UseCases (LAZY)
+    lazy var addAppointmentUseCase = AddAppointmentUseCase(repository: appointmentRepository)
+    lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(repository: appointmentRepository)
+    lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
+        repository: appointmentRepository,
+        emailService: emailService
+    )
+    lazy var parseEmailUseCase = ParseEmailUseCase(parser: emailParser)
+    lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(repository: appointmentRepository)
+    lazy var markAsNotifiedUseCase = MarkAsNotifiedUseCase(repository: appointmentRepository)
+    lazy var loadAppointmentsUseCase = LoadAppointmentsUseCase(repository: appointmentRepository)
+    lazy var parseAppointmentsFromEmailUseCase = ParseAppointmentsFromEmailUseCase(
+        repository: appointmentRepository,
+        emailParser: emailParser,
+        detectChangesUseCase: detectAppointmentChangesUseCase
+    )
+    
+    // MARK: - ViewModels (LAZY)
+    lazy var appointmentViewModel = AppointmentViewModel(
+        repository: appointmentRepository,
+        emailParser: emailParser,
+        detectAppointmentChangesUseCase: detectAppointmentChangesUseCase,
+        cancelAppointmentUseCase: cancelAppointmentUseCase,
+        addAppointmentUseCase: addAppointmentUseCase,
+        emailService: emailService,
+        markAsNotifiedUseCase: markAsNotifiedUseCase,
+        loadAppointmentsUseCase: loadAppointmentsUseCase,
+        parseEmailUseCase: parseEmailUseCase,
+        deleteAppointmentUseCase: deleteAppointmentUseCase,
+        parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
+    )
+    
+    private init() {
+        // 1. AUTH SWITCH (Oben!)
+        #if DEBUG
+        self.authService = MockAuthService()
+        #else
+        self.authService = RealAuthService()
+        #endif
+        
+        // 2. SwiftData
+        self.modelContainer = PersistenceController.shared.container
+        self.modelContext = modelContainer.mainContext
+        
+        // 3. Services (nicht lazy - leichtgewichtig)
+        self.emailParser = EmailParserService()
+        self.emailService = EmailService()
+    }
 }

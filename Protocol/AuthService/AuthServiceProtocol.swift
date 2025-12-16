@@ -1,13 +1,34 @@
 //
-//  MockAuthService.swift
-//  Agil
+//  AuthServiceProtocol.swift
+//  Agil10.0
 //
-//  Created by Christiane Roth on 30.11.25.
+//  Created by Christiane Roth on 16.12.25.
 //
 
+import SwiftUI
+import SwiftData
 
-import Foundation
-final class MockAuthService {
+
+@MainActor
+protocol AuthServiceProtocol {
+
+    func login(email: String, password: String) async throws -> (user: User, sessionToken: String)
+    func sendPasswordResetEmail(email: String) async throws -> String
+    func confirmPasswordReset(email: String, resetCode: String, newPassword: String) async throws
+    func fetchCurrentUser() async throws -> User?  // ← NEU!
+    func logout() async                           // ← NEU!
+}
+/*  für später
+
+class RealAuthService: AuthServiceProtocol {
+    func fetchCurrentUser() async throws -> User? {
+        // Backend API Call → echten User
+        return try await backend.fetchUser()
+    }
+}
+*/
+@MainActor
+final class MockAuthService: AuthServiceProtocol {
     
     // 🎭 Fake-Datenbank
     var mockUsers: [String: MockUserRecord] = [
@@ -121,4 +142,13 @@ final class MockAuthService {
         
         print("✅ Passwort zurückgesetzt für: \(email)")
     }
+    // 🔥 NEU: Nur diese 2 Zeilen hinzufügen!
+
+       func fetchCurrentUser() async throws -> User? {
+           return MockAuthService.mockPatient  // Automatischer "eingeloggter" Patient
+       }
+       
+       func logout() async {
+           print("👋 Mock Logout")
+       }
 }
