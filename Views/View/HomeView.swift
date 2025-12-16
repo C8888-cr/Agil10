@@ -37,8 +37,29 @@ struct HomeView: View {
                    // compactRingView
                     DailyProgressCard()
                     // Liste der heutigen Videos
-                    ExercisesSection()
-                    
+                    ExercisesSection(
+                        onToggleCompletion: { schedule in
+                        progressVM.toggleCompletion(schedule, for: appState.currentUser)
+                                   },
+                        onDelete: { schedule in
+                                       progressVM.removeSchedule(schedule, for: appState.currentUser)
+                                   },
+                        onConfig: { schedule in
+                                       editingScheduleId = schedule.id
+                                       selectedVideoForConfig = schedule.video ?? Video.previewMobility
+                                       playbackSettings = PlaybackSettings(/* ... */)
+                                   },
+                        onPlay: { schedule, video in
+                                       selectedScheduleId = schedule.id
+                                       selectedVideoForPlayer = video
+                                       showVideoPlayer = true
+                                   },
+                        onAddVideo: {
+                                       activeSheet = .library  // ← Sheet öffnet sich!
+                                   }
+                               )
+                           
+                       
                     // Restzeit
                     if progressVM.remainingMinutes > 0 {
                         remainingTimeCard
@@ -163,56 +184,6 @@ struct HomeView: View {
             
     }
     
-
-    
-    private var exercisesSection: some View {
-        VStack(spacing: 0) {
-            ForEach(progressVM.todaysSchedules, id: \.id) { schedule in
-                let video = schedule.video ?? Video.previewMobility
-                
-                VideoScheduleRow(
-                    schedule: schedule,
-                    video: video,
-                    onToggleCompletion: {
-                        progressVM.toggleCompletion(schedule, for: appState.currentUser)
-                    },
-                    onDelete: {
-                        progressVM.removeSchedule(schedule, for: appState.currentUser)
-                    },
-
-                    onConfig: {
-                        editingScheduleId = schedule.id
-                        selectedVideoForConfig = video
-                        playbackSettings = PlaybackSettings(
-                            repetitions: schedule.effectiveRepetitions,
-                            pauseSeconds: schedule.effectivePauseSeconds,
-                            loopDurationSeconds: schedule.effectiveLoopDurationSeconds
-                        )
-                    },
-                    onPlay: { video in  // ← VIDEO empfangen!
-                        selectedVideoForPlayer = video
-                        selectedScheduleId = schedule.id  // ← Schedule merken!
-                        showVideoPlayer = true
-                    }
-                )
-                Divider()
-            }
-            
-            if progressVM.canAddMoreVideos {
-                Button {
-                    activeSheet = .library
-                } label: {
-                    Label("Video hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-                .padding()
-            }
-        }
-    }
 
 
     // ✅ NEUE VIEW: Gesamtdauer + Play

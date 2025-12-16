@@ -9,28 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct ExercisesSection: View {
-    @EnvironmentObject var appState: AppState
-
-    @State private var selectedScheduleId: UUID?  // ← NEU!
-    @State private var showVideoPlayer = false  // ← NEU!
-    @State private var selectedVideoForPlayer: Video?  // ← NEU!
-    @State private var editingScheduleId: UUID?  // ← Für EDIT!
-    @State private var isEditingMode = false
-    @State private var activeSheet: SheetType?
-    @State private var selectedVideoForConfig: Video?
-    @State private var playbackSettings = PlaybackSettings()
-    
     @EnvironmentObject var progressVM: ProgressViewModel
-    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
-    @EnvironmentObject var settingsVM: SettingsViewModel
     
-    enum SheetType: Identifiable {
-        case
-        library,
-        profile,
-        settings
-        var id: Self { self }
-    }
+    // NUR CALLBACKS nach oben!
+    let onToggleCompletion: (VideoSchedule) -> Void
+    let onDelete: (VideoSchedule) -> Void
+    let onConfig: (VideoSchedule) -> Void
+    let onPlay: (VideoSchedule, Video) -> Void
+    let onAddVideo: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -41,25 +27,16 @@ struct ExercisesSection: View {
                     schedule: schedule,
                     video: video,
                     onToggleCompletion: {
-                        progressVM.toggleCompletion(schedule, for: appState.currentUser)
+                        onToggleCompletion(schedule)  // ← CALLBACK statt direkt!
                     },
                     onDelete: {
-                        progressVM.removeSchedule(schedule, for: appState.currentUser)
+                        onDelete(schedule)  // ← CALLBACK!
                     },
-                    
                     onConfig: {
-                        editingScheduleId = schedule.id
-                        selectedVideoForConfig = video
-                        playbackSettings = PlaybackSettings(
-                            repetitions: schedule.effectiveRepetitions,
-                            pauseSeconds: schedule.effectivePauseSeconds,
-                            loopDurationSeconds: schedule.effectiveLoopDurationSeconds
-                        )
+                        onConfig(schedule)  // ← CALLBACK!
                     },
-                    onPlay: { video in  // ← VIDEO empfangen!
-                        selectedVideoForPlayer = video
-                        selectedScheduleId = schedule.id  // ← Schedule merken!
-                        showVideoPlayer = true
+                    onPlay: { video in
+                        onPlay(schedule, video)  // ← CALLBACK!
                     }
                 )
                 Divider()
@@ -67,7 +44,7 @@ struct ExercisesSection: View {
             
             if progressVM.canAddMoreVideos {
                 Button {
-                    activeSheet = .library
+                    onAddVideo()  // ← CALLBACK!
                 } label: {
                     Label("Video hinzufügen", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
@@ -81,4 +58,3 @@ struct ExercisesSection: View {
         }
     }
 }
-
