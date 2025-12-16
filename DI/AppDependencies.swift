@@ -112,31 +112,36 @@ class AppDependencies {
     // MARK: - Core
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    let authService: AuthServiceProtocol  // ← NEU!
+    let authService: AuthServiceProtocol
+ 
+    
     
     // MARK: - AppState (LAZY)
-    // LAZY - jetzt korrekt!
        lazy var appState = AppState(
-           modelContext: modelContext,  // ✅
-           authService: authService     // ✅
+           modelContext: modelContext,
+           authService: authService
        )
+    
+    
+    
+    // MARK: - Services
+    let emailParser: EmailParserService
+    let emailService: EmailService
+    
     
     
     // MARK: - Repositories (LAZY)
     lazy var appointmentRepository = AppointmentRepository(modelContext: modelContext)
     lazy var videoRepository = VideoRepository(modelContext: modelContext)
     
-    // MARK: - Services
-    let emailParser: EmailParserService
-    let emailService: EmailService
+
     
-    // MARK: - UseCases (LAZY)
+    // MARK: - AppointmentUseCases (LAZY)
     lazy var addAppointmentUseCase = AddAppointmentUseCase(repository: appointmentRepository)
     lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(repository: appointmentRepository)
     lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
         repository: appointmentRepository,
-        emailService: emailService
-    )
+        emailService: emailService)
     lazy var parseEmailUseCase = ParseEmailUseCase(parser: emailParser)
     lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(repository: appointmentRepository)
     lazy var markAsNotifiedUseCase = MarkAsNotifiedUseCase(repository: appointmentRepository)
@@ -147,7 +152,16 @@ class AppDependencies {
         detectChangesUseCase: detectAppointmentChangesUseCase
     )
     
+    
+    
+    
+    
+    
     // MARK: - ViewModels (LAZY)
+    
+    lazy var addAppointmentViewModel = AddAppointmentViewModel(appointmentViewModel: appointmentViewModel)
+    
+    
     lazy var appointmentViewModel = AppointmentViewModel(
         repository: appointmentRepository,
         emailParser: emailParser,
@@ -162,17 +176,25 @@ class AppDependencies {
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
     
-    // MARK: - ViewModels (LAZY)
-       lazy var videoLibraryVM = VideoLibraryViewModel(
+    lazy var calendarViewModel = CalendarViewModel()
+    
+    lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
+    
+    lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext)
+    
+    lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
+    
+    lazy var trainingViewModel = TrainingViewModel()
+    
+    lazy var videoLibraryVM = VideoLibraryViewModel(
            repository: videoRepository,  // ✅ Jetzt passt es!
            storageService: VideoStorageService.shared
        )
-    // 🔥 NEU HINZUFÜGEN:
-       lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
-       lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext)
-       lazy var calendarViewModel = CalendarViewModel()
-       lazy var trainingViewModel = TrainingViewModel()
-       lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
+
+  
+
+
+    
 
     
     private init() {
