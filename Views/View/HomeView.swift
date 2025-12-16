@@ -3,7 +3,7 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    let user: User
+    @EnvironmentObject var appState: AppState
 
     @State private var selectedScheduleId: UUID?  // ← NEU!
     @State private var showVideoPlayer = false  // ← NEU!
@@ -64,21 +64,24 @@ struct HomeView: View {
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .settings:
-                    SettingsView(user: user) // ← user Parameter
+                    SettingsView() // ← user Parameter
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {  // ← WICHTIG!
-                            progressVM.loadToday(for: user)  // ← REFRESH!
+                            if let user = appState.currentUser {
+                            progressVM.loadToday(for: user)
+                                           }
                         }
                 case .profile:
                     ProfileView()
                 case .library:
                     LibraryView(
-                        currentUser: user,
+                        
                         repository: videoLibraryVM.repository,
                         onVideoSelected: { video in
-                                       // Direkt adden OHNE Config!
-                                       progressVM.addVideo(video, for: user)
+                                      if let user = appState.currentUser {
+                                          progressVM.addVideo(video, for: user)
+                                      }
                                        activeSheet = nil
                             
 
@@ -132,8 +135,9 @@ struct HomeView: View {
                             
                             print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
                             
-                            // Deine ursprüngliche Methode
-                            progressVM.updateSchedule(schedule, for: user)
+                            if let user = appState.currentUser {
+                                progressVM.updateSchedule(schedule, for: user)
+                            }
                         }
            
                         selectedVideoForConfig = nil
@@ -158,12 +162,11 @@ struct HomeView: View {
                 }
             }
 
-
-
-         
-        .onAppear {
-            progressVM.loadToday(for: user)
-        }
+            .onAppear {
+                if let user = appState.currentUser {
+                    progressVM.loadToday(for: user)  // ← Safe unwrap!
+                }
+            }
     }
     
     // MARK: - Fortschrittsring
@@ -248,10 +251,14 @@ struct HomeView: View {
                     schedule: schedule,
                     video: video,
                     onToggleCompletion: {
-                        progressVM.toggleCompletion(schedule, for: user)
+                        if let user = appState.currentUser {
+                            progressVM.toggleCompletion(schedule, for: user)
+                        }
                     },
                     onDelete: {
-                        progressVM.removeSchedule(schedule, for: user)
+                        if let user = appState.currentUser {
+                            progressVM.removeSchedule(schedule, for: user)
+                        }
                     },
                     onConfig: {
                         editingScheduleId = schedule.id
@@ -352,21 +359,11 @@ struct HomeView: View {
 }
 #Preview("HomeView") {
     let container = PreviewHelper.createModelContainer()
-    let context = ModelContext(container)
+    let appState = AppState(modelContext: container.mainContext, authService: MockAuthService())
     
-    let mockUser = MockAuthService.mockPatient
-    let progressVM = ProgressViewModel(modelContext: context)
-    let videoLibraryVM = VideoLibraryViewModel(repository: VideoRepositoryMock())
-    let settingsVM = SettingsViewModel(modelContext: context)
-    
-    // ✅ AppState OHNE currentUser setzen!
-    let appState = AppState(modelContext: context, authService: MockAuthService())
-    
-    HomeView(user: mockUser)  // ← NUR user-Parameter!
+    HomeView()  // ← Kein user Parameter!
         .modelContainer(container)
-        .environmentObject(progressVM)
-        .environmentObject(videoLibraryVM)
-        .environmentObject(settingsVM)
         .environmentObject(appState)
-        .environmentObject(TrainingData(weeklySettings: WeeklySettings()))
+        // mockUser LÖSCHEN!
 }
+

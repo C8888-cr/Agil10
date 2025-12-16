@@ -3,7 +3,9 @@ import SwiftUI
 import SwiftData
 
 struct AppointmentView: View {
-  
+    @EnvironmentObject var appState: AppState
+    
+    
     @State private var viewModel: AppointmentViewModel
     @State private var showingManualEntry = false
     @State private var showingEmailImport = false
@@ -16,12 +18,12 @@ struct AppointmentView: View {
     
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var settingsVM: SettingsViewModel
-    let currentUser: User
+
     
     // ✅ CLEAN: ViewModel wird von außen übergeben
-    init(viewModel: AppointmentViewModel, currentUser: User) {
+    init(viewModel: AppointmentViewModel) {
         _viewModel = State(initialValue: viewModel)
-        self.currentUser = currentUser
+       
     }
     
     var body: some View {
@@ -75,9 +77,10 @@ struct AppointmentView: View {
                     ProfileView()
                 }
                 .sheet(isPresented: $showSettings) {
-                    SettingsView(user: currentUser)  // oder settingsVM.user falls verfügbar
+                    SettingsView()
                         .environmentObject(settingsVM)  // falls SettingsView das braucht
                         .environment(\.modelContext, modelContext)
+                    
                     
                 }
             }
@@ -305,20 +308,14 @@ private var toolbarContent: some ToolbarContent {
 }
 // MARK: - Preview
 #Preview {
-    
     let container = PreviewHelper.createModelContainer()
-    
-    let testUser = User(
-        id: UUID(),
-        email: "test@example.com",
-        passwordHash: "hashedPassword123"
-    )
-    
     let settingsVM = SettingsViewModel(modelContext: container.mainContext)
+    let appState = AppState(modelContext: container.mainContext, authService: MockAuthService())
     
-    
-    AppointmentView(
-        viewModel: PreviewHelper.createAppointmentViewModel(), currentUser: testUser)
-    .modelContainer(container)
-    .environmentObject(settingsVM)
+    AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())
+        .modelContainer(container)
+        .environmentObject(settingsVM)  // ← DEFINIERT!
+        .environmentObject(appState)
 }
+
+

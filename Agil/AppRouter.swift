@@ -16,8 +16,8 @@ struct AppRouter: View {
         Group {
             if appState.isLoading {
                 LoadingView()
-            } else if let user = appState.currentUser {
-                ContentView(user: user)  // ← TABS mit User!
+            } else if appState.currentUser != nil {
+                ContentView()  // ← TABS mit User!
             } else {
                 LoginView(authService: AppDependencies.shared.authService)
             }

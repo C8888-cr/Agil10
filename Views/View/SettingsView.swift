@@ -5,12 +5,15 @@
 import SwiftUI
 import SwiftData
 struct SettingsView: View {
+    
+    @EnvironmentObject var appState: AppState
+    
     @EnvironmentObject var settingsVM: SettingsViewModel
     @State private var showResetAlert = false
     @State private var selectedDay: Int = 0
     @State private var currentDayGoal: DayGoal?
     
-    let user: User
+
     @Environment(\.modelContext) var modelContext
     
     var body: some View {
@@ -293,7 +296,7 @@ enum WeekDay: String, CaseIterable, Identifiable {
     }
 }
 #Preview {
-    SettingsView(user: User(email: "test@test.com", passwordHash: "123"))
+    SettingsView()
         .environmentObject(SettingsViewModel(
             modelContext: ModelContext(
                 try! ModelContainer(

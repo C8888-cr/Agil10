@@ -3,6 +3,10 @@ import SwiftUI
 import PhotosUI
 import SwiftData
 struct LibraryView: View {
+    
+    @EnvironmentObject var appState: AppState
+    
+    
     @State private var showPlayer = false
     @State private var showFilterSheet = false
     @State private var selectedVideo: Video?
@@ -14,13 +18,11 @@ struct LibraryView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
-    let currentUser: User
+
     var onVideoSelected: ((Video) -> Void)? = nil
     
-    init(currentUser: User,
-         repository: VideoRepositoryProtocol,
+    init(repository: VideoRepositoryProtocol,
          onVideoSelected: ((Video) -> Void)? = nil) {
-        self.currentUser = currentUser
         self.onVideoSelected = onVideoSelected
         _viewModel = StateObject(wrappedValue: VideoLibraryViewModel(repository: repository))
     }
@@ -58,7 +60,7 @@ struct LibraryView: View {
                 FilterSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $viewModel.showUploadSheet) {
-                VideoUploadSheet(viewModel: viewModel, user: currentUser)
+                VideoUploadSheet(viewModel: viewModel)
             }
             .alert("Fehler", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) {}
@@ -78,17 +80,17 @@ struct LibraryView: View {
                 print("🔍 Task gestartet")
                 await DatabaseHealthService.shared.performHealthCheck(context: modelContext)
                 print("✅ Health Check fertig")
-                viewModel.setup(user: currentUser)
+                viewModel.setup()
             }
             .onAppear {
                 print("🔍 VideoLibraryView onAppear - User: \(currentUser.id)")
-                viewModel.setup(user: currentUser)
+                viewModel.setup()
             }
             .sheet(isPresented: $showProfile) {
                    ProfileView()
                }
                .sheet(isPresented: $showSettings) {
-                   SettingsView(user: currentUser)  // oder settingsVM.user falls verfügbar
+                   SettingsView()  // oder settingsVM.user falls verfügbar
                        .environmentObject(settingsVM)  // falls SettingsView das braucht
                        .environment(\.modelContext, modelContext)
                
@@ -345,7 +347,7 @@ struct FilterChip: View {
     let settingsVM = SettingsViewModel(modelContext: context)
  
                                        
-    LibraryView(currentUser: testUser, repository: VideoRepository(modelContext: context))
+    LibraryView(repository: VideoRepository(modelContext: context))
       
     .modelContainer(container)
     .environmentObject(settingsVM)

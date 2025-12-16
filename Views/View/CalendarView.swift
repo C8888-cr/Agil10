@@ -9,13 +9,17 @@ import SwiftUI
 import SwiftData
 
 struct CalendarView: View {
+    
+    @EnvironmentObject var appState: AppState
+    
+    
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var trainingViewModel: TrainingViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
     
-    let currentUser: User
+
     
     @State private var showFilterSheet = false
     @State private var selectedVideo: Video?
@@ -31,10 +35,8 @@ struct CalendarView: View {
     
     var onVideoSelected: ((Video) -> Void)? = nil
     
-    init(currentUser: User,
-         repository: VideoRepositoryProtocol,
+    init(repository: VideoRepositoryProtocol,
          onVideoSelected: ((Video) -> Void)? = nil) {
-             self.currentUser = currentUser
         self.onVideoSelected = onVideoSelected
         
     }
@@ -83,7 +85,7 @@ struct CalendarView: View {
                        ProfileView()
                    }
                    .sheet(isPresented: $showSettings) {
-                       SettingsView(user: currentUser)  // oder settingsVM.user falls verfügbar
+                       SettingsView()  // oder settingsVM.user falls verfügbar
                            .environmentObject(settingsVM)  // falls SettingsView das braucht
                            .environment(\.modelContext, modelContext)
                    }
@@ -126,17 +128,11 @@ struct CalendarView: View {
 #Preview("CalendarView") {
     let container = PreviewHelper.createModelContainer()
     let context = ModelContext(container)
-    
-    let testUser = User(
-        id: UUID(),
-        email: "test@example.com",
-        passwordHash: "1234"
-    )
+
     let settingsVM = SettingsViewModel( modelContext: context)
-    
+    let appState = AppState(modelContext: context, authService: MockAuthService())
     
     CalendarView(
-        currentUser: testUser,
         repository: PreviewHelper.createVideoRepository() // ✅ NEUER HELPER
     )
     .environmentObject(PreviewHelper.createAppointmentViewModel())
@@ -145,4 +141,6 @@ struct CalendarView: View {
     .environmentObject(VideoLibraryViewModel(repository: PreviewHelper.createVideoRepository()))
     .modelContainer(container)
     .environmentObject(settingsVM)
+    .modelContainer(container)
+    .environmentObject(appState)
 }
