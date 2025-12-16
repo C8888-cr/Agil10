@@ -26,7 +26,9 @@ struct ForgotPasswordView: View {
     
     @Environment(\.dismiss) var dismiss
     
-    let authService: MockAuthService
+    
+    let authService: AuthServiceProtocol  // ✅ Protocol!
+
     
     enum ResetStep {
         case enterEmail

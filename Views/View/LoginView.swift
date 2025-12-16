@@ -11,9 +11,10 @@
 //  Agil9.0
 //
 import SwiftUI
+import SwiftData
 struct LoginView: View {
     @EnvironmentObject var appState: AppState  // ← HINZUFÜGEN
-    @Binding var loggedInUser: User?
+
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
@@ -21,7 +22,7 @@ struct LoginView: View {
     @State private var showSignUp = false
     @State private var showLoading = false
     
-    let authService: MockAuthService
+    let authService: AuthServiceProtocol
     
     var body: some View {
         ZStack {
@@ -179,7 +180,7 @@ struct LoginView: View {
                             SignUpView(
                                 authService: authService,
                                 onSignUpSuccess: { user, token in
-                                    loggedInUser = user
+                                    appState.currentUser = user  // ✅ AppState!
                                 }
                             )
                         }
@@ -245,8 +246,9 @@ struct LoginView: View {
     }
 }
 #Preview {
-    LoginView(
-        loggedInUser: .constant(nil),
-        authService: MockAuthService()
-    )
+    let container = PreviewHelper.createModelContainer()
+    LoginView(authService: MockAuthService())
+        .environmentObject(AppState(modelContext: container.mainContext, authService: MockAuthService()))
 }
+
+

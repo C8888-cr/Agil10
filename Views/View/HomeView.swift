@@ -3,14 +3,21 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    
-    @EnvironmentObject var appState: AppState  // ← HINZUFÜGEN!
-    @State private var selectedScheduleId: UUID?  // ← NEU!
+    let user: User
 
+    @State private var selectedScheduleId: UUID?  // ← NEU!
     @State private var showVideoPlayer = false  // ← NEU!
     @State private var selectedVideoForPlayer: Video?  // ← NEU!
-
+    @State private var editingScheduleId: UUID?  // ← Für EDIT!
+    @State private var isEditingMode = false
+    @State private var activeSheet: SheetType?
+    @State private var selectedVideoForConfig: Video?
+    @State private var playbackSettings = PlaybackSettings()
     
+    @EnvironmentObject var progressVM: ProgressViewModel
+    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
+    @EnvironmentObject var settingsVM: SettingsViewModel
+
     enum SheetType: Identifiable {
         case
         library,
@@ -18,25 +25,9 @@ struct HomeView: View {
         settings
         var id: Self { self }
     }
-    @State private var editingScheduleId: UUID?  // ← Für EDIT!
-    @State private var isEditingMode = false 
-    @State private var activeSheet: SheetType?
-    
-    @EnvironmentObject var progressVM: ProgressViewModel
-    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
-    @EnvironmentObject var settingsVM: SettingsViewModel
-    @Environment(\.modelContext) private var modelContext
-    
 
     
-    @State private var selectedVideoForConfig: Video?
-    @State private var playbackSettings = PlaybackSettings()
     
-    
-    // ✅ COMPUTED PROPERTY - immer verfügbar!
-       private var currentUser: User {
-           appState.currentUser!
-       }
     
     var body: some View {
      
@@ -73,21 +64,21 @@ struct HomeView: View {
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .settings:
-                    SettingsView(user: currentUser) // ← user Parameter
+                    SettingsView(user: user) // ← user Parameter
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {  // ← WICHTIG!
-                            progressVM.loadToday(for: currentUser)  // ← REFRESH!
+                            progressVM.loadToday(for: user)  // ← REFRESH!
                         }
                 case .profile:
                     ProfileView()
                 case .library:
                     LibraryView(
-                        currentUser: currentUser,
+                        currentUser: user,
                         repository: videoLibraryVM.repository,
                         onVideoSelected: { video in
                                        // Direkt adden OHNE Config!
-                                       progressVM.addVideo(video, for: currentUser)
+                                       progressVM.addVideo(video, for: user)
                                        activeSheet = nil
                             
 
@@ -142,7 +133,7 @@ struct HomeView: View {
                             print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
                             
                             // Deine ursprüngliche Methode
-                            progressVM.updateSchedule(schedule, for: currentUser)
+                            progressVM.updateSchedule(schedule, for: user)
                         }
            
                         selectedVideoForConfig = nil
@@ -171,7 +162,7 @@ struct HomeView: View {
 
          
         .onAppear {
-            progressVM.loadToday(for: currentUser)
+            progressVM.loadToday(for: user)
         }
     }
     
@@ -257,10 +248,10 @@ struct HomeView: View {
                     schedule: schedule,
                     video: video,
                     onToggleCompletion: {
-                        progressVM.toggleCompletion(schedule, for: currentUser)
+                        progressVM.toggleCompletion(schedule, for: user)
                     },
                     onDelete: {
-                        progressVM.removeSchedule(schedule, for: currentUser)
+                        progressVM.removeSchedule(schedule, for: user)
                     },
                     onConfig: {
                         editingScheduleId = schedule.id
@@ -363,16 +354,19 @@ struct HomeView: View {
     let container = PreviewHelper.createModelContainer()
     let context = ModelContext(container)
     
+    let mockUser = MockAuthService.mockPatient
     let progressVM = ProgressViewModel(modelContext: context)
     let videoLibraryVM = VideoLibraryViewModel(repository: VideoRepositoryMock())
     let settingsVM = SettingsViewModel(modelContext: context)
-    let appState = AppState(modelContext: context)  // ← NEU!
-  
-    HomeView()  // ✅ KEIN Parameter!
+    
+    // ✅ AppState OHNE currentUser setzen!
+    let appState = AppState(modelContext: context, authService: MockAuthService())
+    
+    HomeView(user: mockUser)  // ← NUR user-Parameter!
         .modelContainer(container)
         .environmentObject(progressVM)
         .environmentObject(videoLibraryVM)
         .environmentObject(settingsVM)
-        .environmentObject(appState)  // ✅ NEU!
+        .environmentObject(appState)
         .environmentObject(TrainingData(weeklySettings: WeeklySettings()))
 }

@@ -3,29 +3,27 @@ import SwiftData
 import Foundation
 
 struct ContentView: View {
-    @EnvironmentObject var appointmentViewModel: AppointmentViewModel
-    @EnvironmentObject var trainingVM: TrainingViewModel
-    @EnvironmentObject var settingsVM: SettingsViewModel
-    @EnvironmentObject var calVM: CalendarViewModel
-    @EnvironmentObject var progressVM: ProgressViewModel
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
+    let user: User  // ← PARAMETER!
     
     var body: some View {
-        if let currentUser = appState.currentUser {  // ← currentUser verfügbar!
+
             TabView {
                 NavigationStack {
-                    HomeView()  // ✅ KEIN Parameter!
+                    HomeView(user: user)
+                        .environmentObject(AppDependencies.shared.progressViewModel)
+                        .environmentObject(AppDependencies.shared.videoLibraryVM)
+                        .environmentObject(AppDependencies.shared.settingsViewModel)
                 }
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 
                 NavigationStack {
-                    AppointmentView(viewModel: appointmentViewModel, currentUser: currentUser)
+                    AppointmentView(viewModel: AppDependencies.shared.appointmentViewModel,
+                    currentUser: user)
                 }
                 .tabItem { Label("Appointments", systemImage: "person.fill") }
                 
                 NavigationStack {
-                    CalendarView(currentUser: currentUser, repository: videoLibraryVM.repository)
+                    CalendarView(currentUser: user, repository: AppDependencies.shared.videoRepository)
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
                 
@@ -35,12 +33,10 @@ struct ContentView: View {
                 .tabItem { Label("Progress", systemImage: "chart.bar.xaxis") }
                 
                 NavigationStack {
-                    LibraryView(currentUser: currentUser, repository: videoLibraryVM.repository)
+                    LibraryView(currentUser: user, repository: AppDependencies.shared.videoRepository)
                 }
                 .tabItem { Label("Library", systemImage: "book.fill") }
             }
-        } else {
-            LoginView(loggedInUser: .constant(nil), authService: MockAuthService())
-        }
+        
     }
 }

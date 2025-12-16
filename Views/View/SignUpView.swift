@@ -29,10 +29,11 @@ struct SignUpView: View {
     
     @Environment(\.dismiss) var dismiss
     
-    let authService: MockAuthService
+    let authService: AuthServiceProtocol  // ✅ Protocol!
+
     let onSignUpSuccess: (User, String) -> Void
     
-    init(authService: MockAuthService, onSignUpSuccess: @escaping (User, String) -> Void) {
+    init(authService: AuthServiceProtocol, onSignUpSuccess: @escaping (User, String) -> Void) {
            self.authService = authService
            self.onSignUpSuccess = onSignUpSuccess
        }

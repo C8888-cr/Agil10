@@ -162,6 +162,19 @@ class AppDependencies {
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
     
+    // MARK: - ViewModels (LAZY)
+       lazy var videoLibraryVM = VideoLibraryViewModel(
+           repository: videoRepository,  // ✅ Jetzt passt es!
+           storageService: VideoStorageService.shared
+       )
+    // 🔥 NEU HINZUFÜGEN:
+       lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
+       lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext)
+       lazy var calendarViewModel = CalendarViewModel()
+       lazy var trainingViewModel = TrainingViewModel()
+       lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
+
+    
     private init() {
         // 1. AUTH SWITCH (Oben!)
         #if DEBUG
