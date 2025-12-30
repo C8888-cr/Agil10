@@ -17,11 +17,10 @@ import SwiftData
      @EnvironmentObject var appointmentViewModel: AppointmentViewModel
      @EnvironmentObject var progressVM: ProgressViewModel
      
-     // ✅ HEUTIGES Ziel aus SettingsVM holen
-         private var todaysTargetMinutes: Int {
-             // ProgressVM holt es schon aus SettingsVM → direkt nutzen!
-             return max(1, progressVM.totalScheduledMinutes + progressVM.remainingMinutes)
-         }
+     // ✅ Berechne Ziel aus ProgressVM-Werten
+        private var todaysTargetMinutes: Int {
+            progressVM.totalScheduledMinutes + progressVM.remainingMinutes
+        }
      
      var body: some View {
          VStack(spacing: 16) {
@@ -239,7 +238,12 @@ import SwiftData
      }
  }
 #Preview {
+    let deps = AppDependencies.shared  // ✅ Nimm einfach die echte Dependency!
+    
     DailyProgressCard()
-        .environmentObject(TrainingData(weeklySettings: WeeklySettings()))
+        .environmentObject(deps.trainingData)
         .environmentObject(WeeklySettings())
+        .environmentObject(deps.progressViewModel)
+        .environmentObject(deps.appointmentViewModel)  // ✅ Aus AppDependencies!
+        .modelContainer(deps.modelContainer)
 }

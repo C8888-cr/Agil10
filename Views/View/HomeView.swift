@@ -63,7 +63,7 @@ struct HomeView: View {
                        
                     // Restzeit
                     if progressVM.remainingMinutes > 0 {
-                        remainingTimeCard
+                        RemainingTimeCard(remainingMinutes: progressVM.remainingMinutes)
                     }
                 }
                 .padding()
@@ -181,15 +181,4 @@ struct HomeView: View {
     }
 
 
-    // MARK: - Restzeit
-    private var remainingTimeCard: some View {
-        HStack {
-            Image(systemName: "clock")
-            Text("Noch \(progressVM.remainingMinutes) Minuten übrig")
-            Spacer()
-        }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(12)
-    }
 }

@@ -6,7 +6,7 @@ import Combine
 @MainActor
 class ProgressViewModel: ObservableObject {
     // MARK: - Published Properties
-    
+    @Published var targetMinutes: Int = 0
     @Published var todaysSchedules: [VideoSchedule] = []
     @Published var isLoading = false
     @Published var error: Error?
@@ -22,6 +22,14 @@ class ProgressViewModel: ObservableObject {
     // ✅ NEU: Video Watch Progress
        @Published var videoProgressMap: [String: Double] = [:]
        
+    @Published var selectedDate: Date = Date()  // ✅ Default = heute
+    // ✅ Computed Property für selected day index
+    var selectedDayIndex: Int {
+        let calendar = Calendar.current
+        let firstWeekday = calendar.firstWeekday
+        let rawWeekday = calendar.component(.weekday, from: selectedDate)  // ✅
+        return (rawWeekday - firstWeekday + 7) % 7
+    }
     
     // State
     @Published var canAddMoreVideos: Bool = true
@@ -32,15 +40,19 @@ class ProgressViewModel: ObservableObject {
     private let modelContext: ModelContext
 
     private let calendar = Calendar.current
+    
+    // ✅ NEU: Combine für Debounce
+      private var cancellables = Set<AnyCancellable>()
+      private var debounceSubject = PassthroughSubject<Void, Never>()
 
     
     // ✅ AuthService aus AppDependencies holen
-       private var authService: AuthService {
+      var authService: AuthService {
            AppDependencies.shared.authService
        }
        
        // ✅ Dann currentUser daraus holen
-       private var currentUser: User? {
+       var currentUser: User? {
            authService.currentUser
        }
     
@@ -56,26 +68,34 @@ class ProgressViewModel: ObservableObject {
     }
     // ✅ Eigene Funktion (ist automatisch @MainActor weil class ist @MainActor)
     private func setupPreferencesObserver() {
-        NotificationCenter.default.addObserver(
-            forName: .preferencesDidChange,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
+        // ✅ Debounce: Gruppiert Notifications innerhalb 0.3s
+        debounceSubject
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
                 guard let self = self, let user = self.currentUser else { return }
-                print("🔔 Preferences changed - recalculating progress...")
+                print("🔔 [DEBOUNCED] Preferences changed - recalculating...")
                 self.calculateProgress(for: user)
             }
-        }
+            .store(in: &cancellables)
+        
+        // ✅ Notification empfangen → in debounce werfen
+        NotificationCenter.default.publisher(for: .preferencesDidChange)
+            .sink { [weak self] _ in
+                print("📨 Notification received (queuing for debounce)")
+                self?.debounceSubject.send()
+            }
+            .store(in: &cancellables)
     }
     // MARK: - Load Today's Data
     
-    func loadToday(for user: User) {
-
+    func loadToday(for user: User, date: Date? = nil) {
+        if let date = date {
+               selectedDate = date  // ✅ Setze ausgewähltes Datum
+           }
         isLoading = true
         
         do {
-            let today = calendar.startOfDay(for: Date())
+            let today = calendar.startOfDay(for: selectedDate)
             guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) else {
                 isLoading = false
                 return
@@ -83,6 +103,8 @@ class ProgressViewModel: ObservableObject {
             
             let userId = user.id
             print("🔍 Looking for schedules for userId: \(userId)")
+            print("📅 Target Date: \(today)")
+            
             
             let descriptor = FetchDescriptor<VideoSchedule>(
                 predicate: #Predicate<VideoSchedule> { schedule in
@@ -119,9 +141,9 @@ class ProgressViewModel: ObservableObject {
         print("🔄 Progress wird neu berechnet...")
         print("   Current User: \(user.email)")
         print("   User ID: \(user.id)")
+        print("   Selected Date: \(selectedDate)")  // ✅
         print("   ModelContext: \(ObjectIdentifier(modelContext))")
         
-        // ✅ LÖSUNG: Zuerst User AUS DEM CONTEXT holen!
         let userId = user.id
         let userDescriptor = FetchDescriptor<User>(
             predicate: #Predicate<User> { u in
@@ -140,12 +162,9 @@ class ProgressViewModel: ObservableObject {
         
         guard let preferences = userInContext.preferences else {
             print("⚠️ No preferences found for user")
-            
-            // Fallback: % der erledigten Videos
             let completedSchedules = todaysSchedules.filter { $0.isCompleted }
             dailyProgress = Double(completedSchedules.count) / Double(max(1, todaysSchedules.count))
             print("🎯 dailyProgress (no prefs): \(Int(dailyProgress * 100))%")
-            
             return
         }
         
@@ -153,20 +172,18 @@ class ProgressViewModel: ObservableObject {
         print("   - Preferences ID: \(preferences.id)")
         print("   - Goals count: \(preferences.weeklyGoals.count)")
         
-        // Rest deines Codes bleibt gleich...
-        let calendar = Calendar.current
-        let firstWeekday = calendar.firstWeekday
-        let rawWeekday = calendar.component(.weekday, from: Date())
-        let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+        // ✅ Nutze selectedDayIndex (wird AUS selectedDate berechnet!)
+        let todayDayOfWeek = selectedDayIndex
         
-        print("📅 RAW: \(rawWeekday), first: \(firstWeekday), Index: \(todayDayOfWeek)")
+        print("📅 Selected Day Index: \(todayDayOfWeek)")
         
         guard let todayGoal = preferences.getGoalFor(dayOfWeek: todayDayOfWeek) else {
-            print("⚠️ No goal for today (day \(todayDayOfWeek))")
+            print("⚠️ No goal for day \(todayDayOfWeek)")
             return
         }
         
         let targetMinutes = todayGoal.targetMinutes
+        self.targetMinutes = targetMinutes  
         let interVideoPause = todayGoal.interVideoPauseSeconds
         
         var totalSeconds = 0
