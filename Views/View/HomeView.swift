@@ -109,32 +109,7 @@ struct HomeView: View {
                         .environmentObject(settingsVM)
                     }
                     
-           /*     case .config:
-                    if let video = selectedVideoForConfig {
-                        NavigationStack {
-                            VideoScheduleConfigSheet(
-                                video: video,
-                                repetitions: $playbackSettings.repetitions,
-                                pauseSeconds: $playbackSettings.pauseSeconds,
-                                loopDuration: $playbackSettings.loopDurationSeconds, // ✅ Property ergänzt
-                                onAdd: {
-                                    print("➕ VIDEO HINZUFÜGEN: \(video.title)")
-                                    progressVM.addVideo(
-                                        video,
-                                        for: currentUser,
-                                        customRepetitions: playbackSettings.repetitions,  // ✅ Int
-                                        customPauseSeconds: playbackSettings.pauseSeconds // ✅ Int
-                                    )
-                                    activeSheet = nil
-                                    selectedVideoForConfig = nil
-                                },
-                                onCancel: {
-                                    activeSheet = nil
-                                    selectedVideoForConfig = nil
-                                }
-                        )
-                        }
-                    }*/
+        
                 }
         }
         
@@ -190,42 +165,6 @@ struct HomeView: View {
             
     }
     
-
-
-    // ✅ NEUE VIEW: Gesamtdauer + Play
-    private func totalDurationRow(for schedule: any PersistentModel, video: Video) -> some View {
-        HStack {
-            Image(systemName: "clock.fill")
-                .foregroundStyle(.accent)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Gesamt: \(calculateTotalDuration(schedule: schedule, video: video))")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                
-                Text("Konfigurieren")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-            
-            Button("⏯️ Abspielen") {
-                print("▶️ Player starten: \(video.title)")
-            }
-            .font(.caption)
-            .fontWeight(.semibold)
-            .foregroundStyle(.accent)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.accent.opacity(0.1))
-            .clipShape(Capsule())
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
 
     // ✅ SICHERE Dauer-Berechnung
     private func calculateTotalDuration(schedule: any PersistentModel, video: Video) -> String {
