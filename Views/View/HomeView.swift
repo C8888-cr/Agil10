@@ -96,17 +96,19 @@ struct HomeView: View {
                 case .profile:
                     ProfileView()
                 case .library:
-                    LibraryView()
-                    /*
-                        repository: AppDependencies.shared.videoRepository,
-                     
-                        onVideoSelected: { video in
-                            progressVM.addVideo(video, for: authService.currentUser!)  // ✅ Direkt!
-                            activeSheet = nil
-                        }
-                    )
-                    .environmentObject(authService)
-                     */
+                    NavigationStack {  // ✅ WICHTIG: NavigationStack!
+                        LibraryView(
+                            onVideoSelected: { video in
+                                print("🎬 HomeView: Video ausgewählt - \(video.title)")
+                                progressVM.addVideo(video, for: authService.currentUser!)
+                                activeSheet = nil
+                            }
+                        )
+                        .environmentObject(authService)
+                        .environmentObject(videoLibraryVM)
+                        .environmentObject(settingsVM)
+                    }
+                    
            /*     case .config:
                     if let video = selectedVideoForConfig {
                         NavigationStack {

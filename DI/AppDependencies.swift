@@ -1,17 +1,4 @@
-//
-//  AppDependencies.swift
-//  Agil
-//
-//  Created by Christiane Roth on 25.11.25.
-//
 
-
-//
-//  AppDependencies.swift
-//  Agil7.0
-//
-//  Created by Christiane Roth on 07.10.25.
-//
 
 // Core/DI/AppDependencies.swift
 import Foundation
@@ -28,11 +15,6 @@ class AppDependencies {
     let authService: AuthService//Protocol
  
 
-    
-
-    
-    
-    
     // MARK: - Services
     let emailParser: EmailParserService
     let emailService: EmailService
@@ -47,7 +29,21 @@ class AppDependencies {
     }
     
     
-    lazy var videoRepository = VideoRepository(modelContext: modelContext)
+    // ✅ NACHHER (computed property = immer gleicher Context!):
+    var videoRepository: VideoRepository {
+        VideoRepository(
+            modelContext: modelContext,  // ← IMMER der gleiche!
+            storageService: .shared,
+            thumbnailService: .shared
+        )
+    }
+    var videoLibraryVM: VideoLibraryViewModel {
+        VideoLibraryViewModel(
+            repository: videoRepository,
+            modelContext: modelContext,  // ← IMMER der gleiche!
+            storageService: .shared
+        )
+    }
     
 
     
@@ -101,10 +97,6 @@ class AppDependencies {
     
     lazy var trainingViewModel = TrainingViewModel()
     
-    lazy var videoLibraryVM = VideoLibraryViewModel(
-        repository: videoRepository,
-        storageService: VideoStorageService.shared
-    )
 
 
 

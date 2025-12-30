@@ -187,23 +187,72 @@ class ProgressViewModel: ObservableObject {
         customRepetitions: Int? = nil,
         customPauseSeconds: Int? = nil
     ) {
+        print("🔍 addVideo START")
+        print("   📹 Video: \(video.title) (ID: \(video.id))")
+        print("   👤 User: \(user.email) (ID: \(user.id))")
+        
+        // ✅ UUIDs in lokale Variablen speichern
+        let videoId = video.id
+        let userId = user.id
+        
+        // ✅ 1. Video im AKTUELLEN Context holen
+        let videoDescriptor = FetchDescriptor<Video>(
+            predicate: #Predicate<Video> { video in
+                video.id == videoId  // ✅ Lokale Variable verwenden!
+            }
+        )
+        
+        guard let videoInContext = try? modelContext.fetch(videoDescriptor).first else {
+            print("❌ Video nicht im Context gefunden!")
+            return
+        }
+        print("✅ Video found in context")
+        
+        // ✅ 2. User im AKTUELLEN Context holen
+        let userDescriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { user in
+                user.id == userId  // ✅ Lokale Variable verwenden!
+            }
+        )
+        
+        guard let userInContext = try? modelContext.fetch(userDescriptor).first else {
+            print("❌ User nicht im Context gefunden!")
+            return
+        }
+        print("✅ User found in context")
+        
+        // ✅ 3. Schedule mit Context-Objekten erstellen
         let nextIndex = (todaysSchedules.map { $0.orderIndex }.max() ?? -1) + 1
         
         let schedule = VideoSchedule(
             scheduledDate: Date(),
             orderIndex: nextIndex,
-            video: video,
+            video: videoInContext,           // ✅ Aus Context!
             customRepetitions: customRepetitions,
             customPauseSeconds: customPauseSeconds,
-            user: user
+            user: userInContext              // ✅ Aus Context!
         )
         
+        print("📦 Schedule erstellt: ID \(schedule.id), Index \(nextIndex)")
+        
         modelContext.insert(schedule)
+        print("✅ Schedule inserted in context")
         
         do {
             try modelContext.save()
-            loadToday(for: user)
+            print("✅ ✅ ✅ SCHEDULE SAVED SUCCESSFULLY!")
+            loadToday(for: userInContext)
+            
         } catch {
+            print("❌ ❌ ❌ SAVE FAILED!")
+            print("   Error: \(error.localizedDescription)")
+            
+            if let nsError = error as NSError? {
+                print("   Domain: \(nsError.domain)")
+                print("   Code: \(nsError.code)")
+                print("   UserInfo: \(nsError.userInfo)")
+            }
+            
             self.error = error
         }
     }

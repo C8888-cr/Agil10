@@ -10,6 +10,9 @@
 import Foundation
 import SwiftUI
 import PhotosUI
+import SwiftData
+
+
 @MainActor
 final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Published Properties
@@ -46,16 +49,16 @@ final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Dependencies
     let repository: VideoRepositoryProtocol
     private let storageService: VideoStorageService
-   
+    private let modelContext: ModelContext
     
     // MARK: - Init
     init(
            repository: VideoRepositoryProtocol,
-
+           modelContext: ModelContext,
            storageService: VideoStorageService = .shared
        ) {
            self.repository = repository
-    
+           self.modelContext = modelContext
            self.storageService = storageService
        }
     

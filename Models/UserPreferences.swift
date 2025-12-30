@@ -36,8 +36,19 @@ final class UserPreferences {
     
   
     var defaultDailyTrainingMinutes: Int
-    var activeDays: [String]
-
+    var activeDaysRaw: String = "Mo,Di,Mi,Do,Fr"
+ 
+    // ✅ Computed Property zum leichten Zugriff:
+      var activeDays: [String] {
+          get {
+              // String in Array umwandeln: "Mo,Di,Mi" → ["Mo", "Di", "Mi"]
+              activeDaysRaw.split(separator: ",").map(String.init)
+          }
+          set {
+              // Array in String umwandeln: ["Mo", "Di"] → "Mo,Di"
+              activeDaysRaw = newValue.joined(separator: ",")
+          }
+      }
     
     init(
         notificationsEnabled: Bool = true,
@@ -68,7 +79,9 @@ final class UserPreferences {
         self.weekStartsOnMonday = weekStartsOnMonday
  
         self.defaultDailyTrainingMinutes = defaultDailyTrainingMinutes
-        self.activeDays = activeDays ?? ["Mo","Di","Mi","Do","Fr"]
+        if let days = activeDays {
+                 self.activeDaysRaw = days.joined(separator: ",")
+             }
    
     }
     

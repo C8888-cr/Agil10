@@ -46,7 +46,7 @@ struct ContentView: View {
                 
                 NavigationStack {
                     LibraryView()
-                        .environmentObject(AppDependencies.shared.authService) 
+                        .environmentObject(AppDependencies.shared.authService)
                         .environmentObject(AppDependencies.shared.videoLibraryVM)
                         .environmentObject(AppDependencies.shared.settingsViewModel)
                 

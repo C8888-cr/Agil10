@@ -18,25 +18,37 @@ final class VideoRepository: VideoRepositoryProtocol {
     private let thumbnailService: ThumbnailGeneratorService
     
     // MARK: - Init
-    init(modelContext: ModelContext) {
+    init(
+        modelContext: ModelContext,
+        storageService: VideoStorageService,
+        thumbnailService: ThumbnailGeneratorService) {
         self.modelContext = modelContext
         self.storageService = VideoStorageService.shared
         self.thumbnailService = ThumbnailGeneratorService.shared
+            
+            print("🔧 VideoRepository init")
+            print("📦 ModelContext: \(modelContext)")
     }
     
     // MARK: - Fetch All Videos (Safe)
     func fetchAllVideos(for user: User) async throws -> [Video] {
-        print("🔍 fetchAllVideos for user email = \(user.email)")
-        print("🔍 uploadVideo for user email = \(user.email)")
+        print("🔍 fetchAllVideos for user: \(user.email) (ID: \(user.id))")
+        
+   
         // ✅ NO Predicate - fetch all and filter manually
         let descriptor = FetchDescriptor<Video>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         
         let allVideos = try modelContext.fetch(descriptor)
+        print("📦 Total videos in DB: \(allVideos.count)")
         
-        // ✅ Filter by user email manually
-        let userVideos = allVideos
+        // ✅ Filter by user relationship
+         let userVideos = allVideos.filter { video in
+             video.user?.id == user.id
+         }
+        print("👤 Videos for user \(user.email): \(userVideos.count)")
+        
         
         // ✅ Filter corrupted entries
         var validVideos: [Video] = []
@@ -61,7 +73,6 @@ final class VideoRepository: VideoRepositoryProtocol {
         return validVideos
     }
     
-    // MARK: - Upload Video
     func uploadVideo(
         from sourceURL: URL,
         title: String,
@@ -74,14 +85,52 @@ final class VideoRepository: VideoRepositoryProtocol {
         for user: User
     ) async throws -> Video {
         
+        print("🔍 uploadVideo START for user: \(user.email) (ID: \(user.id))")
+        
+        // ✅ WICHTIG: User im aktuellen Context holen!
+        let userInContext = await MainActor.run { () -> User? in
+            let descriptor = FetchDescriptor<User>()
+            
+            do {
+                let allUsers = try modelContext.fetch(descriptor)
+                let foundUser = allUsers.first(where: { $0.id == user.id })
+                
+                if let foundUser = foundUser {
+                    print("✅ User found in context: \(foundUser.email)")
+                    return foundUser
+                } else {
+                    print("❌ User NOT in context, inserting...")
+                    modelContext.insert(user)
+                    try modelContext.save()
+                    return user
+                }
+            } catch {
+                print("❌ Failed to fetch user: \(error)")
+                return nil
+            }
+        }
+        
+        guard let validUser = userInContext else {
+            throw NSError(
+                domain: "VideoRepository",
+                code: -2,
+                userInfo: [NSLocalizedDescriptionKey: "User nicht im Context gefunden"]
+            )
+        }
+        
         // 1. Save video file
+        print("📁 Saving video file...")
         let (fileName, fileSize, duration) = try await storageService.saveVideo(from: sourceURL)
+        print("✅ File saved: \(fileName), size: \(fileSize), duration: \(duration)")
         
         // 2. Generate thumbnail
+        print("🖼️ Generating thumbnail...")
         let videoURL = try storageService.getVideoURL(for: fileName)
         let thumbnailFileName = try await thumbnailService.generateThumbnail(from: videoURL)
+        print("✅ Thumbnail saved: \(thumbnailFileName)")
         
-        // 3. Create metadata
+        // 3. Create metadata mit VALIDEM User
+        print("📝 Creating Video object...")
         let metadata = Video(
             id: UUID(),
             title: title,
@@ -89,25 +138,61 @@ final class VideoRepository: VideoRepositoryProtocol {
             category: category,
             bodyRegion: bodyRegion,
             equipment: equipment,
-            durationSeconds: duration,
+            durationSeconds: Int(duration),
             fileSizeBytes: fileSize,
             defaultRepetitions: defaultRepetitions,
             defaultPauseSeconds: defaultPauseSeconds,
             loopDurationSeconds: loopDurationSeconds,
-         //   user: nil,
-         //   uploadedByTherapist: nil,
-       
+            user: validUser,  // ✅ User aus Context!
+            uploadedByTherapist: nil,
+            isWatched: false,
             rating: 0
         )
         
-        // Add thumbnail to metadata
         metadata.thumbnailFileName = thumbnailFileName
+        print("📦 Video created: \(metadata.title) for user: \(validUser.email)")
         
-        // 4. Save to database
-        modelContext.insert(metadata)
-        try modelContext.save()
+        // 4. Save on MainActor
+        await MainActor.run {
+            print("💾 [MainActor] Inserting...")
+            modelContext.insert(metadata)
+            
+            do {
+                print("💾 [MainActor] Saving...")
+                try modelContext.save()
+                print("✅ [MainActor] SAVED!")
+            } catch {
+                print("❌ [MainActor] Save failed: \(error)")
+            }
+        }
         
-        print("✅ Video uploaded: \(title)")
+        // 5. Verify
+        let verified = await MainActor.run { () -> Bool in
+            print("🔍 [MainActor] Verifying...")
+            modelContext.processPendingChanges()
+            
+            let descriptor = FetchDescriptor<Video>()
+            
+            do {
+                let allVideos = try modelContext.fetch(descriptor)
+                print("📊 [MainActor] Total videos: \(allVideos.count)")
+                
+                return allVideos.contains(where: { $0.id == metadata.id })
+            } catch {
+                print("❌ [MainActor] Verify failed: \(error)")
+                return false
+            }
+        }
+        
+        if !verified {
+            throw NSError(
+                domain: "VideoRepository",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Video nicht gespeichert"]
+            )
+        }
+        
+        print("✅ Upload complete: \(title)")
         return metadata
     }
     
