@@ -21,6 +21,19 @@ class AddAppointmentViewModel: ObservableObject {
     @Published var notes = ""
     @Published var showingLocationPicker = false
     
+    
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
+    
+    
+    
     private let appointmentViewModel: AppointmentViewModel
     
     init(appointmentViewModel: AppointmentViewModel) {
@@ -52,8 +65,10 @@ private func clearLocation() {
         locationAddress: locationAddress.isEmpty ? nil : locationAddress,
         locationLatitude: coordinate?.latitude,
         locationLongitude: coordinate?.longitude,
-        notes: notes.isEmpty ? nil : notes
-        // user: ist OPTIONAL - wird nicht angegeben!
+        notes: notes.isEmpty ? nil : notes,
+        userId: currentUser?.id ?? UUID(),
+        praxisId: currentUser?.praxisId ?? PraxisDataManager.praxis1Id
+      
     )
     
      await appointmentViewModel.addAppointment(appointment)

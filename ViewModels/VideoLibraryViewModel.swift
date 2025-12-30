@@ -46,37 +46,53 @@ final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Dependencies
     let repository: VideoRepositoryProtocol
     private let storageService: VideoStorageService
-    private let user: User
+   
     
     // MARK: - Init
     init(
            repository: VideoRepositoryProtocol,
-           user: User,
+
            storageService: VideoStorageService = .shared
        ) {
            self.repository = repository
-           self.user = user
+    
            self.storageService = storageService
        }
     
+    
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
+    
+    
+    
+    
+    
     // MARK: - Setup
-    func setup() {
+    func setup(for user: User) {
         print("🟢 START: Setup ViewModel")
      
         Task {
-            await loadVideos()
+            await loadVideos(for: user)
             updateStorageInfo()
         }
         print("✅ Setup abgeschlossen")
     }
     
     // MARK: - Load Videos
-    func loadVideos() async {
-        print("📱 loadVideos gestartet - isLoading = true")
-        isLoading = true
-        defer { isLoading = false }
-        
-        let user = self.user
+    func loadVideos(for user: User) async {
+          print("📱 Loading videos for user: \(user.email)")
+          isLoading = true
+          defer {
+              isLoading = false
+              print("📱 Loading complete: \(allVideos.count) videos")
+          }
         
         
         do {
@@ -175,13 +191,13 @@ final class VideoLibraryViewModel: ObservableObject {
     }
     
     // MARK: - Toggle Favorite
-    func toggleFavorite(_ video: Video) {
+    func toggleFavorite(_ video: Video, for user: User) async {
         Task {
             do {
                 // ✅ Check if video still exists
                 guard allVideos.contains(where: { $0.id == video.id }) else {
                     print("⚠️ Video not found in array")
-                    await loadVideos()
+                    await loadVideos(for: user)
                     return
                 }
                 
@@ -199,13 +215,13 @@ final class VideoLibraryViewModel: ObservableObject {
                 print("✅ Favorite toggled: \(video.title)")
             } catch {
                 print("❌ Toggle favorite error: \(error)")
-                await loadVideos()
+                await loadVideos(for: user)
             }
         }
     }
     
     // MARK: - Delete Video
-    func deleteVideo(_ video: Video) {
+    func deleteVideo(_ video: Video, for user: User) {
         Task {
             do {
                 // ✅ Erst aus UI entfernen
@@ -225,7 +241,7 @@ final class VideoLibraryViewModel: ObservableObject {
                 showError = true
                 
                 // ✅ Bei Fehler: Videos neu laden
-                await loadVideos()
+                await loadVideos(for: user)
             }
         }
     }

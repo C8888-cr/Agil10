@@ -31,7 +31,8 @@ final class UserPreferences {
     var weekStartsOnMonday: Bool
     
     // Relationship
-    var user: User?
+  
+  //  var user: User?
     
   
     var defaultDailyTrainingMinutes: Int
@@ -65,7 +66,7 @@ final class UserPreferences {
         self.autoPlayNextVideo = autoPlayNextVideo
         self.showCompletedExercises = showCompletedExercises
         self.weekStartsOnMonday = weekStartsOnMonday
-        self.user = user
+ 
         self.defaultDailyTrainingMinutes = defaultDailyTrainingMinutes
         self.activeDays = activeDays ?? ["Mo","Di","Mi","Do","Fr"]
    

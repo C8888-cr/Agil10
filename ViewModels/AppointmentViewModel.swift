@@ -3,10 +3,18 @@ import Foundation
 import SwiftData
 
 
-
+@MainActor
 class AppointmentViewModel: ObservableObject {
     
-
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
     // MARK: - Dependencies
     private let markAsNotifiedUseCase: MarkAsNotifiedUseCase
     private let parseEmailUseCase: ParseEmailUseCase
@@ -84,9 +92,21 @@ class AppointmentViewModel: ObservableObject {
         
         /// Email-Import
     func parseAppointmentsFromEmail(_ emailText: String) async {
+        // ✅ User prüfen
+          guard let user = currentUser else {
+              setError(.parsingFailed("Kein User eingeloggt"))
+              return
+          }
+        
+        
         isLoading = true
         do {
             let appointments = try await parseEmailUseCase.execute(emailText)  // ✅ [Appointment]
+            
+            // ✅ NEU: Allen Appointments User zuweisen
+            appointments.forEach { $0.userId = user.id }
+            
+            
             await loadAppointments()
             clearErrors()
             print("✅ Imported: \(appointments.count) appointments")  // ✅ FIX!
@@ -102,9 +122,13 @@ class AppointmentViewModel: ObservableObject {
     }
      /// Termine neu laden
      func loadAppointments() async {
+         guard let user = currentUser else {
+                appointments = []
+                return
+            }
          isLoading = true
          do {
-           appointments = try await loadAppointmentsUseCase.execute()
+             appointments = try await loadAppointmentsUseCase.execute(for: user)
              clearErrors()
          } catch let error as AppointmentError {
             setError(error)
@@ -116,6 +140,15 @@ class AppointmentViewModel: ObservableObject {
     
     /// Termin hinzufügen
        func addAppointment(_ appointment: Appointment) async {
+           // ✅ User prüfen
+            guard let user = currentUser else {
+                setError(.saveFailed("Kein User eingeloggt"))
+                return
+            }
+            
+            // ✅ NEU: User zuweisen
+           appointment.userId = user.id
+            
            do {
                try await addAppointmentUseCase.execute(appointment)
                await loadAppointments()

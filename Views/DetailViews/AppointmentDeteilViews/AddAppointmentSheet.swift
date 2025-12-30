@@ -17,6 +17,7 @@
 import SwiftUI
 import CoreLocation
 struct AddAppointmentSheet: View {
+    @EnvironmentObject var authService: AuthService
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: AppointmentViewModel
     
@@ -148,6 +149,10 @@ struct AddAppointmentSheet: View {
     }
     
     private func saveAppointment() async {
+        guard let user = authService.currentUser else {
+              print("❌ Kein User")
+              return
+          }
         let appointment = Appointment(
             date: date,
             therapist: therapist,
@@ -155,7 +160,9 @@ struct AddAppointmentSheet: View {
             locationAddress: locationAddress.isEmpty ? nil : locationAddress,
             locationLatitude: coordinate?.latitude,
             locationLongitude: coordinate?.longitude,
-            notes: notes.isEmpty ? nil : notes
+            notes: notes.isEmpty ? nil : notes,
+            userId: user.id,                           // ✅
+            praxisId: user.praxisId ?? UUID()   
             // user: ist OPTIONAL - wird nicht angegeben!
         )
         

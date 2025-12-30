@@ -8,7 +8,7 @@
 
 import SwiftData
 import Foundation
-enum UserRole: String, Codable {
+enum UserRole: String, Codable, Sendable {
     case patient
     case therapist
     case admin

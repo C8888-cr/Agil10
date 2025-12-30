@@ -8,6 +8,9 @@
 
 // Features/Appointments/Services/EmailParserService.swift
 import Foundation
+
+
+@MainActor
 class EmailParserService {
     func parseAppointments(from emailText: String) -> [Appointment] {
         print("\n📧 === EMAIL PARSING STARTED ===")
@@ -35,6 +38,16 @@ class EmailParserService {
         
         return parsedAppointments
     }
+    
+    private var currentUserId: UUID {
+        AppDependencies.shared.authService.currentUser?.id ?? UUID()
+    }
+
+    private var currentPraxisId: UUID {
+        AppDependencies.shared.authService.currentUser?.praxisId ??
+        PraxisDataManager.shared.praxen.first?.id ?? PraxisDataManager.praxis1Id
+    }
+
     
     // MARK: - Private Helper Methods
     
@@ -87,7 +100,10 @@ class EmailParserService {
         return Appointment(
             date: fullDate,
             therapist: therapist,
-            emailUID: emailHash
+            emailUID: emailHash,
+            userId: currentUserId,
+            praxisId: currentPraxisId
+   
         )
     }
     

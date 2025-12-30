@@ -3,7 +3,8 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var trainingData: TrainingData 
 
     @State private var selectedScheduleId: UUID?  // ← NEU!
     @State private var showVideoPlayer = false  // ← NEU!
@@ -39,10 +40,10 @@ struct HomeView: View {
                     // Liste der heutigen Videos
                     ExercisesSection(
                         onToggleCompletion: { schedule in
-                        progressVM.toggleCompletion(schedule, for: appState.currentUser)
+                        progressVM.toggleCompletion(schedule, for: authService.currentUser!)
                                    },
                         onDelete: { schedule in
-                                       progressVM.removeSchedule(schedule, for: appState.currentUser)
+                                       progressVM.removeSchedule(schedule, for: authService.currentUser!)
                                    },
                         onConfig: { schedule in
                                        editingScheduleId = schedule.id
@@ -89,21 +90,23 @@ struct HomeView: View {
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {
-                            progressVM.loadToday(for: appState.currentUser)
+                            progressVM.loadToday(for: authService.currentUser!)
                         }
                         
                 case .profile:
                     ProfileView()
                 case .library:
-                    LibraryView(
+                    LibraryView()
+                    /*
                         repository: AppDependencies.shared.videoRepository,
-                        user: appState.currentUser,  // ✅ Hinzufügen!
+                     
                         onVideoSelected: { video in
-                            progressVM.addVideo(video, for: appState.currentUser)  // ✅ Direkt!
+                            progressVM.addVideo(video, for: authService.currentUser!)  // ✅ Direkt!
                             activeSheet = nil
                         }
                     )
-
+                    .environmentObject(authService)
+                     */
            /*     case .config:
                     if let video = selectedVideoForConfig {
                         NavigationStack {
@@ -151,7 +154,7 @@ struct HomeView: View {
                             schedule.customLoopDurationSeconds = playbackSettings.loopDurationSeconds
                             
                             print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
-                            progressVM.updateSchedule(schedule, for: appState.currentUser)
+                            progressVM.updateSchedule(schedule, for: authService.currentUser!)
 
                         }
            
@@ -178,7 +181,8 @@ struct HomeView: View {
             }
 
             .onAppear {
-                progressVM.loadToday(for: appState.currentUser)
+                print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
+                progressVM.loadToday(for: authService.currentUser!)
             }
 
             
@@ -248,13 +252,3 @@ struct HomeView: View {
         .cornerRadius(12)
     }
 }
-#Preview("HomeView") {
-    let container = PreviewHelper.createModelContainer()
-    let appState = AppState(modelContext: container.mainContext, authService: MockAuthService())
-    
-    HomeView()  // ← Kein user Parameter!
-        .modelContainer(container)
-        .environmentObject(appState)
-        // mockUser LÖSCHEN!
-}
-

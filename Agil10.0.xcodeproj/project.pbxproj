@@ -95,6 +95,11 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		56C777B42EF7F1EE003C23A4 /* DTO */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DTO;
+			sourceTree = "<group>";
+		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Agil;
@@ -140,6 +145,7 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
+				56C777B42EF7F1EE003C23A4 /* DTO */,
 				56B377DB2EEDA95900CBA27E /* AgilData */,
 				56B377DE2EEDA95C00CBA27E /* DI */,
 				56B377F72EEDA96600CBA27E /* Helper */,
@@ -199,6 +205,7 @@
 				56B3785A2EEDA97C00CBA27E /* UseCases */,
 				56B3786C2EEDA97E00CBA27E /* ViewModels */,
 				56B378A12EEDA98000CBA27E /* Views */,
+				56C777B42EF7F1EE003C23A4 /* DTO */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 			);
 			name = Agil10.0;

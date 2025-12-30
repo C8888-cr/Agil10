@@ -3,7 +3,7 @@ import SwiftUI
 import SwiftData
 
 struct AppointmentView: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
     
     
     @State private var viewModel: AppointmentViewModel
@@ -310,12 +310,12 @@ private var toolbarContent: some ToolbarContent {
 #Preview {
     let container = PreviewHelper.createModelContainer()
     let settingsVM = SettingsViewModel(modelContext: container.mainContext)
-    let appState = AppState(modelContext: container.mainContext, authService: MockAuthService())
+   
     
     AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())
         .modelContainer(container)
         .environmentObject(settingsVM)  // ← DEFINIERT!
-        .environmentObject(appState)
+   
 }
 
 

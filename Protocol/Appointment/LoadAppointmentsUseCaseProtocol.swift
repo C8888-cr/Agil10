@@ -8,5 +8,5 @@
 
 import Foundation
 protocol LoadAppointmentsUseCaseProtocol {
-    func execute() async throws -> [Appointment]
+    func execute(for user: User) async throws -> [Appointment]
 }

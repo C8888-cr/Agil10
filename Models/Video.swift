@@ -28,7 +28,7 @@ final class Video: @unchecked Sendable {
     var defaultRepetitions: Int         // Standard-Wiederholungen
     var defaultPauseSeconds: Int        // Standard-Pause
     var loopDurationSeconds: Int        // Wie lange soll es in Dauerschleife laufen?
-    var userEmail: String?  // ✅ ADD THIS!
+
     // Favorit
     var isFavorite: Bool
     
@@ -126,9 +126,9 @@ final class Video: @unchecked Sendable {
         defaultRepetitions: Int = 1,
         defaultPauseSeconds: Int = 30,
         loopDurationSeconds: Int? = nil,
-    //    user: User? = nil,
-    //    uploadedByTherapist: User? = nil,
-        userEmail: String? = nil,
+        user: User? = nil,
+        uploadedByTherapist: User? = nil,
+     
         isWatched: Bool = false,
         rating: Int
     ) {
@@ -144,12 +144,12 @@ final class Video: @unchecked Sendable {
         self.defaultRepetitions = defaultRepetitions
         self.defaultPauseSeconds = defaultPauseSeconds
         self.loopDurationSeconds = loopDurationSeconds ?? durationSeconds
-        self.userEmail = userEmail ?? ""
+
         self.isFavorite = false
         self.createdAt = Date()
         self.lastUsedAt = nil
-    //    self.user = user
-    //    self.uploadedByTherapist = uploadedByTherapist
+        self.user = user
+        self.uploadedByTherapist = uploadedByTherapist
         self.isWatched = isWatched
         self.rating = rating
     }

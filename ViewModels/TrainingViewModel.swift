@@ -2,7 +2,7 @@
 import Foundation
 import SwiftUI
 
-
+@MainActor
 class TrainingViewModel: ObservableObject {
     @Published var weekPlan: [DayPlan] = []
     @Published var settings = WeeklySettings()
@@ -18,6 +18,18 @@ class TrainingViewModel: ObservableObject {
         setupWeekPlan()
         loadDateExercises()
     }
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
+    
+    
+    
     
     func setupWeekPlan() {
         let dayNames = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -38,7 +50,7 @@ class TrainingViewModel: ObservableObject {
                                defaultRepetitions: 1,
                                defaultPauseSeconds: 30,
                                loopDurationSeconds: 300,
-                               userEmail: "demo@example.com",
+                             
                                rating: 3
 
                            )

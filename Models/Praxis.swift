@@ -10,9 +10,10 @@ import SwiftData
 import Foundation
 import CoreLocation
 import MapKit
-@Model
-final class Praxis {
-    @Attribute(.unique) var id: Int
+
+final class Praxis: @unchecked Sendable {
+    // MARK: - Core Properties
+    var id: UUID  // ✅ UUID statt Int!
     var name: String
  //   var code: String              // Admin-vergeben
  //var imageName: String         // Asset-Name
@@ -30,10 +31,7 @@ final class Praxis {
       var telefon: String?
       var website: String?
     
-    // Relationships
-    @Relationship(deleteRule: .cascade) var therapists: [User]?
-    @Relationship(deleteRule: .cascade) var patients: [User]?
-    
+
     
     // Computed Properties
       var coordinate: CLLocationCoordinate2D? {
@@ -50,8 +48,8 @@ final class Praxis {
                 }
                 
                 init(
-                    id: Int,
-                  //  id: UUID = UUID(),
+           
+                    id: UUID = UUID(),
                     name: String,
                  //   code: String,
                 //    imageName: String = "agil_placeholder",

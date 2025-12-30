@@ -28,18 +28,26 @@ protocol AppointmentRepositoryProtocol {
 }
 class AppointmentRepository: AppointmentRepositoryProtocol {
     private let modelContext: ModelContext
+    private let userId: UUID
     
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, userId: UUID) {
         self.modelContext = modelContext
+        self.userId = userId
     }
+
+    
     
     func fetchAll() throws -> [Appointment] {
         let descriptor = FetchDescriptor<Appointment>(
             sortBy: [SortDescriptor(\.date)]
         )
-        return try modelContext.fetch(descriptor)
+        
+        let allAppointments = try self.modelContext.fetch(descriptor)  // ← DEIN modelContext!
+        return allAppointments.filter { $0.userId == self.userId }
     }
-    
+
+
+
     func fetchUpcoming() throws -> [Appointment] {
         let now = Date()
         let descriptor = FetchDescriptor<Appointment>(

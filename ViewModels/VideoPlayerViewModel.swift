@@ -315,8 +315,18 @@ final class VideoPlayerViewModel: ObservableObject {
         } else {
             // Training beendet → schließen
             print("✅ Training beendet - schließe View")
+            
+            // ✅ 1. User holen
+             guard let user = AppDependencies.shared.authService.currentUser else {
+                 print("❌ Kein User - kann Schedule nicht completen")
+                 dismissAction?()
+                 return
+             }
+            
             if let scheduleId = scheduleId {
-                progressViewModel?.completeSchedule(scheduleId: scheduleId)  // ✅ HIER!
+                progressViewModel?.completeSchedule(scheduleId: scheduleId, for: user)  // ✅ HIER!
+                
+                
                 dismissAction?()
             }
         }

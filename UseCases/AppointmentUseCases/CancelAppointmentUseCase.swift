@@ -31,11 +31,12 @@ struct CancelAppointmentUseCase {
     func execute(
         appointment: Appointment,
         reason: String?,
-        userEmail: String,
-
+        userEmail: String
     ) async throws {
-        // Practice Email holen (später aus User/Practice Relationship)
-           let practiceEmail = appointment.user?.practice?.email ?? "praxis@example.com"
+        // ✅ User Praxis laden
+        let practiceEmail = "praxis@physio-agil.de"
+        
+        
         // Status ändern
         appointment.status = .cancelled
         try repository.save(appointment)
@@ -53,6 +54,10 @@ struct CancelAppointmentUseCase {
             body: emailContent.body
         )
     }
+
+
+
+    
     
     private func buildCancellationEmail(
         appointment: Appointment,

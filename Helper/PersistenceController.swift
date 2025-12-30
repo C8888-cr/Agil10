@@ -23,23 +23,14 @@ class PersistenceController: ObservableObject {
     let container: ModelContainer
     
     private init() {
-        let schema = Schema([
-            Appointment.self,
-            User.self
-        ])
+        let schema = Schema([Appointment.self, User.self, UserPreferences.self, DayGoal.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         
-        let config = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false
-        )
         
         do {
-            container = try ModelContainer(
-                for: schema,
-                configurations: config
-            )
-        } catch {
-            fatalError("❌ Failed to create ModelContainer: \(error)")
+            container = try ModelContainer(for: schema, configurations: config)
+         } catch {
+            fatalError("SwiftData In-Memory FAIL: \(error)")
         }
     }
 }

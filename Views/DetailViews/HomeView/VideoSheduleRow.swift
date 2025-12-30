@@ -533,7 +533,7 @@ struct VideoScheduleRow: View {
         defaultRepetitions: 3,
         defaultPauseSeconds: 30,
         loopDurationSeconds: 120,
-        userEmail: "preview@example.com",
+       
         rating: 4
         // ← KEINE Extra Parameter! Nur was du schon hattest
     )

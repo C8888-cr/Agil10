@@ -27,7 +27,9 @@ struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
     
     
-    let authService: AuthServiceProtocol  // ✅ Protocol!
+    @EnvironmentObject var authService: AuthService
+    
+
 
     
     enum ResetStep {
@@ -340,6 +342,7 @@ struct ForgotPasswordView: View {
         Task {
             do {
                 let code = try await authService.sendPasswordResetEmail(email: email)
+                print("📧 Reset Code erhalten: \(code)")
                 await MainActor.run {
                     successMessage = "Code gesendet!"
                     step = .enterCode
@@ -413,7 +416,9 @@ struct ForgotPasswordView: View {
     }
 }
 #Preview {
-    ForgotPasswordView(authService: MockAuthService())
+    ForgotPasswordView()
+        .environmentObject(AuthService(authServiceProtocol: MockAuthService()))
+
 }
 struct CustomPlaceholderTextField: View {
     @Binding var text: String

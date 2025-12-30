@@ -26,6 +26,8 @@ final class VideoRepository: VideoRepositoryProtocol {
     
     // MARK: - Fetch All Videos (Safe)
     func fetchAllVideos(for user: User) async throws -> [Video] {
+        print("🔍 fetchAllVideos for user email = \(user.email)")
+        print("🔍 uploadVideo for user email = \(user.email)")
         // ✅ NO Predicate - fetch all and filter manually
         let descriptor = FetchDescriptor<Video>(
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
@@ -34,7 +36,7 @@ final class VideoRepository: VideoRepositoryProtocol {
         let allVideos = try modelContext.fetch(descriptor)
         
         // ✅ Filter by user email manually
-        let userVideos = allVideos.filter { $0.userEmail == user.email }
+        let userVideos = allVideos
         
         // ✅ Filter corrupted entries
         var validVideos: [Video] = []
@@ -94,7 +96,7 @@ final class VideoRepository: VideoRepositoryProtocol {
             loopDurationSeconds: loopDurationSeconds,
          //   user: nil,
          //   uploadedByTherapist: nil,
-            userEmail: user.email,
+       
             rating: 0
         )
         

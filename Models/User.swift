@@ -9,10 +9,10 @@ import SwiftData
 import Foundation
 
 
+
 @Model
-final class User {
-    @Attribute(.unique) var id: UUID
-    
+final class User: @unchecked Sendable { 
+    @Attribute(.unique) var id: UUID  // ← HINZUFÜGEN!
     // ✅ NEU: Persönliche Daten
         var firstName: String
         var lastName: String
@@ -25,14 +25,8 @@ final class User {
     var isPremium: Bool
     var createdAt: Date
     
-    // Relationships
-    var practice: Praxis?
+    var praxisId: UUID?
     var preferences: UserPreferences?
-    
-    @Relationship(deleteRule: .cascade) var exercises: [Exercise]?
-    @Relationship(deleteRule: .cascade) var appointments: [Appointment]?
-    @Relationship(deleteRule: .cascade) var videoLibrary: [Video]?
-    @Relationship(deleteRule: .cascade) var videoSchedules: [VideoSchedule]?  // ✅ Auch das hinzufügen!
     
     var role: UserRole {
         get { UserRole(rawValue: roleRaw) ?? .patient }
@@ -67,9 +61,9 @@ final class User {
                 dateOfBirth: Date? = nil,
                 email: String = "",
                 passwordHash: String,
-                role: UserRole = .patient,
+                role: UserRole,
                 isPremium: Bool = false,
-                practice: Praxis? = nil
+                praxisId: UUID? = nil
             ) {
                 self.id = id
                 self.firstName = firstName
@@ -80,6 +74,31 @@ final class User {
                 self.roleRaw = role.rawValue
                 self.isPremium = isPremium
                 self.createdAt = Date()
-                self.practice = practice
+                self.praxisId = praxisId
             }
         }
+
+
+extension User {
+    @MainActor static func mockPatient() -> User {
+        User(
+            id: MockAuthService.mockPatientId,
+            firstName: "Max",
+            lastName: "Mustermann",
+            email: "patient@agil.de",
+            passwordHash: "patient1",
+            role: .patient  // ← Muss angegeben werden
+        )
+    }
+    
+    @MainActor static func mockTherapist() -> User {
+        User(
+            id: UUID(),
+            firstName: "Dr. Sarah",
+            lastName: "Müller",
+            email: "therapeut@agil.de",
+            passwordHash: "therapeut1",
+            role: .therapist  // ← Muss angegeben werden
+        )
+    }
+}

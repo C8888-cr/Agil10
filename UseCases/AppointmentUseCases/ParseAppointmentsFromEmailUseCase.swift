@@ -32,7 +32,7 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
         let emailHash = emailText.hashValue.description
         
         // 2️⃣ Email parsen
-        let parsedAppointments = emailParser.parseAppointments(from: emailText)
+        let parsedAppointments = await emailParser.parseAppointments(from: emailText)
         
         // 3️⃣ Existierende Termine laden
         let existingAppointments = try repository.fetchAll()

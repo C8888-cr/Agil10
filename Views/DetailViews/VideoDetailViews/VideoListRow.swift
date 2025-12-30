@@ -116,7 +116,7 @@ struct VideoListRow: View {
             equipment: .noEquipment,
             durationSeconds: 45,
             fileSizeBytes: 15_000_000, 
-            userEmail: "",
+        
             rating: 5
         ),
       
@@ -137,7 +137,7 @@ struct VideoListRow: View {
                         bodyRegion: .fullBody,
                         equipment: .theraband,
                         durationSeconds: 60,
-                        fileSizeBytes: 20_000_000, userEmail: "",
+                        fileSizeBytes: 20_000_000,
                         rating: 4
                     ),
                   

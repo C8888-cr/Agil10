@@ -6,6 +6,8 @@ struct ExercisesForDateView: View {
     
     @EnvironmentObject var trainingViewModel: TrainingViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
+    @EnvironmentObject var authService: AuthService
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -28,7 +30,13 @@ struct ExercisesForDateView: View {
                                 print("Exercise tapped: \(video.title)")
                             },
                             onFavorite: {
-                                videoLibraryViewModel.toggleFavorite(video)
+                                
+                                Task {
+                                    if let user = authService.currentUser {
+                                        //await
+                                       videoLibraryViewModel.deleteVideo(video, for: user)
+                                    }
+                                }
                             },
                             onDelete: {
                                 trainingViewModel.removeExercise(exercise.id, from: selectedDate)

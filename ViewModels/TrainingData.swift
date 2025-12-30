@@ -7,6 +7,19 @@ class TrainingData: ObservableObject {
     @Published var completedVideos: [String: [Video]] = [:]
     @Published var weekPlan: [DayPlan] = []
     
+    
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
+    
+    
+    
     // ✅ WICHTIG: Alle Videos (Bundle + User)
     var allVideos: [Video] {
         return dailyVideos // Später erweitern mit User-Videos

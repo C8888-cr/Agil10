@@ -301,7 +301,8 @@ struct FullMapView: View {
             locationLongitude: 8.6346,
             emailUID: nil,
             status: .confirmed,
-            user: nil
+            userId: UUID(),        // ✅ Mock UUID
+            praxisId: UUID()       // ✅ Mock UUID
         ),
         showMap: true,
         region: MKCoordinateRegion(
@@ -325,7 +326,8 @@ struct FullMapView: View {
             notes: "Handtuch",
             emailUID: nil,
             status: .confirmed,
-            user: nil
+            userId: UUID(),        // ✅ Mock UUID
+            praxisId: UUID()       // ✅ Mock UUID
         ),
         showMap: false,
         region: MKCoordinateRegion()

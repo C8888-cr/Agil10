@@ -14,7 +14,7 @@ class LoadAppointmentsUseCase: LoadAppointmentsUseCaseProtocol {
         self.repository = repository
     }
     
-    func execute() async throws -> [Appointment] {
+    func execute(for user: User) async throws -> [Appointment] {
         return try repository.fetchAll()
     }
 }

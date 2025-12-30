@@ -5,7 +5,7 @@
 //  Created by Christiane Roth on 30.11.25.
 //
 
-
+/*
 //
 //  SignUpView.swift
 //  Agil9.0
@@ -28,15 +28,11 @@ struct SignUpView: View {
     @State private var selectedPraxisId: Int? = nil
     
     @Environment(\.dismiss) var dismiss
-    
-    let authService: AuthServiceProtocol  // ✅ Protocol!
+    @EnvironmentObject var authService: AuthService
 
-    let onSignUpSuccess: (User, String) -> Void
-    
-    init(authService: AuthServiceProtocol, onSignUpSuccess: @escaping (User, String) -> Void) {
-           self.authService = authService
-           self.onSignUpSuccess = onSignUpSuccess
-       }
+
+
+
        
     var body: some View {
         // ZStack für den Hintergrund, damit er sich über die gesamte View erstreckt
@@ -361,37 +357,41 @@ struct SignUpView: View {
         errorMessage = nil
         
         Task {
-            do {
-                // Erstelle User lokal (in echtem Backend würde POST-Request gehen)
-                let newUser = User(
-                    id: UUID(),
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                    passwordHash: "" // Passwort sollte nie im User-Objekt gespeichert werden
-                )
-                
-                // Simuliere Registrierung (1.5 Sekunden)
-                try await Task.sleep(nanoseconds: 1_500_000_000)
-                
-                let sessionToken = UUID().uuidString
-                
-                await MainActor.run {
-                    print("✅ Registrierung erfolgreich für: \(email)")
-                    onSignUpSuccess(newUser, sessionToken)
-                }
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Registrierung fehlgeschlagen"
-                    isLoading = false
-                }
-            }
-        }
-    }
+               do {
+                   // ✅ User registrieren (Token wird intern gespeichert)
+                   try await authService.signUp(
+                       email: email,
+                       password: password,
+                       firstName: firstName,
+                       lastName: lastName,
+                       isTherapist: isTherapist,
+                       praxisId: selectedPraxisId
+                   )
+                   
+                   await MainActor.run {
+                       isLoading = false
+                       print("✅ Registrierung erfolgreich für: \(email)")
+                       print("🔑 Token gespeichert: \(authService.sessionToken ?? "N/A")")
+                       dismiss()  // ✅ Zurück - AppRouter erkennt currentUser
+                   }
+               } catch {
+                   await MainActor.run {
+                       errorMessage = "Registrierung fehlgeschlagen: \(error.localizedDescription)"
+                       isLoading = false
+                   }
+               }
+           }
+       }
 }
 #Preview {
     SignUpView(
-        authService: MockAuthService(),
-        onSignUpSuccess: { _, _ in }
     )
+}
+*/
+import SwiftUI
+
+struct SignUpView: View {
+    var body: some View {
+        Text("TEMP - SignUpView")
+    }
 }

@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ProfileView: View {
+    
+    @EnvironmentObject var authService: AuthService
+    
     var body: some View {
         Text("ProfileView")
     }

@@ -231,7 +231,9 @@ struct AppointmentCardView: View {
                 locationName: "Praxis Zentrum",
                 locationAddress: "Hauptstraße 42, 10115 Berlin",
                 locationLatitude: 52.520008,
-                locationLongitude: 13.404954
+                locationLongitude: 13.404954,
+                userId: UUID(),        // ✅ Mock UUID
+                praxisId: UUID()
             ),
             isNext: true,
             onDelete: { print("Termin gelöscht") }
@@ -242,7 +244,9 @@ struct AppointmentCardView: View {
             appointment: Appointment(
                 date: Date().addingTimeInterval(86400),
                 therapist: "Dr. Schmidt",
-                locationName: nil
+                locationName: nil,
+                userId: UUID(),        // ✅ Mock UUID
+                praxisId: UUID() 
             ),
             isNext: false,
             onDelete: { print("Termin gelöscht") }

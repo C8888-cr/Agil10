@@ -6,7 +6,7 @@ import SwiftUI
 import SwiftData
 struct SettingsView: View {
     
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
     
     @EnvironmentObject var settingsVM: SettingsViewModel
     @State private var showResetAlert = false

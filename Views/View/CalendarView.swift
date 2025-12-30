@@ -10,7 +10,7 @@ import SwiftData
 
 struct CalendarView: View {
     
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
     
     
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel

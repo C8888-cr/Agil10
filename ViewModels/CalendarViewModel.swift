@@ -30,6 +30,16 @@ final class CalendarViewModel: ObservableObject {
                 self.trainingData = TrainingData(weeklySettings: WeeklySettings())
             }
         }
+    
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
   
     // Startdatum der aktuell angezeigten Woche (AnchorStart + Offset)
     private var anchorWeekStart: Date {

@@ -13,8 +13,9 @@
 import SwiftUI
 import SwiftData
 struct LoginView: View {
-    @EnvironmentObject var appState: AppState  // ← HINZUFÜGEN
 
+    @EnvironmentObject var authService: AuthService
+    
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
@@ -22,7 +23,7 @@ struct LoginView: View {
     @State private var showSignUp = false
     @State private var showLoading = false
     
-    let authService: AuthServiceProtocol
+
     
     var body: some View {
         ZStack {
@@ -121,7 +122,7 @@ struct LoginView: View {
                         HStack {
                             Spacer()
                             NavigationLink("Passwort vergessen?") {
-                                ForgotPasswordView(authService: authService)
+                                ForgotPasswordView()
                             }
                             .font(.caption)
                             .fontWeight(.semibold)
@@ -178,10 +179,6 @@ struct LoginView: View {
                             .foregroundColor(.gray)
                         NavigationLink("Jetzt registrieren") {
                             SignUpView(
-                                authService: authService,
-                                onSignUpSuccess: { user, token in
-                                    appState.currentUser = user  // ✅ AppState!
-                                }
                             )
                         }
                         .foregroundColor(.accent) // Auf telekomMagenta geändert
@@ -218,15 +215,12 @@ struct LoginView: View {
         
         Task {
             do {
-                try await Task.sleep(nanoseconds: 2_000_000_000)
+           
                 
-                let result = try await authService.login(email: email, password: password)
+                try await authService.login(email: email, password: password)
                 
                 await MainActor.run {
-                   // showLoading = false
-                   // loggedInUser = result.user
                     showLoading = false
-                    appState.setLoggedIn(user: result.user) // ← HIER ÄNDERN
                     isLoading = false
                 }
             } catch let error as AuthError {
@@ -245,10 +239,6 @@ struct LoginView: View {
         }
     }
 }
-#Preview {
-    let container = PreviewHelper.createModelContainer()
-    LoginView(authService: MockAuthService())
-        .environmentObject(AppState(modelContext: container.mainContext, authService: MockAuthService()))
-}
+
 
 

@@ -26,10 +26,10 @@ struct PreviewHelper {
     }
     
     // ✅ ViewModel mit Mock-Daten
-    static func createAppointmentViewModel() -> AppointmentViewModel {
+    @MainActor static func createAppointmentViewModel() -> AppointmentViewModel {
         let container = createModelContainer()
         let context = ModelContext(container)
-        let repository = AppointmentRepository(modelContext: context)
+        let repository = AppointmentRepository(modelContext: context, userId: UUID())
         let emailService = EmailService()
         let emailParser = EmailParserService()
         
@@ -88,7 +88,8 @@ struct PreviewHelper {
                 notes: "Bitte 10 Minuten früher kommen",
                 emailUID: nil,
                 status: .confirmed,
-                user: nil
+                userId: UUID(),        // ✅ Mock UUID
+                praxisId: UUID()
             ),
             Appointment(
                 date: Date().addingTimeInterval(172800), // Übermorgen
@@ -100,7 +101,9 @@ struct PreviewHelper {
                 notes: nil,
                 emailUID: nil,
                 status: .confirmed,
-                user: nil
+                userId: UUID(),        // ✅ Mock UUID
+                praxisId: UUID()
+       
             ),
             Appointment(
                 date: Date().addingTimeInterval(-86400), // Gestern
@@ -112,7 +115,8 @@ struct PreviewHelper {
                 notes: "Termin wurde abgesagt",
                 emailUID: nil,
                 status: .cancelled,
-                user: nil
+                userId: UUID(),        // ✅ Mock UUID
+                praxisId: UUID() 
             )
         ]
     }
@@ -151,7 +155,7 @@ extension PreviewHelper {
         return User(
             id: UUID(),
             email: "test@example.com",
-            passwordHash: "hashedPassword123"
+            passwordHash: "hashedPassword123", role: .patient
         )
     }
 }

@@ -417,7 +417,7 @@ struct VideoPlayerView: View {
                 fileSizeBytes: 15_000_000,
                 defaultRepetitions: 1,
                 defaultPauseSeconds: 30,
-                loopDurationSeconds: 420, userEmail: "",
+                loopDurationSeconds: 420,
                 rating: 3
             )
         )
@@ -436,7 +436,7 @@ struct VideoPlayerView: View {
                 fileSizeBytes: 25_000_000,
                 defaultRepetitions: 3,
                 defaultPauseSeconds: 60,
-                loopDurationSeconds: 300, userEmail: "", rating: 5
+                loopDurationSeconds: 300, rating: 5
             )
         )
     }
@@ -454,7 +454,8 @@ struct VideoPlayerView: View {
                 fileSizeBytes: 10_000_000,
                 defaultRepetitions: 2,
                 defaultPauseSeconds: 45,
-                loopDurationSeconds: 240, userEmail: "", rating: 4
+                loopDurationSeconds: 240,
+                rating: 4
             )
         )
     }

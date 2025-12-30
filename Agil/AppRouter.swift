@@ -9,19 +9,24 @@ import SwiftUI
 import SwiftData
 
 struct AppRouter: View {
-    @EnvironmentObject var appState: AppState
+    @EnvironmentObject var authService: AuthService
     
     var body: some View {
         Group {
-            if appState.isLoading {
+            if authService.isLoading {
                 LoadingView()
-            } else if appState.isAuthenticated {  // ← NEU!
+            } else if authService.isAuthenticated {  // ✅ Klarer!
                 ContentView()
+                    .environmentObject(AppDependencies.shared.appointmentViewModel)
+                                       .environmentObject(AppDependencies.shared.calendarViewModel)
+                                       .environmentObject(AppDependencies.shared.trainingViewModel)
+                                       .environmentObject(AppDependencies.shared.settingsViewModel)
+                                       .environmentObject(AppDependencies.shared.trainingData)
+                                       .environmentObject(AppDependencies.shared.progressViewModel)
             } else {
-                LoginView(authService: AppDependencies.shared.authService)
+                LoginView()
             }
         }
+        .animation(.easeInOut, value: authService.isAuthenticated)  // ✅ Smooth Transition
     }
 }
-
-

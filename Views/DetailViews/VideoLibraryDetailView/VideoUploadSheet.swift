@@ -17,7 +17,7 @@ import PhotosUI
 import SwiftData
 struct VideoUploadSheet: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
-    let user: User
+    @EnvironmentObject var authService: AuthService
     
     @Environment(\.dismiss) private var dismiss
     
@@ -138,6 +138,14 @@ struct VideoUploadSheet: View {
     // MARK: - Upload Logic
     
      func uploadVideo() {
+         
+         // ✅ Zuerst User prüfen
+               guard let user = authService.currentUser else {
+                   uploadError = "Kein Benutzer angemeldet"
+                   showError = true
+                   return
+               }
+         
         guard let videoItem = viewModel.selectedVideoItem else {
             uploadError = "Kein Video ausgewählt"
             showError = true
@@ -168,7 +176,9 @@ struct VideoUploadSheet: View {
                 )
                 
                 // 3. Erfolg - View aktualisieren
-                await viewModel.loadVideos()
+                if let user = authService.currentUser {
+                    await viewModel.loadVideos(for: user)
+                }
                 
                 // 4. Sheet schließen
                 await MainActor.run {

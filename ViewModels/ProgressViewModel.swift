@@ -16,10 +16,8 @@ class ProgressViewModel: ObservableObject {
     @Published var completedMinutes: Int = 0
     @Published var remainingMinutes: Int = 0
     @Published var progressPercentage: Double = 0.0
-    
-    // ✅ ADD THIS:
     @Published var dailyProgress: Double = 0.0  // 0.0 ... 1.0 für Progress Ring
-    @Published var currentUser: User?
+
     
     // ✅ NEU: Video Watch Progress
        @Published var videoProgressMap: [String: Double] = [:]
@@ -32,39 +30,32 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Dependencies
     
     private let modelContext: ModelContext
+
     private let calendar = Calendar.current
+
+    
+    // ✅ AuthService aus AppDependencies holen
+       private var authService: AuthService {
+           AppDependencies.shared.authService
+       }
+       
+       // ✅ Dann currentUser daraus holen
+       private var currentUser: User? {
+           authService.currentUser
+       }
+    
 
     
     // MARK: - Init
     
     init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        Task {
-                   await fetchCurrentUser()
-               }
-    }
-    
-    // ✅ Fetch den aktuellen User
-       private func fetchCurrentUser() async {
-           do {
-               let descriptor = FetchDescriptor<User>(
-                   predicate: #Predicate<User> { $0.email == "default@user.com" }
-               )
-               let users = try modelContext.fetch(descriptor)
-               self.currentUser = users.first
-               
-               if let user = currentUser {
-                    loadToday(for: user)
-               }
-           } catch {
-               print("❌ Fehler beim Laden des Users: \(error)")
-           }
+           self.modelContext = modelContext
        }
-    
+
     // MARK: - Load Today's Data
     
     func loadToday(for user: User) {
-        self.currentUser = user  // ✅ ADD THIS
+
         isLoading = true
         
         do {
@@ -112,13 +103,14 @@ class ProgressViewModel: ObservableObject {
     private func calculateProgress(for user: User) {
         print("🔄 Progress wird neu berechnet...")
         do {
-            let userId = user.id
+         
             
             let preferenceDescriptor = FetchDescriptor<UserPreferences>()
             let allPreferences = try modelContext.fetch(preferenceDescriptor)
             
-            guard let preferences = allPreferences.first(where: { $0.user?.id == userId }) else {
+            guard let preferences = allPreferences.first else {
                 print("⚠️ No preferences found for user")
+              
                 
                 // ✅ Trotzdem dailyProgress berechnen!
                 let completedSchedules = todaysSchedules.filter { $0.isCompleted }
@@ -234,7 +226,7 @@ class ProgressViewModel: ObservableObject {
     private func fetchUserPreferences(for user: User) -> UserPreferences? {
         let descriptor = FetchDescriptor<UserPreferences>()
         guard let allPreferences = try? modelContext.fetch(descriptor) else { return nil }
-        return allPreferences.first(where: { $0.user?.id == user.id })
+        return allPreferences.first
     }
     
     // MARK: - Remove Video
@@ -336,7 +328,7 @@ class ProgressViewModel: ObservableObject {
        }
     
     // MARK: - Complete Schedule ✅ NEU
-    func completeSchedule(scheduleId: UUID) {
+    func completeSchedule(scheduleId: UUID, for user: User) {
         print("✅ COMPLETE Schedule: \(scheduleId)")
         
         guard let schedule = todaysSchedules.first(where: { $0.id == scheduleId }) else {
@@ -349,7 +341,7 @@ class ProgressViewModel: ObservableObject {
         
         do {
             try modelContext.save()
-            loadToday(for: currentUser!)  // ← Refresh Haken + Ring!
+            loadToday(for: user)  // ← Refresh Haken + Ring!
             print("✅ Schedule \(scheduleId) MARKED COMPLETE!")
             print("🎯 dailyProgress: \(Int(dailyProgress * 100))%")
         } catch {
@@ -359,4 +351,20 @@ class ProgressViewModel: ObservableObject {
 
     
     
+}
+// In ProgressViewModel.swift
+extension ProgressViewModel {
+    
+    /// Berechnet Gesamtdauer für einen Schedule (inkl. Pausen)
+    func calculateTotalDuration(for schedule: VideoSchedule) -> String {
+        let loopDuration = schedule.effectiveLoopDurationSeconds
+        let repetitions = schedule.effectiveRepetitions
+        let pauseSeconds = schedule.effectivePauseSeconds
+        
+        let totalSeconds = (loopDuration * repetitions) + max(0, (repetitions - 1) * pauseSeconds)
+        
+        let minutes = totalSeconds / 60
+        let secs = totalSeconds % 60
+        return secs > 0 ? "\(minutes):\(String(format: "%02d", secs)) Min" : "\(minutes) Min"
+    }
 }

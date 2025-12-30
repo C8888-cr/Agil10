@@ -2,10 +2,11 @@
 import SwiftUI
 import PhotosUI
 import SwiftData
+
+/*
 struct LibraryView: View {
     
-    @EnvironmentObject var appState: AppState
-    let user: User 
+    @EnvironmentObject var authService: AuthService
     
     @State private var showPlayer = false
     @State private var showFilterSheet = false
@@ -22,16 +23,15 @@ struct LibraryView: View {
     var onVideoSelected: ((Video) -> Void)? = nil
     
     
-    init(repository: VideoRepositoryProtocol,
-            user: User,
-            onVideoSelected: ((Video) -> Void)? = nil) {
-        self.user = user
-        self.onVideoSelected = onVideoSelected
+    // ✅ FIX 1: Init vereinfachen
+       init(
+   
+           repository: VideoRepositoryProtocol,
+           onVideoSelected: ((Video) -> Void)? = nil
+       ) {
+           self.onVideoSelected = onVideoSelected
            _viewModel = StateObject(
-               wrappedValue: VideoLibraryViewModel(
-                   repository: repository,
-                   user: user
-               )
+               wrappedValue: VideoLibraryViewModel(repository: repository)
            )
        }
     
@@ -68,7 +68,10 @@ struct LibraryView: View {
                 FilterSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $viewModel.showUploadSheet) {
-                VideoUploadSheet(viewModel: viewModel, user: user)
+                // ✅ User aus authService holen
+                if let currentUser = authService.currentUser {
+                    VideoUploadSheet(viewModel: viewModel, user: currentUser)
+                }
             }
             .alert("Fehler", isPresented: $viewModel.showError) {
                 Button("OK", role: .cancel) {}
@@ -91,7 +94,7 @@ struct LibraryView: View {
                 viewModel.setup()
             }
             .onAppear {
-                print("🔍 VideoLibraryView onAppear - User: \(appState.currentUser.id)")
+                print("🔍 VideoLibraryView onAppear - User: \(authService.currentUser!.id)")
                 viewModel.setup()
             }
             .sheet(isPresented: $showProfile) {
@@ -121,7 +124,9 @@ struct LibraryView: View {
             .padding(.top, 8)
         }
         .refreshable {
-            await viewModel.loadVideos()
+            if let user = authService.currentUser {
+                await viewModel.loadVideos(for: user)
+            }
         }
     }
     
@@ -156,10 +161,21 @@ struct LibraryView: View {
                      
                      */
                     
-                    onFavorite: { viewModel.toggleFavorite(video) },
-                    onDelete: { viewModel.deleteVideo(video) }
-                )
-                
+                    onFavorite: {
+                        Task {
+                            if let user = authService.currentUser {
+                                await viewModel.toggleFavorite(video, for: user)
+                            }
+                        }
+                    },
+                    onDelete: {
+                        Task {
+                            if let user = authService.currentUser {
+                                await viewModel.deleteVideo(video, for: user)
+                            }
+                        }
+                    }
+                    )
                 if video.id != viewModel.filteredVideos.last?.id {
                     Divider()
                         .padding(.leading, 116)
@@ -342,9 +358,11 @@ struct FilterChip: View {
         .clipShape(Capsule())
     }
 }
-#Preview {
-    LibraryView(
-        repository: PreviewHelper.createVideoRepository(),
-        user: PreviewHelper.createSampleUser()  // ← Passt!
-    )
+*/
+
+struct LibraryView: View {
+    var body: some View {
+        Text("TEMP LibraryView")
+    }
 }
+

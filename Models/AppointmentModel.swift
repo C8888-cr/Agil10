@@ -11,11 +11,10 @@ import Foundation
 import CoreLocation
 import MapKit
 
-
 @Model
-final class Appointment {
-    // MARK: - Core Properties
+final class Appointment: @unchecked Sendable {
     @Attribute(.unique) var id: UUID
+  
     var date: Date
     var therapist: String
     var notes: String?
@@ -33,8 +32,9 @@ final class Appointment {
     var isHighlighted: Bool       // Für Änderungs-Badge
     var wasNotified: Bool         // User hat Änderung gesehen
     
-    // MARK: - Relationships
-    var user: User?
+    var userId: UUID?  // Wer hat diesen Termin gebucht?
+    var therapistId: UUID?  // Welcher Therapeut? (optional, falls noch nicht zugewiesen)
+    var praxisId: UUID? // Zu welcher Praxis gehört der Termin?
     
     // MARK: - Computed Status
     var status: AppointmentStatus {
@@ -72,7 +72,9 @@ final class Appointment {
         notes: String? = nil,
         emailUID: String? = nil,
         status: AppointmentStatus = .scheduled,
-        user: User? = nil
+        userId: UUID,  // ✅ NEU: Statt user: User?
+        therapistId: UUID? = nil,  // ✅ NEU
+        praxisId: UUID  // ✅ NEU
     ) {
         self.id = id
         self.date = date
@@ -87,7 +89,9 @@ final class Appointment {
         self.lastModified = Date()
         self.isHighlighted = false
         self.wasNotified = false
-        self.user = user
+        self.userId = userId  // ✅ NEU
+        self.therapistId = therapistId  // ✅ NEU
+        self.praxisId = praxisId  // ✅ NEU
     }
 }
 
@@ -183,17 +187,5 @@ extension Appointment {
         } else {
             return dateString
         }
-    }
-}
-// MARK: - Identifiable
-extension Appointment: Identifiable { }
-// MARK: - Hashable (für SwiftUI ForEach)
-extension Appointment: Hashable {
-    static func == (lhs: Appointment, rhs: Appointment) -> Bool {
-        lhs.id == rhs.id
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
     }
 }

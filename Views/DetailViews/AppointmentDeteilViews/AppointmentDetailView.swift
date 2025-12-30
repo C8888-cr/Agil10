@@ -11,8 +11,9 @@ import SwiftUI
 import MapKit
 import SwiftData
 
+
 struct AppointmentDetailView: View {
-    
+    @EnvironmentObject var authService: AuthService
     
     @Environment(\.dismiss) private var dismiss
     let appointment: Appointment
@@ -281,6 +282,9 @@ struct AppointmentDetailView: View {
                             }
                             // MARK: - Manual Appointment Entry
 struct ManualAppointmentEntryView: View {
+    
+    @EnvironmentObject var authService: AuthService
+    
     @Environment(\.dismiss) private var dismiss
     let viewModel: AppointmentViewModel
     
@@ -359,6 +363,13 @@ struct ManualAppointmentEntryView: View {
     }
     
     private func saveAppointment() {
+        
+        // ✅ RICHTIG
+        guard let user = authService.currentUser else {
+            print("❌ Kein User eingeloggt")
+            return
+        }
+        
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
         let timeComponents = calendar.dateComponents([.hour, .minute], from: selectedTime)
@@ -372,6 +383,9 @@ struct ManualAppointmentEntryView: View {
         
         guard let finalDate = calendar.date(from: finalComponents) else { return }
         
+        
+        
+        
         // ✅ EXAKTE Reihenfolge wie im Appointment.init
         let newAppointment = Appointment(
             id: UUID(),                                                   // 1
@@ -384,7 +398,9 @@ struct ManualAppointmentEntryView: View {
             notes: notes.isEmpty ? nil : notes,                          // 8 ✅
             emailUID: nil,                                               // 9
             status: .confirmed,                                          // 10
-            user: nil                                                    // 11
+            userId: user.id,
+            praxisId: user.praxisId ?? UUID()
+               
         )
         Task {
             await viewModel.addAppointment(newAppointment)

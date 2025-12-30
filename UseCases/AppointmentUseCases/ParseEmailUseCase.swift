@@ -27,7 +27,7 @@ struct ParseEmailUseCase {
             throw AppointmentError.parsingFailed("Email text is empty")
         }
         
-        let appointments = parser.parseAppointments(from: emailText)
+        let appointments = await parser.parseAppointments(from: emailText)
         
         guard !appointments.isEmpty else {
             throw AppointmentError.parsingFailed("No appointments found in email")

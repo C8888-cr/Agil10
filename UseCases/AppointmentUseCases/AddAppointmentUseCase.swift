@@ -16,6 +16,10 @@ struct AddAppointmentUseCase {
     }
     
     func execute(_ appointment: Appointment) async throws {
+        
+    
+        
+        
         // Validation
         guard !appointment.therapist.isEmpty else {
             throw ValidationError.emptyTherapistName
@@ -29,6 +33,7 @@ struct AddAppointmentUseCase {
         let isDuplicate = try repository.checkDuplicate(
             date: appointment.date,
             therapist: appointment.therapist
+           
         )
         
         guard !isDuplicate else {

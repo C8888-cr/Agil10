@@ -56,13 +56,24 @@ struct SelectedDateInfoView: View {
 }
 // MARK: - Preview
 struct SelectedDateInfoView_Previews: PreviewProvider {
+    
+    // ✅ Mock IDs definieren
+      private static let mockUserId = UUID()
+      private static let mockPraxisId = UUID()
+    
+    
     static var previews: some View {
         VStack(spacing: 16) {
             // Mit Termin
             SelectedDateInfoView(
                 selectedDate: Date(),
                 appointments: [
-                    Appointment(date: Date(), therapist: "Dr. Schmidt", notes: "Kontrolltermin")
+                    Appointment(date: Date(),
+                                therapist: "Dr. Schmidt",
+                                notes: "Kontrolltermin",
+                                userId: mockUserId,
+                                praxisId: mockPraxisId
+                               )
                 ],
                 onAddExercise: { print("Add exercise") }
             )

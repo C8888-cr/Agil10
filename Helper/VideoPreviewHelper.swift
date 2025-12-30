@@ -22,7 +22,7 @@ extension Video {
             defaultRepetitions: 1,
             defaultPauseSeconds: 30,
             loopDurationSeconds: 420,
-            userEmail: "",
+      
             rating: 3
         )
     }
@@ -39,7 +39,7 @@ extension Video {
             defaultRepetitions: 3,
             defaultPauseSeconds: 60,
             loopDurationSeconds: 600,
-            userEmail: "",
+      
             rating: 5
         )
     }
@@ -56,7 +56,7 @@ extension Video {
             defaultRepetitions: 2,
             defaultPauseSeconds: 45,
             loopDurationSeconds: 300,
-            userEmail: "",
+          
             rating: 6
         )
     }
@@ -73,7 +73,7 @@ extension Video {
             defaultRepetitions: 1,
             defaultPauseSeconds: 0,
             loopDurationSeconds: 900,
-            userEmail: "",
+       
             rating: 2
         )
     }
@@ -90,7 +90,7 @@ extension Video {
             defaultRepetitions: 1,
             defaultPauseSeconds: 30,
             loopDurationSeconds: 300,
-            userEmail: "",
+           
             rating: 1
         )
     }

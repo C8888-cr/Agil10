@@ -25,6 +25,7 @@ enum AuthError: LocalizedError, Identifiable {
     case networkError(String)
     case keychainError
     case unknownError
+    case invalidToken
     
     var id: String {
         errorDescription ?? "unknown_error"
@@ -50,6 +51,8 @@ enum AuthError: LocalizedError, Identifiable {
             return "Fehler beim Speichern der Anmeldedaten"
         case .unknownError:
             return "Ein unbekannter Fehler ist aufgetreten"
+        case .invalidToken:
+            return "Ungültiger oder abgelaufener Token"  // ✅ NEU!
         }
     }
     

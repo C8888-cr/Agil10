@@ -159,7 +159,7 @@ struct VideoCard: View {
             equipment: .noEquipment,
             durationSeconds: 45,
             fileSizeBytes: 15_000_000,
-            userEmail: "",
+      
             rating: 5
         ),
         onTap: { print("Tapped") },
@@ -180,7 +180,7 @@ struct VideoCard: View {
                 equipment: .theraband,
                 durationSeconds: 120,
                 fileSizeBytes: 45_000_000,
-                userEmail: "",
+         
                 rating: 4
             )
             video.isFavorite = true
@@ -209,7 +209,7 @@ struct VideoCard: View {
                         equipment: .noEquipment,
                         durationSeconds: 60,
                         fileSizeBytes: 20_000_000,
-                        userEmail: "",
+                      
                         rating: 1
                     ),
                     onTap: {},
