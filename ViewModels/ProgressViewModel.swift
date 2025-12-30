@@ -49,9 +49,25 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Init
     
     init(modelContext: ModelContext) {
-           self.modelContext = modelContext
-       }
-
+        self.modelContext = modelContext
+        
+        // ✅ Setup Notification Listener
+        setupPreferencesObserver()
+    }
+    // ✅ Eigene Funktion (ist automatisch @MainActor weil class ist @MainActor)
+    private func setupPreferencesObserver() {
+        NotificationCenter.default.addObserver(
+            forName: .preferencesDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self, let user = self.currentUser else { return }
+                print("🔔 Preferences changed - recalculating progress...")
+                self.calculateProgress(for: user)
+            }
+        }
+    }
     // MARK: - Load Today's Data
     
     func loadToday(for user: User) {
@@ -99,86 +115,94 @@ class ProgressViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Calculate Progress
     private func calculateProgress(for user: User) {
         print("🔄 Progress wird neu berechnet...")
-        do {
-         
-            
-            let preferenceDescriptor = FetchDescriptor<UserPreferences>()
-            let allPreferences = try modelContext.fetch(preferenceDescriptor)
-            
-            guard let preferences = allPreferences.first else {
-                print("⚠️ No preferences found for user")
-              
-                
-                // ✅ Trotzdem dailyProgress berechnen!
-                let completedSchedules = todaysSchedules.filter { $0.isCompleted }
-                dailyProgress = Double(completedSchedules.count) / Double(max(1, todaysSchedules.count))
-                print("🎯 dailyProgress (no prefs): \(Int(dailyProgress * 100))%")
-                
-                return
+        print("   Current User: \(user.email)")
+        print("   User ID: \(user.id)")
+        print("   ModelContext: \(ObjectIdentifier(modelContext))")
+        
+        // ✅ LÖSUNG: Zuerst User AUS DEM CONTEXT holen!
+        let userId = user.id
+        let userDescriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id == userId
             }
-            // ✅ HIER ÄNDERN: Ziel für HEUTE holen
-            let calendar = Calendar.current
-            let firstWeekday = calendar.firstWeekday
-            let rawWeekday = calendar.component(.weekday, from: Date())
-            let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+        )
+        
+        guard let userInContext = try? modelContext.fetch(userDescriptor).first else {
+            print("❌ User nicht im Context!")
+            dailyProgress = 0.0
+            return
+        }
+        
+        print("🔍 Checking user.preferences...")
+        print("   user.preferences: \(userInContext.preferences != nil ? "EXISTS" : "NIL")")
+        
+        guard let preferences = userInContext.preferences else {
+            print("⚠️ No preferences found for user")
             
+            // Fallback: % der erledigten Videos
+            let completedSchedules = todaysSchedules.filter { $0.isCompleted }
+            dailyProgress = Double(completedSchedules.count) / Double(max(1, todaysSchedules.count))
+            print("🎯 dailyProgress (no prefs): \(Int(dailyProgress * 100))%")
             
-            print("📅 RAW: \(rawWeekday), first: \(firstWeekday), Index: \(todayDayOfWeek)")
-            
-            
-                   guard let todayGoal = preferences.getGoalFor(dayOfWeek: todayDayOfWeek) else {
-                       print("⚠️ No goal for today (day \(todayDayOfWeek))")
-                              return                   }
-                   
-                   let targetMinutes = todayGoal.targetMinutes
-                   let interVideoPause = todayGoal.interVideoPauseSeconds  // ✅ Auch von DayGoal
-                   
-                   // Calculate total scheduled time
-                   var totalSeconds = 0
-                   for (index, schedule) in todaysSchedules.enumerated() {
-                       totalSeconds += schedule.totalDurationSeconds
-                       if index < todaysSchedules.count - 1 {
-                           totalSeconds += interVideoPause
-                       }
-                   }
-                   
-                   totalScheduledMinutes = totalSeconds / 60
-                   
-                   // Calculate completed time
-                   let completedSchedules = todaysSchedules.filter { $0.isCompleted }
-                   var completedSeconds = 0
-                   for (index, schedule) in completedSchedules.enumerated() {
-                       completedSeconds += schedule.totalDurationSeconds
-                       if index < completedSchedules.count - 1 {
-                           completedSeconds += interVideoPause
-                       }
-                   }
-                   
-                   completedMinutes = completedSeconds / 60
-                   remainingMinutes = max(0, targetMinutes - totalScheduledMinutes)
-                   progressPercentage = targetMinutes > 0 ?
-                       Double(totalScheduledMinutes) / Double(targetMinutes) : 0.0
-                   
-                   // ✅ ADD THIS - für Progress Ring:
-                   dailyProgress = completedMinutes > 0 && targetMinutes > 0 ?
-                       Double(completedMinutes) / Double(targetMinutes) : 0.0
-                   
-                   // 🔍 DEBUG:
-                   print("🎯 dailyProgress aktualisiert!")
-                   print("   Completed Minutes: \(completedMinutes)")
-                   print("   Target Minutes: \(targetMinutes)")
-                   print("   Progress: \(Int(dailyProgress * 100))%")
-                   
-                   canAddMoreVideos = remainingMinutes > 0
-                   
-               } catch {
-                   print("❌ Error calculating progress: \(error)")
-                   self.error = error
-               }
-           }
+            return
+        }
+        
+        print("✅ Preferences gefunden:")
+        print("   - Preferences ID: \(preferences.id)")
+        print("   - Goals count: \(preferences.weeklyGoals.count)")
+        
+        // Rest deines Codes bleibt gleich...
+        let calendar = Calendar.current
+        let firstWeekday = calendar.firstWeekday
+        let rawWeekday = calendar.component(.weekday, from: Date())
+        let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+        
+        print("📅 RAW: \(rawWeekday), first: \(firstWeekday), Index: \(todayDayOfWeek)")
+        
+        guard let todayGoal = preferences.getGoalFor(dayOfWeek: todayDayOfWeek) else {
+            print("⚠️ No goal for today (day \(todayDayOfWeek))")
+            return
+        }
+        
+        let targetMinutes = todayGoal.targetMinutes
+        let interVideoPause = todayGoal.interVideoPauseSeconds
+        
+        var totalSeconds = 0
+        for (index, schedule) in todaysSchedules.enumerated() {
+            totalSeconds += schedule.totalDurationSeconds
+            if index < todaysSchedules.count - 1 {
+                totalSeconds += interVideoPause
+            }
+        }
+        
+        totalScheduledMinutes = totalSeconds / 60
+        
+        let completedSchedules = todaysSchedules.filter { $0.isCompleted }
+        var completedSeconds = 0
+        for (index, schedule) in completedSchedules.enumerated() {
+            completedSeconds += schedule.totalDurationSeconds
+            if index < completedSchedules.count - 1 {
+                completedSeconds += interVideoPause
+            }
+        }
+        
+        completedMinutes = completedSeconds / 60
+        remainingMinutes = max(0, targetMinutes - totalScheduledMinutes)
+        progressPercentage = targetMinutes > 0 ?
+            Double(totalScheduledMinutes) / Double(targetMinutes) : 0.0
+        
+        dailyProgress = completedMinutes > 0 && targetMinutes > 0 ?
+            Double(completedMinutes) / Double(targetMinutes) : 0.0
+        
+        print("🎯 dailyProgress aktualisiert!")
+        print("   Completed Minutes: \(completedMinutes)")
+        print("   Target Minutes: \(targetMinutes)")
+        print("   Progress: \(Int(dailyProgress * 100))%")
+        
+        canAddMoreVideos = remainingMinutes > 0
+    }
     // MARK: - Add Video
     
     func addVideo(
@@ -272,8 +296,18 @@ class ProgressViewModel: ObservableObject {
         
         return currentMinutes + newVideoMinutes <= todayGoal.targetMinutes
     }
+        
+        
     private func fetchUserPreferences(for user: User) -> UserPreferences? {
-        let descriptor = FetchDescriptor<UserPreferences>()
+        let userId = user.id
+        
+        let descriptor = FetchDescriptor<UserPreferences>(
+                predicate: #Predicate<UserPreferences> { prefs in
+                    prefs.userId == userId
+                }
+            )
+        
+        
         guard let allPreferences = try? modelContext.fetch(descriptor) else { return nil }
         return allPreferences.first
     }

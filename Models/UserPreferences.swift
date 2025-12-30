@@ -31,7 +31,7 @@ final class UserPreferences {
     var weekStartsOnMonday: Bool
     
     // Relationship
-  
+    var userId: UUID
   //  var user: User?
     
   
@@ -51,6 +51,7 @@ final class UserPreferences {
       }
     
     init(
+        userId: UUID,
         notificationsEnabled: Bool = true,
         reminderTime: Date = Calendar.current.date(
             bySettingHour: 18,
@@ -62,12 +63,13 @@ final class UserPreferences {
         autoPlayNextVideo: Bool = false,
         showCompletedExercises: Bool = true,
         weekStartsOnMonday: Bool = true,
-        user: User? = nil,
+      
         defaultDailyTrainingMinutes: Int = 30,
         activeDays: [String]? = nil
             
     ) {
         self.id = UUID()
+        self.userId = userId
         self.weeklyGoals = (0..<7).map {
             DayGoal(dayOfWeek: $0, targetMinutes: 30, interVideoPauseSeconds: 30)
         }

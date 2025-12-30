@@ -212,8 +212,10 @@ struct SettingsView: View {
     }
     private func saveDayGoal() {
         guard currentDayGoal != nil else { return }
-        settingsVM.loadGoalForDay(selectedDay)  // ← Reload
-           settingsVM.saveGoal()  // ← DURCH settingsVM!
+        settingsVM.saveGoal()  // ✅ NUR speichern, NICHT neu laden!
+        
+        // ✅ NEU: ProgressVM informieren damit HomeView aktualisiert wird!
+        NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
     }
     
     private var appInfoSection: some View {
@@ -294,6 +296,11 @@ enum WeekDay: String, CaseIterable, Identifiable {
         case .sunday: return "Sonntag"
         }
     }
+}
+
+// MARK: - Notification Extension
+extension Notification.Name {
+    static let preferencesDidChange = Notification.Name("preferencesDidChange")
 }
 #Preview {
     SettingsView()
