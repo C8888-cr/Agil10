@@ -1,0 +1,53 @@
+//
+//  AppointmentToolbar.swift
+
+import SwiftUI
+
+
+struct AppointmentToolbar: ToolbarContent {
+    let showingManualEntry: () -> Void
+    let showingEmailImport: () -> Void
+    let showingProfile: () -> Void
+    let showingSettings: () -> Void
+    
+    var body: some ToolbarContent {
+        // LINKS: Plus-Menü
+        ToolbarItem(placement: .navigationBarLeading) {
+            Menu {
+                Button("Manuell eintragen", action: showingManualEntry)
+                Button("Aus Email importieren", action: showingEmailImport)
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundColor(.accent)
+                    .font(.title3)
+            }
+        }
+        
+        // RECHTS: Profile-Menü
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Menu {
+                Button("Profil", action: showingProfile)
+                Button("Einstellungen", action: showingSettings)
+            } label: {
+                Image(systemName: "person.crop.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 30, height: 30)
+            }
+        }
+    }
+}
+// MARK: - Preview
+#Preview {
+    NavigationStack {
+        Text("Content")
+            .toolbar {
+                AppointmentToolbar(
+                    showingManualEntry: { print("Manual Entry") },
+                    showingEmailImport: { print("Email Import") },
+                    showingProfile: { print("Profile") },
+                    showingSettings: { print("Settings") }
+                )
+            }
+    }
+}

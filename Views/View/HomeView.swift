@@ -3,9 +3,16 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
+    
+    
     @EnvironmentObject var authService: AuthService
-    @EnvironmentObject var trainingData: TrainingData 
+    @EnvironmentObject var trainingData: TrainingData
+    @EnvironmentObject var progressVM: ProgressViewModel
+    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
+    @EnvironmentObject var settingsVM: SettingsViewModel
 
+    
+    
     @State private var selectedScheduleId: UUID?  // ← NEU!
     @State private var showVideoPlayer = false  // ← NEU!
     @State private var selectedVideoForPlayer: Video?  // ← NEU!
@@ -14,10 +21,7 @@ struct HomeView: View {
     @State private var activeSheet: SheetType?
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
-    
-    @EnvironmentObject var progressVM: ProgressViewModel
-    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
-    @EnvironmentObject var settingsVM: SettingsViewModel
+
 
     enum SheetType: Identifiable {
         case
@@ -34,9 +38,11 @@ struct HomeView: View {
      
             ScrollView {
                 VStack(spacing: 20) {
-                    // Fortschrittsring
+            
                    // compactRingView
                     DailyProgressCard()
+                    
+                    
                     // Liste der heutigen Videos
                     ExercisesSection(
                         onToggleCompletion: { schedule in
@@ -165,7 +171,7 @@ struct HomeView: View {
             
     }
     
-
+/*
     // ✅ SICHERE Dauer-Berechnung
     private func calculateTotalDuration(schedule: any PersistentModel, video: Video) -> String {
         // Annahme: schedule hat repetitions, pauseSeconds, loopDurationSeconds als Int
@@ -180,5 +186,5 @@ struct HomeView: View {
         return secs > 0 ? "\(minutes):\(String(format: "%02d", secs)) Min" : "\(minutes) Min"
     }
 
-
+*/
 }
