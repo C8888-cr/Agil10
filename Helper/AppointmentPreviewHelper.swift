@@ -27,6 +27,7 @@ struct PreviewHelper {
     
     // ✅ ViewModel mit Mock-Daten
     @MainActor static func createAppointmentViewModel() -> AppointmentViewModel {
+
         let container = createModelContainer()
         let context = ModelContext(container)
         let repository = AppointmentRepository(modelContext: context, userId: UUID())
@@ -51,8 +52,9 @@ struct PreviewHelper {
                       emailService: emailService
                   ),
                   addAppointmentUseCase: AddAppointmentUseCase(
-                      repository: repository
-                  ),
+                      repository: repository,
+                      authService: AuthService(authServiceProtocol: MockAuthService()))
+                  ,
                   emailService: emailService,
                   markAsNotifiedUseCase: MarkAsNotifiedUseCase(
                       repository: repository
