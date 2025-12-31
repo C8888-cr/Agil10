@@ -149,29 +149,22 @@ struct AddAppointmentSheet: View {
     }
     
     private func saveAppointment() async {
-        guard let user = authService.currentUser else {
-              print("❌ Kein User")
-              return
-          }
-        let appointment = Appointment(
+        // ✅ NUR 10 Zeilen! Pure UI!
+        await viewModel.addAppointmentManual(
             date: date,
             therapist: therapist,
             locationName: locationName.isEmpty ? nil : locationName,
             locationAddress: locationAddress.isEmpty ? nil : locationAddress,
-            locationLatitude: coordinate?.latitude,
-            locationLongitude: coordinate?.longitude,
-            notes: notes.isEmpty ? nil : notes,
-            userId: user.id,                           // ✅
-            praxisId: user.praxisId ?? UUID()   
-            // user: ist OPTIONAL - wird nicht angegeben!
+            latitude: coordinate?.latitude,
+            longitude: coordinate?.longitude,
+            notes: notes.isEmpty ? nil : notes
         )
-        
-        await viewModel.addAppointment(appointment)
         
         if !viewModel.showingError {
             dismiss()
         }
     }
+
 }
 #Preview {
     AddAppointmentSheet()

@@ -48,7 +48,7 @@ class AppDependencies {
 
     
     // MARK: - AppointmentUseCases (LAZY)
-    lazy var addAppointmentUseCase = AddAppointmentUseCase(repository: appointmentRepository)
+    lazy var addAppointmentUseCase = AddAppointmentUseCase(repository: appointmentRepository, authService: authService)
     lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(repository: appointmentRepository)
     lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
         repository: appointmentRepository,
@@ -69,9 +69,7 @@ class AppDependencies {
     
     
     // MARK: - ViewModels (LAZY)
-    
-    lazy var addAppointmentViewModel = AddAppointmentViewModel(appointmentViewModel: appointmentViewModel)
-    
+
     
     lazy var appointmentViewModel = AppointmentViewModel(
         repository: appointmentRepository,

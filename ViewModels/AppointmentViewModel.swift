@@ -138,6 +138,35 @@ class AppointmentViewModel: ObservableObject {
          isLoading = false
      }
     
+
+    func addAppointmentManual(
+        date: Date, therapist: String,
+        locationName: String? = nil, locationAddress: String? = nil,
+        latitude: Double? = nil, longitude: Double? = nil, notes: String? = nil
+    ) async {
+        do {
+            try await addAppointmentUseCase.executeManual(
+                date: date, therapist: therapist,
+                locationName: locationName, locationAddress: locationAddress,
+                latitude: latitude, longitude: longitude, notes: notes
+            )
+            await loadAppointments()
+            clearErrors()
+        } catch {
+            // Dein Error-Handling
+            if let error = error as? AppointmentError {
+                setError(error)
+            } else if let error = error as? ValidationError {
+                validationError = error
+                showingError = true
+            } else {
+                setError(.saveFailed(error.localizedDescription))
+            }
+        }
+    }
+
+    
+    
     /// Termin hinzufügen
        func addAppointment(_ appointment: Appointment) async {
            // ✅ User prüfen
