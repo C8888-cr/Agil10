@@ -18,9 +18,10 @@ import SwiftData
      @EnvironmentObject var progressVM: ProgressViewModel
      
      // ✅ Berechne Ziel aus ProgressVM-Werten
-        private var todaysTargetMinutes: Int {
-            progressVM.totalScheduledMinutes + progressVM.remainingMinutes
-        }
+     private var todaysTargetMinutes: Int {
+         progressVM.targetMinutes
+     }
+
      
      var body: some View {
          VStack(spacing: 16) {

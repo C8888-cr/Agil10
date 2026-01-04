@@ -3,9 +3,12 @@ import SwiftUI
 import SwiftData
 import Combine
 
-
+/*
 @MainActor
 class SettingsViewModel: ObservableObject {
+    
+    @Published var selectedDayIndex: Int = 0
+    @Published var selectedDayGoal: DayGoal?
     
     
     @Published var preferences: UserPreferences
@@ -26,59 +29,26 @@ class SettingsViewModel: ObservableObject {
     }
     
     
-    
-    // ✅ INIT: Lade Preferences vom eingeloggten User
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        
-        // ✅ Temporäre Preferences (werden überschrieben)
         self.preferences = UserPreferences(userId: UUID())
+        
+        print("🔧 SettingsViewModel.init() START")
         
         guard let user = authService.currentUser else {
             print("⚠️ No user logged in")
             return
         }
         
-        print("🔧 SettingsViewModel init for user: \(user.email)")
-        print("   User ID: \(user.id)")
+        print("👤 User gefunden: \(user.email) | ID: \(user.id)")
+        print("🔍 Vorher user.preferences: \(user.preferences != nil ? "EXISTS" : "NIL")")
         
-        // ✅ User aus Context holen
-        let userId = user.id
-        let userDescriptor = FetchDescriptor<User>(
-            predicate: #Predicate<User> { u in
-                u.id == userId
-            }
-        )
-        
-        guard let userInContext = try? modelContext.fetch(userDescriptor).first else {
-            print("❌ User nicht im Context gefunden!")
-            return
-        }
-        
-        if let existing = userInContext.preferences {
-            print("✅ Existing preferences found")
-            self.preferences = existing
-        } else {
-            print("🆕 Creating new preferences for user")
-            let newPrefs = UserPreferences(userId: userInContext.id)
-            newPrefs.weeklyGoals = (0..<7).map { day in
-                DayGoal(dayOfWeek: day, targetMinutes: 0, interVideoPauseSeconds: 30)
-            }
-            
-            // ✅ WICHTIG: Erst insert, DANN zuweisen!
-            modelContext.insert(newPrefs)
-            userInContext.preferences = newPrefs
-            self.preferences = newPrefs
-            
-            do {
-                try modelContext.save()
-                print("✅ New preferences saved & assigned to user")
-            } catch {
-                print("❌ Save failed: \(error)")
-            }
+        // ✅ FORCE CREATE:
+        if user.preferences == nil {
+            let newPrefs = UserPreferences(userId: user.id)
+            newPrefs.weeklyGoals
         }
     }
-
     
     
     
@@ -119,69 +89,44 @@ class SettingsViewModel: ObservableObject {
     }
 
         
-    
+/* alte version
     func loadGoalForDay(_ day: Int) {
         currentDayGoal = preferences.getGoalFor(dayOfWeek: day)
     }
-    
-    func saveGoal() {
-        print("💾 SAVE GOAL START")
+    */
+
+    func saveGoal(forDayIndex dayIndex: Int) {
+        guard let authUser = currentUser else { return }
         
-        guard let user = currentUser else {
-            print("❌ No current user!")
+        print("🔍 saveGoal DEBUG:")
+        print("  authUser: \(authUser.email)")
+        print("  authUser.preferences: \(authUser.preferences != nil)")
+        
+        guard let userPrefs = authUser.preferences else {
+            print("❌ CRASH: authUser.preferences immer noch nil!")
             return
         }
         
-        // ✅ User aus Context holen
-        let userId = user.id
-        let userDescriptor = FetchDescriptor<User>(
-            predicate: #Predicate<User> { u in
-                u.id == userId
-            }
-        )
+        let realDayGoal = userPrefs.getGoalFor(dayOfWeek: dayIndex)!
+        let oldMinutes = realDayGoal.targetMinutes
         
-        guard let userInContext = try? modelContext.fetch(userDescriptor).first else {
-            print("❌ User nicht im Context!")
-            return
-        }
+        realDayGoal.targetMinutes = currentDayGoal?.targetMinutes ?? 30
         
-        print("   UserPreferences ID: \(preferences.id)")
-        print("   UserPreferences userId: \(preferences.userId)")
-        print("   User ID: \(userInContext.id)")
+        print("📈 Tag \(dayIndex): \(oldMinutes) → \(realDayGoal.targetMinutes) Min")
         
-        // ✅ Sicherstellen dass userId stimmt
-        if preferences.userId != userInContext.id {
-            print("⚠️ FIXING userId mismatch!")
-            preferences.userId = userInContext.id
-        }
-        
-        // ✅ Sicherstellen dass User die Preferences hat
-        if userInContext.preferences == nil {
-            print("⚠️ User has no preferences - assigning!")
-            userInContext.preferences = preferences
-        }
-        
-        do {
-            try modelContext.save()
-            print("✅ Goal gespeichert")
-            
-            // ✅ Verify
-            if let prefs = userInContext.preferences {
-                print("🔍 User.preferences nach Save: EXISTS")
-                print("   - Preferences ID: \(prefs.id)")
-                print("   - Goals count: \(prefs.weeklyGoals.count)")
-            } else {
-                print("❌ User.preferences nach Save: STILL NIL!")
-            }
-            
-            NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
-            print("📢 Notification sent")
-            
-        } catch {
-            print("❌ Save failed: \(error)")
-            self.error = error
-        }
+        try? modelContext.save()
+        NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
     }
+
+
+
+    func loadGoalForDay(_ dayIndex: Int) {
+        selectedDayIndex = dayIndex
+        selectedDayGoal = preferences.getGoalFor(dayOfWeek: dayIndex)
+        print("📅 Geladen: Tag \(dayIndex) → \(selectedDayGoal?.targetMinutes ?? 0) Min")
+    }
+
+
     
     func savePreferences() {
            print("💾 SAVE PREFERENCES")
@@ -201,4 +146,342 @@ class SettingsViewModel: ObservableObject {
                self.error = error
            }
        }
+    func debugDayGoals() {
+        print("🔍 DEBUG: Wöchentliche Ziele:")
+        
+        guard let user = currentUser else {
+            print("❌ No user!")
+            return
+        }
+        
+        let userIdString = user.id.uuidString
+        let userDescriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id.uuidString == userIdString  // ← FIX!
+            }
+        )
+
+        
+        guard let userInContext = try? modelContext.fetch(userDescriptor).first,
+              let userPrefs = userInContext.preferences else {
+            print("❌ No preferences!")
+            return
+        }
+        
+        for i in 0..<7 {
+            if let goal = userPrefs.getGoalFor(dayOfWeek: i) {
+                print("📅 Tag \(i) (Mo=0): \(goal.targetMinutes) Min | Pause: \(goal.interVideoPauseSeconds)s")
+            }
+        }
+    }
+
+
    }
+*/
+
+
+/*
+
+//Ki-Versuch
+
+import SwiftUI
+import SwiftData
+import Combine
+@MainActor
+class SettingsViewModel: ObservableObject {
+    
+    @Published var selectedDayIndex: Int = 0
+    @Published var selectedDayGoal: DayGoal?
+    @Published var preferences: UserPreferences
+    @Published var currentDayGoal: DayGoal?
+    @Published var error: Error?
+    let modelContext: ModelContext
+    
+    // ✅ AuthService aus AppDependencies holen
+    private var authService: AuthService {
+        AppDependencies.shared.authService
+    }
+    
+    // ✅ User aus Context holen (mit Relationships!)
+    private var currentUserInContext: User? {
+        guard let userId = authService.currentUser?.id else { return nil }
+        
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id == userId
+            }
+        )
+        
+        return try? modelContext.fetch(descriptor).first
+    }
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        self.preferences = UserPreferences(userId: UUID())
+        
+        print("🔧 SettingsViewModel.init() START")
+        
+        guard let user = authService.currentUser else {
+            print("⚠️ No user logged in")
+            return
+        }
+        
+        print("👤 User gefunden: \(user.email) | ID: \(user.id)")
+        
+        // ✅ Direkt setUser aufrufen
+        setUser(user)
+    }
+    
+    func setUser(_ user: User) {
+        print("🔧 setUser called for: \(user.email)")
+        
+        // ✅ User aus Context holen
+        guard let userInContext = currentUserInContext else {
+            print("❌ User nicht im Context!")
+            return
+        }
+        
+        print("🔍 Vorher user.preferences: \(userInContext.preferences != nil ? "EXISTS" : "NIL")")
+        
+        if let prefs = userInContext.preferences {
+            print("✅ User hat bereits Preferences")
+            preferences = prefs
+        } else {
+            print("🆕 Creating new preferences")
+            let newPrefs = UserPreferences(userId: userInContext.id)
+            newPrefs.weeklyGoals = (0..<7).map { day in
+                DayGoal(dayOfWeek: day, targetMinutes: 30, interVideoPauseSeconds: 30)
+            }
+            
+            modelContext.insert(newPrefs)
+            userInContext.preferences = newPrefs
+            preferences = newPrefs
+            
+            do {
+                try modelContext.save()
+                print("✅ Neue Preferences gespeichert und mit User verknüpft")
+            } catch {
+                print("❌ Save failed: \(error)")
+            }
+        }
+        
+        loadGoalForDay(0)
+    }
+    // ✅ FIX: Nutze currentUserInContext statt authService.currentUser
+    func saveGoal(forDayIndex dayIndex: Int) {
+        guard let userInContext = currentUserInContext else {
+            print("❌ User nicht im Context!")
+            return
+        }
+        
+        print("🔍 saveGoal DEBUG:")
+        print("  userInContext: \(userInContext.email)")
+        print("  userInContext.preferences: \(userInContext.preferences != nil)")
+        
+        guard let userPrefs = userInContext.preferences else {
+            print("❌ CRASH: userInContext.preferences immer noch nil!")
+            return
+        }
+        
+        guard let realDayGoal = userPrefs.getGoalFor(dayOfWeek: dayIndex) else {
+            print("❌ Kein DayGoal für Tag \(dayIndex)!")
+            return
+        }
+        
+        let oldMinutes = realDayGoal.targetMinutes
+        
+        // ✅ Wert aus currentDayGoal oder selectedDayGoal übernehmen
+        let newMinutes = currentDayGoal?.targetMinutes ?? selectedDayGoal?.targetMinutes ?? 30
+        realDayGoal.targetMinutes = newMinutes
+        
+        print("📈 Tag \(dayIndex): \(oldMinutes) → \(realDayGoal.targetMinutes) Min")
+        
+        do {
+            try modelContext.save()
+            print("✅ Goal gespeichert!")
+            NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
+        } catch {
+            print("❌ Save failed: \(error)")
+            self.error = error
+        }
+    }
+    func loadGoalForDay(_ dayIndex: Int) {
+        selectedDayIndex = dayIndex
+        selectedDayGoal = preferences.getGoalFor(dayOfWeek: dayIndex)
+        currentDayGoal = preferences.getGoalFor(dayOfWeek: dayIndex)
+        print("📅 Geladen: Tag \(dayIndex) → \(selectedDayGoal?.targetMinutes ?? 0) Min")
+    }
+    func savePreferences() {
+        print("💾 SAVE PREFERENCES")
+        print("   UserPreferences ID: \(preferences.id)")
+        print("   Goals count: \(preferences.weeklyGoals.count)")
+        
+        do {
+            try modelContext.save()
+            print("✅ Preferences gespeichert")
+            
+            // ✅ Notification senden
+            NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
+            print("📢 Notification sent: preferencesDidChange")
+            
+        } catch {
+            print("❌ Save failed: \(error)")
+            self.error = error
+        }
+    }
+    
+    func debugDayGoals() {
+        print("🔍 DEBUG: Wöchentliche Ziele:")
+        
+        guard let userInContext = currentUserInContext else {
+            print("❌ No user!")
+            return
+        }
+        
+        guard let userPrefs = userInContext.preferences else {
+            print("❌ No preferences!")
+            return
+        }
+        
+        for i in 0..<7 {
+            if let goal = userPrefs.getGoalFor(dayOfWeek: i) {
+                print("📅 Tag \(i) (Mo=0): \(goal.targetMinutes) Min | Pause: \(goal.interVideoPauseSeconds)s")
+            }
+        }
+    }
+}
+*/
+
+//2. KI-Versuch
+/*
+❌ WAS IST WEG?
+
+1. ✂️ selectedDayIndex — brauchst du nicht
+2. ✂️ selectedDayGoal — brauchst du nicht
+3. ✂️ currentDayGoal — brauchst du nicht
+4. ✂️ loadGoalForDay() — brauchst du nicht mehr
+5. ✂️ savePreferences() — redundant zu saveGoal()
+6. ✂️ Alle Kopier-Logik in saveGoal() — nicht mehr nötig!
+*/
+
+
+import SwiftUI
+import SwiftData
+import Combine
+@MainActor
+class SettingsViewModel: ObservableObject {
+    
+    @Published var preferences: UserPreferences
+    @Published var error: Error?
+    
+    let modelContext: ModelContext
+    
+    // ✅ AuthService aus AppDependencies holen
+    private var authService: AuthService {
+        AppDependencies.shared.authService
+    }
+    
+    // ✅ User aus Context holen (mit Relationships!)
+    private var currentUserInContext: User? {
+        guard let userId = authService.currentUser?.id else { return nil }
+        
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id == userId
+            }
+        )
+        
+        return try? modelContext.fetch(descriptor).first
+    }
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        self.preferences = UserPreferences(userId: UUID())
+        
+        print("🔧 SettingsViewModel.init() START")
+        
+        guard let user = authService.currentUser else {
+            print("⚠️ No user logged in")
+            return
+        }
+        
+        print("👤 User gefunden: \(user.email) | ID: \(user.id)")
+        
+        // ✅ Direkt setUser aufrufen
+        setUser(user)
+    }
+    
+    func setUser(_ user: User) {
+        print("🔧 setUser called for: \(user.email)")
+        
+        // ✅ User aus Context holen
+        guard let userInContext = currentUserInContext else {
+            print("❌ User nicht im Context!")
+            return
+        }
+        
+        print("🔍 Vorher user.preferences: \(userInContext.preferences != nil ? "EXISTS" : "NIL")")
+        
+        if let prefs = userInContext.preferences {
+            print("✅ User hat bereits Preferences")
+            preferences = prefs
+        } else {
+            print("🆕 Creating new preferences")
+            let newPrefs = UserPreferences(userId: userInContext.id)
+            newPrefs.weeklyGoals = (0..<7).map { day in
+                DayGoal(dayOfWeek: day, targetMinutes: 30, interVideoPauseSeconds: 30)
+            }
+            
+            modelContext.insert(newPrefs)
+            userInContext.preferences = newPrefs
+            preferences = newPrefs
+            
+            do {
+                try modelContext.save()
+                print("✅ Neue Preferences gespeichert und mit User verknüpft")
+            } catch {
+                print("❌ Save failed: \(error)")
+            }
+        }
+    }
+    
+    // ✅ EINFACH: Nur noch speichern, keine Kopier-Logik mehr!
+    func saveGoal(forDayIndex dayIndex: Int) {
+        // ✅ DEBUG: Zeig mir den ECHTEN Wert!
+        guard let realGoal = preferences.getGoalFor(dayOfWeek: dayIndex) else {
+            print("❌ Kein Goal für Tag \(dayIndex)!")
+            return
+        }
+        
+        print("💾 saveGoal für Tag \(dayIndex): \(realGoal.targetMinutes) Min")
+        
+        do {
+            try modelContext.save()
+            print("✅ Goal gespeichert!")
+            NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
+        } catch {
+            print("❌ Save failed: \(error)")
+            self.error = error
+        }
+    }
+    
+    func debugDayGoals() {
+        print("🔍 DEBUG: Wöchentliche Ziele:")
+        
+        guard let userInContext = currentUserInContext else {
+            print("❌ No user!")
+            return
+        }
+        
+        guard let userPrefs = userInContext.preferences else {
+            print("❌ No preferences!")
+            return
+        }
+        
+        for i in 0..<7 {
+            if let goal = userPrefs.getGoalFor(dayOfWeek: i) {
+                print("📅 Tag \(i) (Mo=0): \(goal.targetMinutes) Min | Pause: \(goal.interVideoPauseSeconds)s")
+            }
+        }
+    }
+}

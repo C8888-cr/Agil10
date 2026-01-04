@@ -11,7 +11,7 @@ import SwiftData
 struct CalendarView: View {
     
     @EnvironmentObject var authService: AuthService
-    
+    @EnvironmentObject var progressVM: ProgressViewModel
     
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -89,7 +89,11 @@ struct CalendarView: View {
                            .environmentObject(settingsVM)  // falls SettingsView das braucht
                            .environment(\.modelContext, modelContext)
                    }
-                
+                   .onChange(of: calendarViewModel.selectedDate) { oldDate, newDate in
+                        if let user = authService.currentUser {
+                            progressVM.calculateProgress(for: user, on: newDate)
+                        }
+                    }
                 
             
             

@@ -68,17 +68,20 @@ class ProgressViewModel: ObservableObject {
     }
     // ✅ Eigene Funktion (ist automatisch @MainActor weil class ist @MainActor)
     private func setupPreferencesObserver() {
-        // ✅ Debounce: Gruppiert Notifications innerhalb 0.3s
         debounceSubject
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
-                guard let self = self, let user = self.currentUser else { return }
-                print("🔔 [DEBOUNCED] Preferences changed - recalculating...")
-                self.calculateProgress(for: user)
+                guard let self = self else { return }
+                guard let user = self.currentUser else {
+                    print("⚠️ [DEBOUNCED] Kein User - skip reload")
+                    return
+                }
+                
+                print("🔔 [DEBOUNCED] Preferences changed - reloading TODAY...")
+                self.loadToday(for: user)  // ✅ Das ist der Fix!
             }
             .store(in: &cancellables)
         
-        // ✅ Notification empfangen → in debounce werfen
         NotificationCenter.default.publisher(for: .preferencesDidChange)
             .sink { [weak self] _ in
                 print("📨 Notification received (queuing for debounce)")
@@ -137,11 +140,13 @@ class ProgressViewModel: ObservableObject {
         }
     }
     
-    private func calculateProgress(for user: User) {
+    // ✅ 1. Die NEUE Methode MIT date Parameter (die echte Logik)
+    private func _calculateProgress(for user: User, on date: Date) {
+        let date = selectedDate
         print("🔄 Progress wird neu berechnet...")
         print("   Current User: \(user.email)")
         print("   User ID: \(user.id)")
-        print("   Selected Date: \(selectedDate)")  // ✅
+        print("   Target Date: \(date)")  // ✅ Nutze den Parameter!
         print("   ModelContext: \(ObjectIdentifier(modelContext))")
         
         let userId = user.id
@@ -172,10 +177,13 @@ class ProgressViewModel: ObservableObject {
         print("   - Preferences ID: \(preferences.id)")
         print("   - Goals count: \(preferences.weeklyGoals.count)")
         
-        // ✅ Nutze selectedDayIndex (wird AUS selectedDate berechnet!)
-        let todayDayOfWeek = selectedDayIndex
+        // ✅ DURCH date Parameter ersetzen:
+        let calendar = Calendar.current
+        let firstWeekday = calendar.firstWeekday
+        let rawWeekday = calendar.component(.weekday, from: date)  // ← date Parameter!
+        let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
         
-        print("📅 Selected Day Index: \(todayDayOfWeek)")
+        print("📅 Day Index for date: \(todayDayOfWeek)")
         
         guard let todayGoal = preferences.getGoalFor(dayOfWeek: todayDayOfWeek) else {
             print("⚠️ No goal for day \(todayDayOfWeek)")
@@ -183,7 +191,7 @@ class ProgressViewModel: ObservableObject {
         }
         
         let targetMinutes = todayGoal.targetMinutes
-        self.targetMinutes = targetMinutes  
+        self.targetMinutes = targetMinutes
         let interVideoPause = todayGoal.interVideoPauseSeconds
         
         var totalSeconds = 0
@@ -219,6 +227,14 @@ class ProgressViewModel: ObservableObject {
         print("   Progress: \(Int(dailyProgress * 100))%")
         
         canAddMoreVideos = remainingMinutes > 0
+    }
+    // PUBLIC
+    func calculateProgress(for user: User) {
+        _calculateProgress(for: user, on: selectedDate)
+    }
+    func calculateProgress(for user: User, on date: Date) {
+        selectedDate = date  // ✅ Setze erst selectedDate
+        _calculateProgress(for: user, on: selectedDate)  // ✅ Dann rechnen
     }
     // MARK: - Add Video
     
@@ -297,6 +313,8 @@ class ProgressViewModel: ObservableObject {
             self.error = error
         }
     }
+    
+    
     
     func canAddVideo(_ video: Video, for user: User) -> Bool {
         guard let preferences = fetchUserPreferences(for: user) else { return false }

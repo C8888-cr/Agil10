@@ -2,6 +2,8 @@
 //  SettingsView.swift
 //  Agil
 //
+
+
 import SwiftUI
 import SwiftData
 struct SettingsView: View {
@@ -55,10 +57,18 @@ struct SettingsView: View {
                 }
             }
             .padding(.vertical, 8)
+            
+            // ✅ DEBUG BUTTON:
+            Button("🔍 Debug Ziele") {
+                settingsVM.debugDayGoals()
+            }
+            .font(.caption)
+            .foregroundColor(.accent)
         } header: {
             Label("Wähle einen Tag", systemImage: "calendar")
         }
     }
+
     
     private func dayButton(_ day: WeekDay) -> some View {
         Button(action: { selectedDay = day.dayNumber }) {
@@ -207,15 +217,27 @@ struct SettingsView: View {
         }
     }
     // MARK: - Helper Functions
-    private func loadDayGoal(_ dayNumber: Int) {
-        currentDayGoal = settingsVM.preferences.getGoalFor(dayOfWeek: dayNumber)
-    }
+
+    
+    /*
     private func saveDayGoal() {
         guard currentDayGoal != nil else { return }
         settingsVM.saveGoal()  // ✅ NUR speichern, NICHT neu laden!
         
         // ✅ NEU: ProgressVM informieren damit HomeView aktualisiert wird!
         NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
+    }
+    */
+    
+    private func loadDayGoal(_ dayNumber: Int) {
+        // ✅ DIREKT das echte Objekt holen!
+        currentDayGoal = settingsVM.preferences.getGoalFor(dayOfWeek: dayNumber)
+        print("📅 Loaded goal for day \(dayNumber): \(currentDayGoal?.targetMinutes ?? 0) Min")
+    }
+    private func saveDayGoal() {
+        // ✅ currentDayGoal IST bereits das echte Objekt!
+        // Kein extra Code nötig, nur speichern:
+        settingsVM.saveGoal(forDayIndex: selectedDay)
     }
     
     private var appInfoSection: some View {
