@@ -4,7 +4,7 @@ struct ExercisesForDateView: View {
     let selectedDate: Date
     let onAddExercise: () -> Void
     
-    @EnvironmentObject var trainingViewModel: TrainingViewModel
+    @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
     @EnvironmentObject var authService: AuthService
     
@@ -19,11 +19,9 @@ struct ExercisesForDateView: View {
                 Spacer()
             }
             
-            if let exercises = trainingViewModel.exercises(for: selectedDate),
-               !exercises.isEmpty {
-                ForEach(exercises) { exercise in
-                    // ✅ Video direkt aus allVideos suchen
-                    if let video = videoLibraryViewModel.allVideos.first(where: { $0.id == exercise.videoId }) {
+            if !schedulesForDate.isEmpty {
+                          ForEach(schedulesForDate) { schedule in
+                              if let video = schedule.video {
                         VideoListRow(
                             video: video,
                             onTap: { video in
@@ -39,11 +37,13 @@ struct ExercisesForDateView: View {
                                 }
                             },
                             onDelete: {
-                                trainingViewModel.removeExercise(exercise.id, from: selectedDate)
-                            }
-                        )
-                    }
-                }
+                                                           if let user = authService.currentUser {
+                                                               progressVM.removeSchedule(schedule, for: user)
+                                                           }
+                                                       }
+                                                   )
+                                               }
+                                           }
             } else {
                 EmptyExercisesView(onAddExercise: onAddExercise)
             }
@@ -52,5 +52,12 @@ struct ExercisesForDateView: View {
         .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    // ✅ HELPER: Schedules für selectedDate filtern
+    private var schedulesForDate: [VideoSchedule] {
+        let calendar = Calendar.current
+        return progressVM.todaysSchedules.filter { schedule in
+            calendar.isDate(schedule.scheduledDate, inSameDayAs: selectedDate)
+        }
     }
 }

@@ -12,7 +12,7 @@ import SwiftData
 
  struct DailyProgressCard: View {
 
-     @EnvironmentObject var trainingData: TrainingData
+  
      @EnvironmentObject var weeklySettings: WeeklySettings
      @EnvironmentObject var appointmentViewModel: AppointmentViewModel
      @EnvironmentObject var progressVM: ProgressViewModel
@@ -67,8 +67,8 @@ import SwiftData
              }
              
              // Exercise Type Breakdown
-             if !trainingData.dailyVideos.isEmpty {
-                 Divider()
+             if !progressVM.todaysSchedules.isEmpty {
+                  Divider()
                  
                  VStack(spacing: 8) {
                      Text("Übungsarten")
@@ -99,7 +99,9 @@ import SwiftData
      }
      
      private func getExerciseTypeSummary() -> [(type: ExerciseCategory, count: Int, duration: Int)] {
-         let grouped = Dictionary(grouping: trainingData.dailyVideos) { $0.category }
+         let videos = progressVM.todaysSchedules.compactMap { $0.video }
+         let grouped = Dictionary(grouping: videos) { $0.category }
+         
          return grouped.map { type, videos in
              (
                  type: type,
@@ -111,7 +113,7 @@ import SwiftData
  }
  // MARK: - Compact Top Section (für Dashboard)
  struct CompactTopSection: View {
-     @EnvironmentObject var trainingData: TrainingData
+     @EnvironmentObject var progressVM: ProgressViewModel  // ✅ GEÄNDERT!
      @EnvironmentObject var appointmentViewModel: AppointmentViewModel
      
      var body: some View {
@@ -133,7 +135,8 @@ import SwiftData
  }
  // MARK: - Compact Progress View
  struct CompactProgressView: View {
-     @EnvironmentObject var trainingData: TrainingData
+     @EnvironmentObject var progressVM: ProgressViewModel
+ 
      
      var body: some View {
          VStack(alignment: .leading, spacing: 8) {
@@ -153,7 +156,7 @@ import SwiftData
                      .frame(width: 50, height: 50)
                  
                  Circle()
-                     .trim(from: 0, to: trainingData.getTodaysProgress())
+                     .trim(from: 0, to: progressVM.dailyProgress)
                      .stroke(
                          LinearGradient(
                             colors: [.accent, .accent.opacity(0.7)],
@@ -164,14 +167,14 @@ import SwiftData
                      )
                      .frame(width: 50, height: 50)
                      .rotationEffect(.degrees(-90))
-                     .animation(.easeInOut, value: trainingData.getTodaysProgress())
+                     .animation(.easeInOut, value: progressVM.dailyProgress)
                  
-                 Text("\(Int(trainingData.getTodaysProgress() * 100))%")
+                 Text("\(Int(progressVM.dailyProgress * 100))%")
                      .font(.caption2)
                      .fontWeight(.bold)
              }
              
-             Text("\(trainingData.getRemainingMinutes()) Min")
+             Text("\(progressVM.remainingMinutes) Min")
                  .font(.caption)
                  .foregroundColor(.secondary)
          }
@@ -242,7 +245,7 @@ import SwiftData
     let deps = AppDependencies.shared  // ✅ Nimm einfach die echte Dependency!
     
     DailyProgressCard()
-        .environmentObject(deps.trainingData)
+      //  .environmentObject(deps.trainingData)
         .environmentObject(WeeklySettings())
         .environmentObject(deps.progressViewModel)
         .environmentObject(deps.appointmentViewModel)  // ✅ Aus AppDependencies!

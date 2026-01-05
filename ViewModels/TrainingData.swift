@@ -1,4 +1,4 @@
-
+/*
 import Foundation
 import SwiftData
 @MainActor
@@ -241,3 +241,4 @@ class TrainingData: ObservableObject {
  //       return dateFormatter.string(from: date)
  //   }
 }
+*/

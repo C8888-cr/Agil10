@@ -41,6 +41,8 @@ final class VideoPlayerViewModel: ObservableObject {
     
     private let progressViewModel: ProgressViewModel?  // ✅ NEU
     private let scheduleId: UUID?  // ✅ NEU
+    
+    private var hasReachedLoopEnd = false
 
     // MARK: - Computed Properties
     
@@ -286,11 +288,7 @@ final class VideoPlayerViewModel: ObservableObject {
     }
     
     private func handleVideoEnd() {
-        
-        
-        
-        print("🔍 handleVideoEnd: Rep \(trainingProgress?.currentRepetition ?? 0)/\(settings.repetitions)")  // DEBUG!
-        
+        print("🔍 handleVideoEnd: Rep \(trainingProgress?.currentRepetition ?? 0)/\(settings.repetitions)")
         
         guard settings.mode == .training,
               var progress = trainingProgress else {
@@ -299,12 +297,10 @@ final class VideoPlayerViewModel: ObservableObject {
             return
         }
         
-        
         if progress.currentRepetition < settings.repetitions {
             print("⏸️ PAUSE starten: Rep \(progress.currentRepetition + 1)/\(settings.repetitions)")
             
-            
-            // ✅ 1. VIDEO PAUSIEREN!
+            // 1. VIDEO PAUSIEREN
             playerService.pause()
             
             // 2. Pause starten
@@ -312,25 +308,87 @@ final class VideoPlayerViewModel: ObservableObject {
             progress.remainingPauseSeconds = settings.pauseSeconds
             trainingProgress = progress
             startPauseTimer()
+            
         } else {
-            // Training beendet → schließen
+            // ✅ Training beendet!
             print("✅ Training beendet - schließe View")
             
-            // ✅ 1. User holen
-             guard let user = AppDependencies.shared.authService.currentUser else {
-                 print("❌ Kein User - kann Schedule nicht completen")
-                 dismissAction?()
-                 return
-             }
-            
-            if let scheduleId = scheduleId {
-                progressViewModel?.completeSchedule(scheduleId: scheduleId, for: user)  // ✅ HIER!
-                
-                
+            // 1. User holen
+            guard let user = AppDependencies.shared.authService.currentUser else {
+                print("❌ Kein User - kann Schedule nicht completen")
                 dismissAction?()
+                return
             }
+            
+            // 2. Schedule completen (wenn vorhanden)
+            if let scheduleId = scheduleId,
+               let progressVM = progressViewModel,
+               let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                
+                // ✅ FIX: Optional unwrapping
+                let videoTitle = schedule.video?.title ?? "Unbekannt"
+                print("✅ Markiere Schedule als completed: \(videoTitle)")
+                
+                progressVM.markCompletedSchedule(schedule, for: user)
+            }
+            
+            // 3. View schließen
+            dismissAction?()
         }
     }
+    
+    
+    
+    // ✅ NEUE METHODE: Loop-Ende Handler
+      private func handleLoopEnd() {
+          guard !hasReachedLoopEnd else {
+              print("⚠️ Loop-Ende bereits verarbeitet!")
+              return
+          }
+          
+          hasReachedLoopEnd = true
+          
+          print("🏁 Loop-Ende erreicht: \(Int(totalPlayTime))s / \(Int(settings.loopDurationSeconds))s")
+          
+          guard var progress = trainingProgress else {
+              print("✅ Kein Training-Mode - schließe View")
+              dismissAction?()
+              return
+          }
+          
+          print("📊 Rep \(progress.currentRepetition)/\(settings.repetitions)")
+          
+          if progress.currentRepetition < settings.repetitions {
+              // ✅ Weitere Wiederholungen → PAUSE
+              print("⏸️ PAUSE starten: \(settings.pauseSeconds)s")
+              
+              playerService.pause()
+              isPlaying = false
+              
+              progress.isInPause = true
+              progress.remainingPauseSeconds = settings.pauseSeconds
+              trainingProgress = progress
+              
+              startPauseTimer()
+              
+          } else {
+              // ✅ Training beendet!
+              print("✅ Training beendet - alle \(settings.repetitions) Wiederholungen")
+              
+              if let scheduleId = scheduleId,
+                 let progressVM = progressViewModel,
+                 let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+                 let user = AppDependencies.shared.authService.currentUser {
+                  
+                  print("✅ Markiere Schedule als completed")
+                  progressVM.markCompletedSchedule(schedule, for: user)
+              }
+              
+              dismissAction?()
+          }
+      }
+    
+    
     private func startPauseTimer() {
         pauseTimer?.invalidate()
         
@@ -342,119 +400,110 @@ final class VideoPlayerViewModel: ObservableObject {
     }
     
     private func updatePauseTimer() {
-        guard var progress = trainingProgress,
-              progress.isInPause else {
-            pauseTimer?.invalidate()
-            return
-        }
-        
-        progress.remainingPauseSeconds -= 1
-        
-        if progress.remainingPauseSeconds <= 0 {
-            // ✅ 1. Nächste Wiederholung            progress.currentRepetition += 1
-            progress.currentRepetition += 1
-            progress.isInPause = false
-            trainingProgress = progress
-            
-            // 2. VIDEO SIMPLE PLAY (nicht restart!)
-                  playerService.seek(to: 0)
-                  playerService.play()
-                  isPlaying = true
-            
-            
-            pauseTimer?.invalidate()
-            
+         guard var progress = trainingProgress,
+               progress.isInPause else {
+             pauseTimer?.invalidate()
+             return
+         }
          
-        } else {
-            trainingProgress = progress
-        }
-    }
+         progress.remainingPauseSeconds -= 1
+         
+         if progress.remainingPauseSeconds <= 0 {
+             print("▶️ Pause beendet - starte nächste Wiederholung")
+             
+             // ✅ 1. Nächste Wiederholung
+             progress.currentRepetition += 1
+             progress.isInPause = false
+             trainingProgress = progress
+             
+             // ✅ 2. RESET Loop-Tracking
+             totalPlayTime = 0.0
+             lastUpdateTime = Date()
+             playStartTime = nil
+             hasReachedLoopEnd = false  // ← WICHTIG!
+             
+             // ✅ 3. Video neu starten
+             playerService.seek(to: 0)
+             playerService.play()
+             isPlaying = true
+             
+             print("🔄 Loop \(progress.currentRepetition)/\(settings.repetitions) gestartet")
+             
+             pauseTimer?.invalidate()
+             
+         } else {
+             trainingProgress = progress
+         }
+     }
+     
     
     // MARK: - Observer Handlers
     
     private func handlePlayerStateChange(_ state: PlayerState) {
-        print("🔍 PlayerState: \(state)")  // ← HINZUFÜGEN!
-        
-        switch state {
-        case .playing:
-            print("▶️ Playing")
-            isPlaying = true
-        case .paused:
-            print("⏸️ Paused")
-            isPlaying = false
-        case .ended:
-            print("🔄 ENDED | Total: \(Int(totalPlayTime))s / \(Int(settings.loopDurationSeconds))s")
-            
-            // ✅ LOOP wenn unter Target!
-            if totalPlayTime < TimeInterval(settings.loopDurationSeconds) {
-                print("🔄 LOOP → Seek + Play!")
-                playerService.seek(to: .zero)
-                playerService.play()
-                return  // ← handleVideoEnd() BLOCKIEREN!
-            }
-            
-            print("✅ LOOP FERTIG → Training-Ende!")
-            isPlaying = false
-            handleVideoEnd()
-
-        case .failed(let error):
-            print("❌ Failed: \(error)")
-            self.error = error
-            self.showError = true
-            isPlaying = false
-        default:
-            print("🔄 Other: \(state)")
-        }
-    }
+          switch state {
+          case .playing:
+              isPlaying = true
+          case .paused:
+              isPlaying = false
+          case .ended:
+              // ✅ Video zu Ende → aber Loop-Dauer prüft handleProgressUpdate!
+              print("🔄 Video-Ende - Loop-Check läuft in handleProgressUpdate")
+              isPlaying = false
+          case .failed(let error):
+              self.error = error
+              self.showError = true
+              isPlaying = false
+          default:
+              break
+          }
+      }
 
     
     // ✅ EINE METHODE - mit TodayViewModel Integration
 
 
-    private func handleProgressUpdate(_ progress: VideoProgress) {
-        guard !(trainingProgress?.isInPause ?? false) else {
-            print("⏸️ PAUSE aktiv - Loop ignoriert!")
-            return
-        }
-        
-        let now = Date()
-        let delta = now.timeIntervalSince(lastUpdateTime)
-        
-        // ✅ 1. Bei PLAYING: totalPlayTime += delta
-        if playerService.state == .playing {
-            if playStartTime == nil {
-                playStartTime = now  // Play-Start merken
-            }
-            totalPlayTime += delta
-        }
-        
-        lastUpdateTime = now
-        
-        print("🔍 LOOP: Current=\(Int(progress.currentTime))s | Total=\(Int(totalPlayTime))s | Target=\(Int(settings.loopDurationSeconds))s")
-        
-        // ✅ 2. Loop-Dauer erreicht → ENDE!
-        if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) {
-            print("⏹️ LOOP \(Int(settings.loopDurationSeconds))s erreicht!")
-            playerService.pause()
-            handleVideoEnd()
-            playStartTime = nil
-            return
-        }
-        
-        // ✅ 3. Video-Ende → LOOP!
-        if playerService.state == .ended {
-            print("🔄 Video-Ende → Seek to 0s! Total: \(Int(totalPlayTime))s")
-            playerService.seek(to: .zero)
-            playStartTime = now  // Nach Seek: Zeit weiterlaufen
-            return
-        }
-        
-        // UI Progress
-        let ratio = progress.duration > 0 ? progress.currentTime / progress.duration : 0.0
-        watchProgress = min(1.0, max(0.0, ratio))
-        
-        progressViewModel?.updateVideoProgress(for: video.id.uuidString, progress: watchProgress)
-    }
+      
+      private func handleProgressUpdate(_ progress: VideoProgress) {
+          guard !(trainingProgress?.isInPause ?? false) else {
+              return
+          }
+          
+          let now = Date()
+          let delta = now.timeIntervalSince(lastUpdateTime)
+          
+          // ✅ Zeit addieren bei PLAYING
+          if playerService.state == .playing {
+              if playStartTime == nil {
+                  playStartTime = now
+              }
+              totalPlayTime += delta
+          }
+          
+          lastUpdateTime = now
+          
+          // ✅ Loop-Dauer erreicht?
+          if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) && !hasReachedLoopEnd {
+              print("⏹️ Loop-Dauer \(Int(settings.loopDurationSeconds))s erreicht!")
+              playerService.pause()
+              handleLoopEnd()  // ← Ersetzt handleVideoEnd()
+              return
+          }
+          
+          // ✅ Video-Ende (innerhalb Loop-Dauer) → neu starten
+          if playerService.state == .ended && totalPlayTime < TimeInterval(settings.loopDurationSeconds) {
+              print("🔄 Video-Ende bei \(Int(totalPlayTime))s → Loop!")
+              playerService.seek(to: .zero)
+              playerService.play()
+              playStartTime = now
+              return
+          }
+          
+          // UI Progress
+          let ratio = progress.duration > 0 ? progress.currentTime / progress.duration : 0.0
+          watchProgress = min(1.0, max(0.0, ratio))
+          
+          progressViewModel?.updateVideoProgress(for: video.id.uuidString, progress: watchProgress)
+      }
 
     
     // MARK: - Cleanup

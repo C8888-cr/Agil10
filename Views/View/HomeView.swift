@@ -6,7 +6,7 @@ struct HomeView: View {
     
     
     @EnvironmentObject var authService: AuthService
-    @EnvironmentObject var trainingData: TrainingData
+  //  @EnvironmentObject var trainingData: TrainingData
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
@@ -106,7 +106,7 @@ struct HomeView: View {
                         LibraryView(
                             onVideoSelected: { video in
                                 print("🎬 HomeView: Video ausgewählt - \(video.title)")
-                                progressVM.addVideo(video, for: authService.currentUser!)
+                                progressVM.addVideo(video, to: Date(), for: authService.currentUser!)
                                 activeSheet = nil
                             }
                         )

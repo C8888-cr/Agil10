@@ -4,7 +4,7 @@
 //
 //  Created by Christiane Roth on 09.12.25.
 //
-
+/*
 
 import SwiftUI
 import AVKit
@@ -663,3 +663,408 @@ extension Color {
         )
     }
 }
+*/
+
+//
+//  VideoPlayerView.swift
+//  Agil
+//
+//  Created by Christiane Roth on 09.12.25.
+//
+import SwiftUI
+import AVKit
+struct VideoPlayerView: View {
+    @StateObject private var viewModel: VideoPlayerViewModel
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var progressVM: ProgressViewModel
+    let video: Video
+    let scheduleId: UUID?
+    let progressViewModel: ProgressViewModel?
+    
+    init(video: Video, scheduleId: UUID? = nil, progressViewModel: ProgressViewModel? = nil) {
+        self.video = video
+        self.scheduleId = scheduleId
+        self.progressViewModel = progressViewModel
+        _viewModel = StateObject(wrappedValue: VideoPlayerViewModel(
+            video: video,
+            scheduleId: scheduleId,
+            progressViewModel: progressViewModel
+        ))
+    }
+    
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            
+            if viewModel.isLoading {
+                loadingView
+            } else {
+                playerContentView
+            }
+        }
+        .navigationBarHidden(true)
+        .statusBarHidden(viewModel.isFullscreen)
+        .onAppear {
+            viewModel.loadVideo()
+            viewModel.setDismissAction {
+                dismiss()
+            }
+        }
+        .onDisappear {
+            viewModel.cleanup()
+        }
+        .alert("Fehler", isPresented: $viewModel.showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(viewModel.error?.localizedDescription ?? "Unbekannter Fehler")
+        }
+    }
+    
+    // MARK: - Player Content
+    
+    private var playerContentView: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Video Player
+                if let player = viewModel.playerService.player {
+                    VideoPlayer(player: player)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.toggleControls()
+                        }
+                }
+                
+                // Gradient Overlays
+                if viewModel.showControls {
+                    VStack(spacing: 0) {
+                        topGradient
+                        Spacer()
+                        bottomGradient
+                    }
+                    .ignoresSafeArea()
+                }
+                
+                // Controls Layer
+                VStack(spacing: 0) {
+                    if viewModel.showControls {
+                        topBar
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    
+                    Spacer()
+                    
+                    // ✅ Training Progress ODER Center Controls
+                    if let progress = viewModel.trainingProgress, viewModel.settings.mode == .training {
+                        trainingCenterOverlay(progress: progress)
+                    } else {
+                        centerControls
+                    }
+                    
+                    Spacer()
+                    
+                    if viewModel.showControls {
+                        bottomControls
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+    
+    // MARK: - Top Bar
+    
+    private var topBar: some View {
+        HStack(alignment: .top, spacing: 16) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(Color.black.opacity(0.3))
+                    .clipShape(Circle())
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(video.title)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                
+                HStack(spacing: 12) {
+                    Label(video.category.rawValue, systemImage: video.category.icon)
+                    Label(video.bodyRegion.rawValue, systemImage: video.bodyRegion.icon)
+                }
+                .font(.caption)
+                .foregroundStyle(.white.opacity(0.8))
+            }
+            
+            Spacer()
+            
+            modeMenu
+        }
+        .padding(.top, 8)
+    }
+    
+    private var modeMenu: some View {
+        Menu {
+            Picker("Wiedergabe-Modus", selection: $viewModel.settings.mode) {
+                ForEach(PlaybackMode.allCases, id: \.self) { mode in
+                    Label(mode.rawValue, systemImage: mode.icon)
+                        .tag(mode)
+                }
+            }
+            .onChange(of: viewModel.settings.mode) { _, newMode in
+                viewModel.setMode(newMode)
+            }
+        } label: {
+            Image(systemName: viewModel.settings.mode.icon)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(Color.black.opacity(0.3))
+                .clipShape(Circle())
+        }
+    }
+    
+    // MARK: - ✅ Training Center Overlay (NEU!)
+    
+    private func trainingCenterOverlay(progress: TrainingProgress) -> some View {
+        VStack(spacing: 20) {
+            // Loop Counter
+            Text("\(progress.currentRepetition)/\(progress.totalRepetitions)")
+                .font(.system(size: 72, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.5), radius: 10)
+            
+            // Pause Countdown
+            if progress.isInPause {
+                VStack(spacing: 8) {
+                    Text("PAUSE")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.8))
+                    
+                    Text("\(progress.remainingPauseSeconds)s")
+                        .font(.system(size: 48, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                }
+                .padding(24)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.black.opacity(0.6))
+                )
+            } else {
+                // Video läuft
+                Text("VIDEO LÄUFT")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Center Controls
+    
+    private var centerControls: some View {
+        HStack(spacing: 60) {
+            Button {
+                viewModel.seekBackward()
+            } label: {
+                Image(systemName: "gobackward.10")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
+            }
+            
+            Button {
+                viewModel.togglePlayPause()
+            } label: {
+                Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.white)
+            }
+            
+            Button {
+                viewModel.seekForward()
+            } label: {
+                Image(systemName: "goforward.10")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
+            }
+        }
+        .opacity(viewModel.showControls ? 1 : 0)
+    }
+    
+    // MARK: - Bottom Controls
+    
+    private var bottomControls: some View {
+        VStack(spacing: 12) {
+            // ✅ Progress Bar
+            progressBar
+            
+            // ✅ Control Buttons Row
+            HStack(spacing: 20) {
+                // Restart
+                Button {
+                    viewModel.restart()
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+                
+                // Speed
+                speedMenu
+                
+                Spacer()
+                
+                // ✅ EINE Zeitanzeige (Current / Total)
+                HStack(spacing: 4) {
+                    Text(viewModel.formattedCurrentTime)
+                    Text("/")
+                        .foregroundStyle(.white.opacity(0.6))
+                    Text(viewModel.formattedDuration)
+                }
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.white)
+                .monospacedDigit()
+                
+                Spacer()
+                
+                // Volume/Mute
+                Button {
+                    viewModel.toggleMute()
+                } label: {
+                    Image(systemName: viewModel.settings.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+                
+                // Fullscreen
+                Button {
+                    withAnimation {
+                        viewModel.isFullscreen.toggle()
+                    }
+                } label: {
+                    Image(systemName: viewModel.isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+            }
+        }
+        .padding(.bottom, 8)
+    }
+    
+    // MARK: - Progress Bar
+    
+    private var progressBar: some View {
+        GeometryReader { geometry in
+            let safeWidth = max(100, geometry.size.width)
+            let duration = max(0.1, viewModel.playerService.progress.duration)
+            let bufferedRatio = min(1.0, max(0.0, viewModel.playerService.progress.bufferedTime / duration))
+            let progressRatio = min(1.0, max(0.0, viewModel.playerService.progress.progress))
+            
+            ZStack(alignment: .leading) {
+                // Background
+                Capsule()
+                    .fill(Color.white.opacity(0.3))
+                    .frame(height: 4)
+                
+                // Buffered
+                Capsule()
+                    .fill(Color.white.opacity(0.5))
+                    .frame(width: safeWidth * bufferedRatio, height: 4)
+                
+                // Progress
+                Capsule()
+                    .fill(Color.white)
+                    .frame(width: safeWidth * progressRatio, height: 4)
+            }
+            .frame(width: safeWidth, height: 4)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let seekRatio = max(0, min(1, value.location.x / safeWidth))
+                        let newTime = seekRatio * duration
+                        viewModel.seek(to: newTime)
+                    }
+            )
+        }
+        .frame(height: 20)
+    }
+    
+    // MARK: - Speed Menu
+    
+    private var speedMenu: some View {
+        Menu {
+            Picker("Geschwindigkeit", selection: $viewModel.settings.speed) {
+                ForEach(PlaybackSpeed.allCases) { speed in
+                    Text(speed.displayText).tag(speed)
+                }
+            }
+            .onChange(of: viewModel.settings.speed) { _, newSpeed in
+                viewModel.setSpeed(newSpeed)
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(viewModel.settings.speed.displayText)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+            }
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(Color.white.opacity(0.2))
+            .clipShape(Capsule())
+        }
+    }
+    
+    // MARK: - Gradients
+    
+    private var topGradient: some View {
+        LinearGradient(
+            colors: [
+                Color.black.opacity(0.6),
+                Color.black.opacity(0.3),
+                Color.clear
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: 120)
+    }
+    
+    private var bottomGradient: some View {
+        LinearGradient(
+            colors: [
+                Color.clear,
+                Color.black.opacity(0.3),
+                Color.black.opacity(0.6)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: 150)
+    }
+    
+    // MARK: - Loading View
+    
+    private var loadingView: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+                .scaleEffect(1.5)
+                .tint(.white)
+            
+            Text("Video wird geladen...")
+                .font(.headline)
+                .foregroundStyle(.white)
+        }
+    }
+}
+

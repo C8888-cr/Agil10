@@ -19,9 +19,9 @@ struct AppRouter: View {
                 ContentView()
                     .environmentObject(AppDependencies.shared.appointmentViewModel)
                                        .environmentObject(AppDependencies.shared.calendarViewModel)
-                                       .environmentObject(AppDependencies.shared.trainingViewModel)
+                                  //     .environmentObject(AppDependencies.shared.trainingViewModel)
                                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                                       .environmentObject(AppDependencies.shared.trainingData)
+                                     //  .environmentObject(AppDependencies.shared.trainingData)
                                        .environmentObject(AppDependencies.shared.progressViewModel)
             } else {
                 LoginView()

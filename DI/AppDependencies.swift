@@ -91,9 +91,9 @@ class AppDependencies {
     
     lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext)
     
-    lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
+ //   lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
     
-    lazy var trainingViewModel = TrainingViewModel()
+ //   lazy var trainingViewModel = TrainingViewModel()
     
 
 

@@ -240,6 +240,14 @@ final class VideoSchedule {
     var scheduledDate: Date             // Für welchen Tag
     var orderIndex: Int                 // Reihenfolge (0, 1, 2...)
     
+    // ✅ NEU: Startzeit (für Timeline-View)
+    var startTime: Date?  // Wann am Tag? (z.B. 18:00)
+    
+    // ✅ SCHON DA: Training Details (aus DailyExercise)
+       var sets: Int?  // ✅ HINZUFÜGEN
+       var reps: Int?  // ✅ HINZUFÜGEN
+       
+    
     // Überschreibbare Settings (von VideoMetadata defaults)
     var customRepetitions: Int?
     var customPauseSeconds: Int?
@@ -305,6 +313,7 @@ final class VideoSchedule {
     
     init(
         scheduledDate: Date,
+        startTime: Date? = nil,   // ✅ NEU
         orderIndex: Int,
         video: Video,
         customRepetitions: Int? = nil,
@@ -312,10 +321,14 @@ final class VideoSchedule {
         customLoopDurationSeconds: Int? = nil,
         isCompleted: Bool = false,
         completedAt: Date? = nil,
-        user: User? = nil
+        user: User? = nil,
+        sets: Int? = nil,  // ✅ NEU
+        reps: Int? = nil  // ✅ NEU
+     
     ) {
         self.id = UUID()
         self.scheduledDate = scheduledDate
+        self.startTime = startTime ?? scheduledDate
         self.orderIndex = orderIndex
         self.video = video
         self.customRepetitions = customRepetitions
@@ -324,5 +337,7 @@ final class VideoSchedule {
         self.isCompleted = isCompleted
         self.completedAt = completedAt
         self.user = user
+        self.sets = sets
+        self.reps = reps
     }
 }

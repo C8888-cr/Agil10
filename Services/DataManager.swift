@@ -1,81 +1,105 @@
-//
-//  DataManager.swift
-//  Agil
-//
-//  Created by Christiane Roth on 30.11.25.
-//
-
-
 import Foundation
-import Combine
 import SwiftData
-
-
-/// Zentrale Verwaltung aller App-Daten und -Manager
+/// Zentrale Verwaltung des ModelContext und App-weiter Utilities
 @MainActor
 final class DataManager: ObservableObject {
     
     // MARK: - Properties
     
-    /// Verwaltet Benutzereinstellungen (Trainingszeiten, aktive Tage)
-    let weeklySettings: WeeklySettings
-    
-    /// Verwaltet Trainingsdaten und Fortschritt
-    let trainingData: TrainingData
-    
-    /// Verwaltet Video-Auswahl und -Verwaltung
-  //  let videoManager: VideoSelectionManager
-    
+    /// SwiftData ModelContext für alle Datenoperationen
     let modelContext: ModelContext
     
     // MARK: - Initialization
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.weeklySettings = WeeklySettings()
-        self.trainingData = TrainingData(weeklySettings: weeklySettings)
-     //   self.videoManager = VideoSelectionManager()
     }
     
-    // MARK: - Public Methods
+    // MARK: - Utility Methods
     
-    /// Setzt alle Daten zurück (z.B. bei Logout)
- //   func resetAllData() {
- //       weeklySettings.reset()
-      //   trainingData.reset()
-      //   videoManager.reset()
-//    }
+    /// Holt den aktuellen User aus dem Context
+    func getCurrentUser() -> User? {
+        let userId = AppDependencies.shared.authService.currentUser?.id
+        guard let userId = userId else { return nil }
+        
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { user in
+                user.id == userId
+            }
+        )
+        
+        return try? modelContext.fetch(descriptor).first
+    }
     
-    /// Speichert alle Daten persistent
-//    func saveAllData() {
-//        weeklySettings.saveSettings()
-//    }
+    /// Speichert alle Änderungen im Context
+    func save() throws {
+        if modelContext.hasChanges {
+            try modelContext.save()
+        }
+    }
+    
+    /// Verwirft alle ungespeicherten Änderungen
+    func rollback() {
+        modelContext.rollback()
+    }
+    
+    /// Löscht alle Daten (z.B. bei Logout/Reset)
+    func deleteAllData() throws {
+        // Videos löschen
+        try modelContext.delete(model: Video.self)
+        
+        // Schedules löschen
+        try modelContext.delete(model: VideoSchedule.self)
+        
+        // Preferences löschen
+        try modelContext.delete(model: UserPreferences.self)
+        
+        // User NICHT löschen (AuthService kümmert sich darum)
+        
+        try save()
+    }
 }
 // MARK: - Convenience Methods
 extension DataManager {
     
-    
-    /// Gibt den aktuellen Wochenfortschritt zurück (0.0 - 1.0)
-    var weeklyProgress: Double {
-        let completedMinutes = trainingData.getWatchedVideos()
-           // .reduce(into: 0) { $0 += $1.totalDurationSeconds }
+    /// Prüft ob heute ein aktiver Trainingstag ist
+    func isTodayActiveDay(for user: User) -> Bool {
+        guard let preferences = user.preferences else { return false }
         
-        //TODO: rausfinden ob Minutes oder Seconds besser ist
-            .reduce(0) { $0 + $1.durationMinutes }
-        let targetMinutes = weeklyTargetMinutes
-        return targetMinutes > 0 ? Double(completedMinutes) / Double(targetMinutes) : 0
+        let calendar = Calendar.current
+        let today = Date()
+        let firstWeekday = calendar.firstWeekday
+        let rawWeekday = calendar.component(.weekday, from: today)
+        let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+        
+        guard let todayGoal = preferences.getGoalFor(dayOfWeek: todayDayOfWeek) else {
+            return false
+        }
+        
+        return todayGoal.targetMinutes > 0
     }
     
-    /// Wochenziel in Minuten
-    var weeklyTargetMinutes: Int {
-        return weeklySettings.activeDays.count * weeklySettings.dailyTargetMinutes
+    /// Gibt alle Videos zurück (für Library)
+    func fetchAllVideos() throws -> [Video] {
+        let descriptor = FetchDescriptor<Video>(
+            sortBy: [SortDescriptor(\.title)]
+        )
+        return try modelContext.fetch(descriptor)
     }
     
-    /// Prüft ob heute ein Trainingstag ist
-    var isTodayActiveDay: Bool {
-        let today = Calendar.current.component(.weekday, from: Date())
-        let dayNames = ["", "So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
-        guard today < dayNames.count else { return false }
-        return weeklySettings.activeDays.contains(dayNames[today])
+    /// Gibt alle Schedules für einen User zurück
+    func fetchSchedules(for user: User, from startDate: Date, to endDate: Date) throws -> [VideoSchedule] {
+        let userId = user.id
+        
+        let descriptor = FetchDescriptor<VideoSchedule>(
+            predicate: #Predicate<VideoSchedule> { schedule in
+                schedule.scheduledDate >= startDate &&
+                schedule.scheduledDate < endDate
+            },
+            sortBy: [SortDescriptor(\.scheduledDate), SortDescriptor(\.orderIndex)]
+        )
+        
+        let allSchedules = try modelContext.fetch(descriptor)
+        return allSchedules.filter { $0.user?.id == userId }
     }
 }

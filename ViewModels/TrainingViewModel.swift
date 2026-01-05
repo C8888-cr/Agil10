@@ -1,7 +1,7 @@
 
 import Foundation
 import SwiftUI
-
+/*
 @MainActor
 class TrainingViewModel: ObservableObject {
     @Published var weekPlan: [DayPlan] = []
@@ -12,11 +12,11 @@ class TrainingViewModel: ObservableObject {
     @Published var showingRating = false
     
     // NEU: Zuweisungen Video → Datum
-    @Published var dateExercises: [Date: [DailyExercise]] = [:]
+  //  @Published var dateExercises: [Date: [DailyExercise]] = [:]
     
     init() {
         setupWeekPlan()
-        loadDateExercises()
+     //   loadDateExercises()
     }
     // ✅ AuthService aus AppDependencies holen
        private var authService: AuthService {
@@ -179,7 +179,7 @@ class TrainingViewModel: ObservableObject {
     
     // MARK: - Storage
     
-    private func saveDateExercises() {
+/*    private func saveDateExercises() {
         // Konvertiere Dictionary für Storage
         let encodableDict = dateExercises.map { (key, value) in
             DateExerciseEntry(date: key, exercises: value)
@@ -196,8 +196,10 @@ class TrainingViewModel: ObservableObject {
             dateExercises = Dictionary(uniqueKeysWithValues: decoded.map { ($0.date, $0.exercises) })
         }
     }
-
+*/
 }
+
+/*
 // MARK: - Supporting Models
 /// Repräsentiert eine Übung an einem bestimmten Tag
 struct DailyExercise: Identifiable, Codable, Hashable {
@@ -232,6 +234,8 @@ struct DateExerciseEntry: Codable {
     let date: Date
     let exercises: [DailyExercise]
 }
+ 
+ */
 // MARK: - Training ViewModel Extension (KORRIGIERT)
 extension TrainingViewModel {
     /// Übung zu einem Datum hinzufügen (vereinfachte Methode)
@@ -254,3 +258,4 @@ extension TrainingViewModel {
         saveDateExercises()
     }
 }
+*/

@@ -15,7 +15,7 @@ struct CalendarView: View {
     
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
-    @EnvironmentObject var trainingViewModel: TrainingViewModel
+ //   @EnvironmentObject var trainingViewModel: TrainingViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
     
@@ -91,7 +91,7 @@ struct CalendarView: View {
                    }
                    .onChange(of: calendarViewModel.selectedDate) { oldDate, newDate in
                         if let user = authService.currentUser {
-                            progressVM.calculateProgress(for: user, on: newDate)
+                            progressVM.calculateProgress(for: user)
                         }
                     }
                 
