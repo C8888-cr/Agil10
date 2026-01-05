@@ -16,12 +16,31 @@ import SwiftData
      @EnvironmentObject var weeklySettings: WeeklySettings
      @EnvironmentObject var appointmentViewModel: AppointmentViewModel
      @EnvironmentObject var progressVM: ProgressViewModel
+     @EnvironmentObject var settingsVM: SettingsViewModel
      
      // ✅ Berechne Ziel aus ProgressVM-Werten
-     private var todaysTargetMinutes: Int {
-         progressVM.targetMinutes
-     }
-
+     // ✅ KORRIGIERT: Direkt aus Settings holen!
+       private var todaysTargetMinutes: Int {
+           let calendar = Calendar.current
+           let firstWeekday = calendar.firstWeekday
+           let rawWeekday = calendar.component(.weekday, from: Date())
+           let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+           
+           return settingsVM.preferences.getGoalFor(dayOfWeek: todayDayOfWeek)?.targetMinutes ?? 30
+       }
+     // ✅ NEU: Separate Computed Properties
+       private var completedMinutes: Int {
+           progressVM.completedMinutes
+       }
+       
+       private var remainingMinutes: Int {
+           max(0, todaysTargetMinutes - completedMinutes)
+       }
+       
+       private var dailyProgressValue: Double {
+           guard todaysTargetMinutes > 0 else { return 0 }
+           return min(1.0, Double(completedMinutes) / Double(todaysTargetMinutes))
+       }
      
      var body: some View {
          VStack(spacing: 16) {
@@ -31,8 +50,8 @@ import SwiftData
                      Text("Heutiges Training")
                          .font(.headline)
                      
-    // ✅ DYNAMISCH: "30 Min Ziel • 15 Min verbleibend"
-                     Text("\(todaysTargetMinutes) Min Ziel • \(progressVM.remainingMinutes) Min verbleibend")
+                     // ✅ DYNAMISCH - verwendet die computed properties!
+                     Text("\(todaysTargetMinutes) Min Ziel • \(remainingMinutes) Min verbleibend")
                          .font(.caption)
                          .foregroundColor(.secondary)
                  }
@@ -46,7 +65,7 @@ import SwiftData
                          .frame(width: 60, height: 60)
                      
                      Circle()
-                         .trim(from: 0, to: progressVM.dailyProgress)
+                         .trim(from: 0, to: dailyProgressValue)  // ✅ GEÄNDERT!
                          .stroke(
                              LinearGradient(
                                  colors: [.accent, .accent.opacity(0.7)],
@@ -59,7 +78,7 @@ import SwiftData
                          .rotationEffect(.degrees(-90))
                          .animation(.easeInOut(duration: 0.5), value: progressVM.dailyProgress)
                      
-                     Text("\(Int(progressVM.dailyProgress * 100))%")
+                     Text("\(Int(dailyProgressValue * 100))%")
                          .font(.caption)
                          .fontWeight(.bold)
                          .foregroundColor(.accent)
@@ -136,7 +155,27 @@ import SwiftData
  // MARK: - Compact Progress View
  struct CompactProgressView: View {
      @EnvironmentObject var progressVM: ProgressViewModel
- 
+     @EnvironmentObject var settingsVM: SettingsViewModel
+     
+     // ✅ GLEICHES FIX wie oben
+       private var todaysTargetMinutes: Int {
+           let calendar = Calendar.current
+           let firstWeekday = calendar.firstWeekday
+           let rawWeekday = calendar.component(.weekday, from: Date())
+           let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+           
+           return settingsVM.preferences.getGoalFor(dayOfWeek: todayDayOfWeek)?.targetMinutes ?? 30
+       }
+       
+       private var remainingMinutes: Int {
+           max(0, todaysTargetMinutes - progressVM.completedMinutes)
+       }
+       
+       private var dailyProgressValue: Double {
+           guard todaysTargetMinutes > 0 else { return 0 }
+           return min(1.0, Double(progressVM.completedMinutes) / Double(todaysTargetMinutes))
+       }
+     
      
      var body: some View {
          VStack(alignment: .leading, spacing: 8) {
@@ -156,7 +195,7 @@ import SwiftData
                      .frame(width: 50, height: 50)
                  
                  Circle()
-                     .trim(from: 0, to: progressVM.dailyProgress)
+                     .trim(from: 0, to: dailyProgressValue)
                      .stroke(
                          LinearGradient(
                             colors: [.accent, .accent.opacity(0.7)],
@@ -167,14 +206,14 @@ import SwiftData
                      )
                      .frame(width: 50, height: 50)
                      .rotationEffect(.degrees(-90))
-                     .animation(.easeInOut, value: progressVM.dailyProgress)
+                     .animation(.easeInOut, value: dailyProgressValue)
                  
                  Text("\(Int(progressVM.dailyProgress * 100))%")
                      .font(.caption2)
                      .fontWeight(.bold)
              }
              
-             Text("\(progressVM.remainingMinutes) Min")
+             Text("\(remainingMinutes) Min") 
                  .font(.caption)
                  .foregroundColor(.secondary)
          }

@@ -771,5 +771,13 @@ extension ProgressViewModel {
         let secs = totalSeconds % 60
         return secs > 0 ? "\(minutes):\(String(format: "%02d", secs)) Min" : "\(minutes) Min"
     }
+    func getTodaysTargetMinutes(from settingsVM: SettingsViewModel, for date: Date = Date()) -> Int {
+         let calendar = Calendar.current
+         let firstWeekday = calendar.firstWeekday
+         let rawWeekday = calendar.component(.weekday, from: date)
+         let todayDayOfWeek = (rawWeekday - firstWeekday + 7) % 7
+         
+         return settingsVM.preferences.getGoalFor(dayOfWeek: todayDayOfWeek)?.targetMinutes ?? 30
+     }
     
 }

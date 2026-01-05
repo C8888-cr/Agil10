@@ -41,7 +41,7 @@ struct HomeView: View {
             
                    // compactRingView
                     DailyProgressCard()
-                    
+                        .environmentObject(settingsVM) 
                     
                     // Liste der heutigen Videos
                     ExercisesSection(
