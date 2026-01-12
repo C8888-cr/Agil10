@@ -655,7 +655,8 @@ extension Notification.Name {
                     for: User.self,
                     configurations: ModelConfiguration(isStoredInMemoryOnly: true)
                 )
-            )
+            ),
+            authService: AppDependencies.shared.authService
         ))
 }
 #Preview {
@@ -666,6 +667,7 @@ extension Notification.Name {
                     for: User.self,
                     configurations: ModelConfiguration(isStoredInMemoryOnly: true)
                 )
-            )
+            ),
+            authService: AppDependencies.shared.authService
         ))
 }

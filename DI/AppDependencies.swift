@@ -89,7 +89,8 @@ class AppDependencies {
     
     lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
     
-    lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext)
+    lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext,
+    authService:authService)
     
  //   lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
     

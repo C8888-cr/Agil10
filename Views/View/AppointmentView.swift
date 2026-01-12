@@ -94,7 +94,7 @@ struct AppointmentView: View {
 // MARK: - Preview
 #Preview {
     let container = PreviewHelper.createModelContainer()
-    let settingsVM = SettingsViewModel(modelContext: container.mainContext)
+    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
    
     
     AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())

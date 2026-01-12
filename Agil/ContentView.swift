@@ -57,6 +57,7 @@ struct ContentView: View {
             }
             .task {
                         print("✅ Eingeloggt als: \(user.email)")
+                AppDependencies.shared.settingsViewModel.setUser(user)
                     }
         } else {
                   // ❌ Fallback: Kein User gefunden
