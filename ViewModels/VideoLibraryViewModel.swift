@@ -18,6 +18,8 @@ final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var allVideos: [Video] = []  // ✅ Renamed from 'videos'
     @Published var filteredVideos: [Video] = []
+    @Published var selectedVideo: Video? = nil
+    
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var showError = false
@@ -227,6 +229,10 @@ final class VideoLibraryViewModel: ObservableObject {
     func deleteVideo(_ video: Video, for user: User) {
         Task {
             do {
+                
+                if selectedVideo?.id == video.id {
+                              selectedVideo = nil
+                          }
                 // ✅ Erst aus UI entfernen
                 allVideos.removeAll { $0.id == video.id }
                 filteredVideos.removeAll { $0.id == video.id }
