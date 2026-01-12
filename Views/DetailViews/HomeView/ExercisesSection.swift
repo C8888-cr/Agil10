@@ -58,3 +58,43 @@ struct ExercisesSection: View {
         }
     }
 }
+#Preview {
+    // In‑Memory Container nur für die Preview
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VideoSchedule.self, Video.self,
+        configurations: config
+    )
+    
+    // Kontext über den Container holen
+    let context = ModelContext(container)
+    
+    // Beispiel‑Daten
+    let schedule1 = VideoSchedule(
+        scheduledDate: Date(),
+        orderIndex: 0,
+        video: .previewMobility
+    )
+    let schedule2 = VideoSchedule(
+        scheduledDate: Date(),
+        orderIndex: 1,
+        video: .previewStrength
+    )
+    
+    context.insert(schedule1)
+    context.insert(schedule2)
+    
+    // ViewModel mit Kontext initialisieren
+    let progressVM = ProgressViewModel(modelContext: context)
+    progressVM.todaysSchedules = [schedule1, schedule2]
+    
+    return ExercisesSection(
+        onToggleCompletion: { _ in },
+        onDelete: { _ in },
+        onConfig: { _ in },
+        onPlay: { _, _ in },
+        onAddVideo: { }
+    )
+    .environmentObject(progressVM)
+    .modelContainer(container)
+}
