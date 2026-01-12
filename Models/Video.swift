@@ -10,6 +10,11 @@ import SwiftUICore
 
 @Model
 final class Video: @unchecked Sendable {
+    
+    // ✅ CASCADE DELETE: Wenn Video gelöscht wird
+    @Relationship(deleteRule: .cascade)
+        var schedules: [VideoSchedule]?
+
     @Attribute(.unique) var id: UUID
     var title: String
     var videoFileName: String           // Lokaler Dateiname
@@ -112,6 +117,18 @@ final class Video: @unchecked Sendable {
     //       availability == .available
     //   }
     var isWatched: Bool
+    
+    // ✅ KORRIGIERT: Safe accessor - kein Crash bei gelöschtem Video
+       var isValid: Bool {
+           // ✅ Check if model is still in context
+           return !isDeleted
+       }
+       
+       // ✅ KORRIGIERT: Richtiger Property-Name
+       var safeThumbnailFileName: String {
+           guard isValid else { return "placeholder" }
+           return thumbnailFileName ?? "placeholder"
+       }
     
     
     init(
@@ -240,12 +257,12 @@ final class VideoSchedule {
     var scheduledDate: Date             // Für welchen Tag
     var orderIndex: Int                 // Reihenfolge (0, 1, 2...)
     
-    // ✅ NEU: Startzeit (für Timeline-View)
+    //  Startzeit (für Timeline-View)
     var startTime: Date?  // Wann am Tag? (z.B. 18:00)
     
-    // ✅ SCHON DA: Training Details (aus DailyExercise)
-       var sets: Int?  // ✅ HINZUFÜGEN
-       var reps: Int?  // ✅ HINZUFÜGEN
+    // Training Details (aus DailyExercise)
+       var sets: Int?
+       var reps: Int?
        
     
     // Überschreibbare Settings (von VideoMetadata defaults)
@@ -260,8 +277,12 @@ final class VideoSchedule {
     var notes: String?                  // Notizen nach Training
     
     // Relationships
-    var video: Video?
-    var user: User?                     // ✅ MUSS DRIN SEIN!
+    // ✅ Relationships - CASCADE DELETE funktioniert!
+    @Relationship(inverse: \Video.schedules)
+       var video: Video?
+       
+     
+       var user: User?
     
     // MARK: - Computed Properties
     

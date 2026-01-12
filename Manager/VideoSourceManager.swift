@@ -18,7 +18,7 @@ final class VideoSourceManager {
         return try getLocalVideoURL(for: metadata)
     }
     
-    private func getLocalVideoURL(for metadata: Video) throws -> URL {
+     func getLocalVideoURL(for metadata: Video) throws -> URL {
         let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let videosURL = documentsURL.appendingPathComponent("Videos", isDirectory: true)
         let videoURL = videosURL.appendingPathComponent(metadata.videoFileName)

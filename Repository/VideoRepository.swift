@@ -198,6 +198,10 @@ final class VideoRepository: VideoRepositoryProtocol {
     
     // MARK: - Delete Video
     func deleteVideo(metadata: Video) async throws {
+        
+        print("🗑️ Starting deletion for: \(metadata.title)")
+        
+        
         // 1. Delete video file
         try storageService.deleteVideo(fileName: metadata.videoFileName)
         

@@ -227,33 +227,65 @@ final class VideoLibraryViewModel: ObservableObject {
     
     // MARK: - Delete Video
     func deleteVideo(_ video: Video, for user: User) {
-        Task {
-            do {
-                
-                if selectedVideo?.id == video.id {
-                              selectedVideo = nil
-                          }
-                // ✅ Erst aus UI entfernen
-                allVideos.removeAll { $0.id == video.id }
-                filteredVideos.removeAll { $0.id == video.id }
-                
-                // ✅ Dann aus DB löschen
-                try await repository.deleteVideo(metadata: video)
-                
-                // ✅ Storage neu berechnen
-                calculateStorage()
-                
-                print("✅ Video deleted: \(video.title)")
-            } catch {
-                print("❌ Delete error: \(error)")
-                errorMessage = "Video konnte nicht gelöscht werden"
-                showError = true
-                
-                // ✅ Bei Fehler: Videos neu laden
-                await loadVideos(for: user)
-            }
-        }
-    }
+           Task {
+               do {
+                   print("🗑️ Starting complete deletion for: \(video.title)")
+                   
+                   // ✅ 1. Sofort aus UI entfernen (optimistic update)
+                   if selectedVideo?.id == video.id {
+                       selectedVideo = nil
+                   }
+                   allVideos.removeAll { $0.id == video.id }
+                   filteredVideos.removeAll { $0.id == video.id }
+                   
+                   // ✅ 2. Video-Datei physisch löschen
+                   do {
+                       let videoURL = try await VideoSourceManager.shared.getVideoURL(for: video)
+                       if FileManager.default.fileExists(atPath: videoURL.path) {
+                           try FileManager.default.removeItem(at: videoURL)
+                           print("✅ Video file deleted: \(videoURL.lastPathComponent)")
+                       }
+                   } catch {
+                       print("⚠️ Could not delete video file: \(error.localizedDescription)")
+                   }
+                   
+                   // ✅ 3. Thumbnail physisch löschen
+                   if let thumbnailFileName = video.thumbnailFileName {
+                       do {
+                           let thumbnailURL = try VideoSourceManager.shared.getLocalVideoURL(for: video)
+                           if FileManager.default.fileExists(atPath: thumbnailURL.path) {
+                               try FileManager.default.removeItem(at: thumbnailURL)
+                               print("✅ Thumbnail deleted: \(thumbnailFileName)")
+                           }
+                       } catch {
+                           print("⚠️ Could not delete thumbnail: \(error.localizedDescription)")
+                       }
+                   }
+                   
+                   // ✅ 4. Check wie viele Schedules betroffen sind
+                   let scheduleCount = video.schedules?.count ?? 0
+                   if scheduleCount > 0 {
+                       print("🗑️ Will cascade delete \(scheduleCount) schedules")
+                   }
+                   
+                   // ✅ 5. Aus Datenbank löschen (CASCADE DELETE macht den Rest!)
+                   try await repository.deleteVideo(metadata: video)
+                   
+                   // ✅ 6. Storage neu berechnen
+                   calculateStorage()
+                   
+                   print("✅ Video completely deleted from all places")
+                   
+               } catch {
+                   print("❌ Delete error: \(error)")
+                   errorMessage = "Video konnte nicht gelöscht werden: \(error.localizedDescription)"
+                   showError = true
+                   
+                   // ✅ Bei Fehler: Videos neu laden (rollback)
+                   await loadVideos(for: user)
+               }
+           }
+       }
     
     // MARK: - Upload Video
     func handleVideoSelection() {
