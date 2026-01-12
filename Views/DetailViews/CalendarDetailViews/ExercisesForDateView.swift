@@ -3,7 +3,7 @@ import SwiftData
 struct ExercisesForDateView: View {
     let selectedDate: Date
     let onAddExercise: () -> Void
-    
+    @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
     @EnvironmentObject var authService: AuthService
@@ -13,11 +13,14 @@ struct ExercisesForDateView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "figure.strengthtraining.traditional")
-                    .foregroundColor(.accent)
-                Text("Übungen für heute")
-                    .font(.headline)
-                Spacer()
-            }
+                      .foregroundColor(.accent)
+                  Text("Training \(selectedDate, format: .dateTime.day().month())")
+                      .font(.headline)
+                  Spacer()
+                  Text(remainingMinutes > 0 ? "Noch \(remainingMinutes) Min." : "Fertig!")
+                      .font(.subheadline)
+                      .foregroundStyle(remainingMinutes > 0 ? .secondary : Color.green)
+              }
             
             if !schedulesForDate.isEmpty {
                           ForEach(schedulesForDate) { schedule in
@@ -60,4 +63,16 @@ struct ExercisesForDateView: View {
             calendar.isDate(schedule.scheduledDate, inSameDayAs: selectedDate)
         }
     }
+    // ← HIER EINFÜGEN (neue Computed Properties):
+        private var trainingMinutesForDate: Int {
+            progressVM.getTodaysTargetMinutes(from: settingsVM, for: selectedDate)
+        }
+        
+        private var remainingMinutes: Int {
+            let target = trainingMinutesForDate
+            let totalScheduled = schedulesForDate.reduce(0) { $0 + ($1.totalDurationSeconds / 60) }
+            return max(0, target - totalScheduled)
+        }
+
+  
 }
