@@ -128,4 +128,37 @@ struct CalendarView: View {
         }
     }
 }
-
+#Preview("CalendarView") {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VideoSchedule.self,
+        Appointment.self,  // Deine Modelle hier
+        configurations: config
+    )
+    
+    let context = ModelContext(container)
+    
+    // ViewModels manuell mit Preview-Container initialisieren
+    let authService = AuthService(authServiceProtocol: MockAuthService())
+    let progressVM = ProgressViewModel(modelContext: context)
+    let appointmentVM = AppDependencies.shared.appointmentViewModel  // lazy → ok
+    let calendarVM = CalendarViewModel()
+    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
+    
+    // Repository für Preview
+    let previewRepo = VideoRepository(
+        modelContext: context,
+        storageService: .shared,
+        thumbnailService: .shared
+    )
+    
+    return CalendarView(repository: previewRepo)
+        .environmentObject(authService)
+        .environmentObject(progressVM)
+        .environmentObject(appointmentVM)
+        .environmentObject(calendarVM)
+        .environmentObject(settingsVM)
+        .modelContainer(container)
+      
+        .frame(height: 900)
+}
