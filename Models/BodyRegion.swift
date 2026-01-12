@@ -10,7 +10,7 @@ import Foundation
 import SwiftUICore
 
 /// Körperregionen
-enum BodyRegion: String, Codable, CaseIterable, Identifiable {
+enum BodyRegion: String, Codable, CaseIterable, Identifiable, Hashable {
     case head = "Kopf"
     case cervicalSpine = "HWS"
     case thoracicSpine = "BWS"

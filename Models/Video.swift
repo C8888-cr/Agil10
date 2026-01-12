@@ -54,7 +54,7 @@ final class Video: @unchecked Sendable {
     }
     
     var equipment: Equipment {
-        get { Equipment(rawValue: equipmentRaw) ?? .bodyweight }
+        get { Equipment(rawValue: equipmentRaw) ?? .noEquipment }
         set { equipmentRaw = newValue.rawValue }
     }
     

@@ -8,7 +8,7 @@ import SwiftData
 import Foundation
 import SwiftUICore
 
-enum Equipment: String, Codable, CaseIterable, Identifiable {
+enum Equipment: String, Codable, CaseIterable, Identifiable, Hashable {
     case noEquipment = "Kein Equipment"
     case bodyweight = "Bodyweight"
     case theraband = "Theraband"
