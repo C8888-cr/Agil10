@@ -1,9 +1,4 @@
-//
-//  CalendarView.swift
-//  Agil
-//
-//  Created by Christiane Roth on 19.11.25.
-//
+
 
 import SwiftUI
 import SwiftData
@@ -15,7 +10,7 @@ struct CalendarView: View {
     
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
- //   @EnvironmentObject var trainingViewModel: TrainingViewModel
+    @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
     
@@ -40,7 +35,19 @@ struct CalendarView: View {
         self.onVideoSelected = onVideoSelected
         
     }
-    
+    @State private var activeSheet: SheetType?
+    @State private var selectedVideoForConfig: Video?
+    @State private var playbackSettings = PlaybackSettings()
+
+
+    enum SheetType: Identifiable {
+        case
+        library,
+        profile,
+        appointments,
+        settings
+        var id: Self { self }
+    }
     
     
     
@@ -61,19 +68,20 @@ struct CalendarView: View {
                             SelectedDateInfoView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 appointments: appointmentViewModel.appointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
-                                onAddExercise: { print("Add exercise tapped") })
+                                onAddAppointment: { print("Add Appointment tapped") })
                             //TODO: Funktion für onAddExercise
-                            
+                            .padding(.horizontal, 16)
                             
                             ExercisesForDateView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 onAddExercise: {
-                                    print("Add exercise tapped")
+                                    activeSheet = .library  // ← EINFACH!
                                 }
                             )
+
                             
                         }
-                        .padding()
+                  //      .padding()
                     }
                 }
                 .navigationTitle("Kalender")
@@ -84,18 +92,38 @@ struct CalendarView: View {
                 .sheet(isPresented: $showProfile) {
                        ProfileView()
                    }
-                   .sheet(isPresented: $showSettings) {
-                       SettingsView()  // oder settingsVM.user falls verfügbar
-                           .environmentObject(settingsVM)  // falls SettingsView das braucht
-                           .environment(\.modelContext, modelContext)
-                   }
-                   .onChange(of: calendarViewModel.selectedDate) { oldDate, newDate in
-                        if let user = authService.currentUser {
-                            progressVM.calculateProgress(for: user)
-                        }
+  
+                   .onChange(of: calendarViewModel.selectedDate) { _, newDate in
+                       if let user = authService.currentUser {
+                           progressVM.loadToday(for: user, date: newDate)  // ← NICHT calculateProgress!
+                       }
                     }
                 
-            
+                   .sheet(item: $activeSheet) { sheet in
+                       switch sheet {
+                       case .library:
+                           NavigationStack {
+                               LibraryView(
+                                   onVideoSelected: { video in
+                                       progressVM.addVideo(video, to: calendarViewModel.selectedDate, for: authService.currentUser!)
+                                       activeSheet = nil
+                                   }
+                               )
+                               .environmentObject(authService)
+                               .environmentObject(videoLibraryVM)
+                               .environmentObject(settingsVM)
+                           }
+                       case .profile:
+                           ProfileView()
+                       case .settings:
+                           SettingsView()
+                               .environmentObject(settingsVM)
+                               .environment(\.modelContext, modelContext)
+                       case .appointments:
+                           EmptyView()
+                       }
+                   }
+
             
         }
     }
@@ -114,10 +142,9 @@ struct CalendarView: View {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button("Profil") {
-                    showProfile = true
-                }
+                    activeSheet = .profile                 }
                 Button("Einstellungen") {
-                    showSettings = true
+                    activeSheet = .settings
                 }
             } label: {
                 Image(systemName: "person.crop.circle")
@@ -131,26 +158,26 @@ struct CalendarView: View {
 #Preview("CalendarView") {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
-        for: VideoSchedule.self,
-        Appointment.self,  // Deine Modelle hier
+        for: VideoSchedule.self, Appointment.self,
         configurations: config
     )
     
     let context = ModelContext(container)
     
-    // ViewModels manuell mit Preview-Container initialisieren
     let authService = AuthService(authServiceProtocol: MockAuthService())
     let progressVM = ProgressViewModel(modelContext: context)
-    let appointmentVM = AppDependencies.shared.appointmentViewModel  // lazy → ok
+    let appointmentVM = AppDependencies.shared.appointmentViewModel
     let calendarVM = CalendarViewModel()
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     
-    // Repository für Preview
-    let previewRepo = VideoRepository(
+    // ← VIDEO LIBRARY VM FEHLT! Hinzufügen:
+    let videoLibraryVM = VideoLibraryViewModel(
+        repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
-        storageService: .shared,
-        thumbnailService: .shared
+        storageService: .shared
     )
+    
+    let previewRepo = VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared)
     
     return CalendarView(repository: previewRepo)
         .environmentObject(authService)
@@ -158,7 +185,7 @@ struct CalendarView: View {
         .environmentObject(appointmentVM)
         .environmentObject(calendarVM)
         .environmentObject(settingsVM)
+        .environmentObject(videoLibraryVM)  // ← HIER!
         .modelContainer(container)
-      
         .frame(height: 900)
 }

@@ -12,7 +12,7 @@ struct SelectedDateInfoView: View {
     // MARK: - Properties
     let selectedDate: Date
     let appointments: [Appointment]
-    let onAddExercise: () -> Void
+    let onAddAppointment: () -> Void
     
     // MARK: - Body
     var body: some View {
@@ -41,7 +41,7 @@ struct SelectedDateInfoView: View {
                 
                 Spacer()
                 
-                Button(action: onAddExercise) {
+                Button(action: onAddAppointment) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
                         .foregroundColor(.accent)
@@ -75,14 +75,14 @@ struct SelectedDateInfoView_Previews: PreviewProvider {
                                 praxisId: mockPraxisId
                                )
                 ],
-                onAddExercise: { print("Add exercise") }
+                onAddAppointment: { print("Add appointment") }
             )
 
             // Ohne Termin
             SelectedDateInfoView(
                 selectedDate: Date(),
                 appointments: [],
-                onAddExercise: { print("Add exercise") }
+                onAddAppointment: { print("Add appointment") }
             )
         }
         .padding()

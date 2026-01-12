@@ -33,7 +33,13 @@ struct ContentView: View {
                 NavigationStack {
                     CalendarView(repository: AppDependencies.shared.videoRepository)
                         .environmentObject(AppDependencies.shared.calendarViewModel)
-                        .environmentObject(AppDependencies.shared.authService) 
+                        .environmentObject(AppDependencies.shared.authService)
+                        .environmentObject(AppDependencies.shared.progressViewModel)
+                        .environmentObject(AppDependencies.shared.videoLibraryVM)
+                        .environmentObject(AppDependencies.shared.settingsViewModel)
+                        .environmentObject(WeeklySettings())
+                        
+                
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
                 
