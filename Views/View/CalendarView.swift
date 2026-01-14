@@ -68,13 +68,16 @@ struct CalendarView: View {
                             SelectedDateInfoView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 appointments: appointmentViewModel.appointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
-                                onAddAppointment: { print("Add Appointment tapped") })
+                                onAddAppointment: {
+                                    activeSheet = .appointments
+                                    print("Add Appointment tapped") })
                             //TODO: Funktion für onAddExercise
                             .padding(.horizontal, 16)
                             
                             ExercisesForDateView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 onAddExercise: {
+                                    print("Add Video tapped")
                                     activeSheet = .library  // ← EINFACH!
                                 }
                             )
@@ -120,7 +123,9 @@ struct CalendarView: View {
                                .environmentObject(settingsVM)
                                .environment(\.modelContext, modelContext)
                        case .appointments:
-                           EmptyView()
+                           AddAppointmentSheet()  // ← HIER!
+                                     .environmentObject(authService)
+                                     .environmentObject(appointmentViewModel)
                        }
                    }
 
