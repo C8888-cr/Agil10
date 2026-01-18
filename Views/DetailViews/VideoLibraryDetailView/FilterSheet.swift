@@ -1,27 +1,11 @@
-//
-//  FilterSheet.swift
-//  Agil
-//
-//  Created by Christiane Roth on 25.11.25.
-//
 
-
-//
-//  FilterSheet.swift
-//  Agil7.0
-//
-//  Created by Christiane Roth on 09.10.25.
-//
-
-//
-//  FilterSheet.swift
-//  Agil7.0
-//
-//  Created by Christiane Roth on 05.01.25.
-//
 import SwiftUI
 import SwiftData
+
+
 struct FilterSheet: View {
+    
+    
     @ObservedObject var viewModel: VideoLibraryViewModel
     @Environment(\.dismiss) private var dismiss
     

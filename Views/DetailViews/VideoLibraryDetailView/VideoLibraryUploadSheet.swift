@@ -1,21 +1,13 @@
-//
-//  VideoUploadSheet.swift
-//  Agil
-//
-//  Created by Christiane Roth on 25.11.25.
-//
 
-
-//
-//  VideoUploadSheet.swift
-//  Agil7.0
-//
-//  Created by Christiane Roth on 05.01.25.
-//
 import SwiftUI
 import PhotosUI
 import SwiftData
-struct VideoUploadSheet: View {
+
+
+
+
+
+struct VideoLibraryUploadSheet: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
     @EnvironmentObject var authService: AuthService
     
@@ -72,32 +64,8 @@ struct VideoUploadSheet: View {
                     }
                     .pickerStyle(.navigationLink)
                 }
-                
-                // Repetitions & Pause
-                Section("Standard-Einstellungen") {
-                    Stepper("Wiederholungen: \(defaultRepetitions)", value: $defaultRepetitions, in: 1...10)
-                    
-                    Stepper("Pause: \(defaultPauseSeconds) Sek", value: $defaultPauseSeconds, in: 0...180, step: 15)
-                }
-                
-                // Loop Duration (optional)
-                Section {
-                    Toggle("Video-Loop verwenden", isOn: $useLoopDuration)
-                    
-                    if useLoopDuration {
-                        Stepper("Loop-Dauer: \(loopDurationSeconds ?? 10) Sek",
-                               value: Binding(
-                                get: { loopDurationSeconds ?? 10 },
-                                set: { loopDurationSeconds = $0 }
-                               ),
-                               in: 5...60,
-                               step: 5)
-                    }
-                } header: {
-                    Text("Video-Loop (optional)")
-                } footer: {
-                    Text("Für kurze Videos, die mehrfach abgespielt werden sollen")
-                }
+          
+          
                 
                 // Upload Button
                 Section {

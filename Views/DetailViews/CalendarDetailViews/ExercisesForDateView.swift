@@ -1,9 +1,13 @@
 import SwiftUI
 import SwiftData
 struct ExercisesForDateView: View {
-    let selectedDate: Date
     
+    
+    let selectedDate: Date
     let onAddExercise: () -> Void
+    let onConfig: (VideoSchedule) -> Void    // ← NEU!
+    let onPlay: (VideoSchedule, Video) -> Void // ← NEU!
+
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
@@ -37,6 +41,7 @@ struct ExercisesForDateView: View {
                             }
                         },
                         onConfig: {
+                            onConfig(schedule)
                             print("Config tapped")
                         },
                         onPlay: { video in

@@ -122,9 +122,8 @@ struct HomeView: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoScheduleConfigSheet(
                     video: video,
-                    repetitions: $playbackSettings.repetitions,
+                    loopDuration: $playbackSettings.loopDurationSeconds, repetitions: $playbackSettings.repetitions,
                     pauseSeconds: $playbackSettings.pauseSeconds,
-                    loopDuration: $playbackSettings.loopDurationSeconds,
                     onAdd: {
                         print("🔍 Speichern...")
                         

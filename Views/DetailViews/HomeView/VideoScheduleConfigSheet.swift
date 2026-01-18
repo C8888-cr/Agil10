@@ -1,5 +1,8 @@
-
+/*
 import SwiftUI
+import SwiftData
+
+
 struct VideoScheduleConfigSheet: View {
     @Environment(\.dismiss) private var dismiss
     
@@ -273,4 +276,207 @@ struct VideoScheduleConfigSheet: View {
             }
         )
     }
+}
+
+*/
+
+
+
+
+import SwiftUI
+import PhotosUI
+import SwiftData
+
+
+
+
+
+struct VideoScheduleConfigSheet: View {
+    
+    @EnvironmentObject var authService: AuthService
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    let video: Video
+    @State private var defaultRepetitions = 3
+    @State private var defaultPauseSeconds = 30
+    @State private var loopDurationSeconds: Int?
+    @State private var useLoopDuration = false
+    
+    @State private var isUploading = false
+    @State private var uploadError: String?
+    @State private var showError = false
+    
+    @Binding var loopDuration: Int
+    @Binding var repetitions: Int
+    @Binding var pauseSeconds: Int
+    
+    let onAdd: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                Spacer()
+                
+                Form {
+                    
+                    // Repetitions & Pause
+                    Section("Standard-Einstellungen") {
+                        Stepper("Wiederholungen: \(repetitions)", value: $repetitions, in: 1...10)
+                        
+                        Stepper("Pause: \(pauseSeconds) Sek", value: $pauseSeconds, in: 0...180, step: 10)
+                    }
+                    
+                    // Loop Duration (optional)
+                    Section {
+                        
+                        
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("Länge eines Videos")
+                                Spacer()
+                                Text(formatSeconds(loopDuration))
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.accent)
+                            }
+                            
+                            // ✅ KORRIGIERT: Berechnung ausgelagert
+                            let sliderRange = calculateSliderRange()
+                            
+                            Slider(
+                                value: .init(
+                                    get: { Double(loopDuration) },
+                                    set: { newValue in
+                                        // ✅ Wert direkt clampen
+                                        loopDuration = min(
+                                            max(Int(newValue), sliderRange.min),
+                                            sliderRange.max
+                                        )
+                                    }
+                                ),
+                                in: Double(sliderRange.min)...Double(sliderRange.max),
+                                step: 5)
+                            
+                        }
+                        
+                    } header: {
+                        Text("Video-Loop (optional)")
+                    } footer: {
+                        Text("Für kurze Videos, die mehrfach abgespielt werden sollen")
+                    }
+                    
+                    
+                    
+                    .padding(.vertical, 4)
+                    
+                    
+                    // Zusammenfassung
+                    Section("Trainingszeit heute") {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Pro Durchlauf:")
+                                Spacer()
+                                Text(formatSeconds(loopDuration))
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            HStack {
+                                Text("Wiederholungen:")
+                                Spacer()
+                                Text("×\(repetitions)")
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            if pauseSeconds > 0 {
+                                HStack {
+                                    Text("Pausen:")
+                                    Spacer()
+                                    Text("\((repetitions - 1) * pauseSeconds)s")
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            
+                            Divider()
+                            
+                            HStack {
+                                Text("Gesamt:")
+                                    .fontWeight(.semibold)
+                                    .font(.headline)
+                                Spacer()
+                                Text(calculateTotal())
+                                    .fontWeight(.semibold)
+                                    .font(.headline)
+                                    .foregroundStyle(.accent)
+                            }
+                        }
+                        .font(.subheadline)
+                    }
+                    
+                    
+                    .padding(.vertical, 4)
+                    
+                    
+                    
+                  
+                    
+                    
+                    
+                        .padding()
+                        .background(Color(.systemBackground))
+                }
+                Button("Speichern") {
+                    onAdd()
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                
+            }
+            
+            
+            
+            
+            
+            
+            .navigationTitle("Video konfigurieren")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Abbrechen") { dismiss() }
+                        .disabled(isUploading)
+                }
+            }
+            .alert("Fehler", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(uploadError ?? "Unbekannter Fehler")
+                
+            }
+        }
+    }
+// ✅ NEU: Slider-Range berechnen (verhindert ungültige Werte)
+private func calculateSliderRange() -> (min: Int, max: Int) {
+    let base = max(1, video.durationSeconds)  // Minimum: Video-Dauer
+    let minDuration = base
+    let hardMax = 300  // 5 Minuten
+    let maxDuration = max(minDuration + 10, hardMax)
+    
+    return (minDuration, maxDuration)
+}
+
+private func calculateTotal() -> String {
+    let totalSeconds = (loopDuration * repetitions) +
+                      (max(0, repetitions - 1) * pauseSeconds)
+    return formatSeconds(totalSeconds)
+}
+
+private func formatSeconds(_ seconds: Int) -> String {
+    let minutes = seconds / 60
+    let secs = seconds % 60
+    if secs > 0 {
+        return "\(minutes):\(String(format: "%02d", secs)) Min"
+    }
+    return "\(minutes) Min"
+}
 }

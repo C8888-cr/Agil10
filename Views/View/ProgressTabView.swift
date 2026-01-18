@@ -6,6 +6,8 @@
 //
 import SwiftUI
 import SwiftData
+
+
 struct ProgressTabView: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel

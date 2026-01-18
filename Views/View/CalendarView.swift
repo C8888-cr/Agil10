@@ -24,9 +24,15 @@ struct CalendarView: View {
     @Environment(\.modelContext) var modelContext
     @State private var currentWeekOffset = 0
     
-    @State private var showProfile = false
-    @State private var showSettings = false
-    
+    @State private var selectedScheduleId: UUID?  // ← NEU!
+    @State private var showVideoPlayer = false  // ← NEU!
+    @State private var selectedVideoForPlayer: Video?  // ← NEU!
+    @State private var editingScheduleId: UUID?  // ← Für EDIT!
+    @State private var isEditingMode = false
+    @State private var activeSheet: SheetType?
+    @State private var selectedVideoForConfig: Video?
+    @State private var playbackSettings = PlaybackSettings()
+
     
     var onVideoSelected: ((Video) -> Void)? = nil
     
@@ -35,9 +41,7 @@ struct CalendarView: View {
         self.onVideoSelected = onVideoSelected
         
     }
-    @State private var activeSheet: SheetType?
-    @State private var selectedVideoForConfig: Video?
-    @State private var playbackSettings = PlaybackSettings()
+
 
 
     enum SheetType: Identifiable {
@@ -77,10 +81,22 @@ struct CalendarView: View {
                             ExercisesForDateView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 onAddExercise: {
-                                    print("Add Video tapped")
-                                    activeSheet = .library  // ← EINFACH!
+                                    activeSheet = .library
+                                },
+                                onConfig: { schedule in  // ← Hinzufügen!
+                                    editingScheduleId = schedule.id
+                                    selectedVideoForConfig = schedule.video
+                                    playbackSettings = PlaybackSettings(  // Standardwerte laden
+                                        repetitions: schedule.customRepetitions ?? 3, pauseSeconds: schedule.customPauseSeconds ?? 30, loopDurationSeconds: schedule.customLoopDurationSeconds ?? schedule.video?.loopDurationSeconds ?? 120
+                                    )
+                                },
+                                onPlay: { schedule, video in
+                                    selectedScheduleId = schedule.id
+                                    selectedVideoForPlayer = video
+                                    showVideoPlayer = true
                                 }
                             )
+
 
                             
                         }
@@ -92,9 +108,7 @@ struct CalendarView: View {
                     toolbarContent
                 }
                 .navigationBarTitleDisplayMode(.inline)
-                .sheet(isPresented: $showProfile) {
-                       ProfileView()
-                   }
+               
   
                    .onChange(of: calendarViewModel.selectedDate) { _, newDate in
                        if let user = authService.currentUser {
@@ -104,6 +118,13 @@ struct CalendarView: View {
                 
                    .sheet(item: $activeSheet) { sheet in
                        switch sheet {
+                       case .settings:
+                           SettingsView() // ← user Parameter
+                               .environmentObject(settingsVM)   // ← VM injizieren!
+                               .environment(\.modelContext, settingsVM.modelContext)
+                               .onDisappear {
+                                   progressVM.loadToday(for: authService.currentUser!)
+                               }
                        case .library:
                            NavigationStack {
                                LibraryView(
@@ -118,10 +139,10 @@ struct CalendarView: View {
                            }
                        case .profile:
                            ProfileView()
-                       case .settings:
-                           SettingsView()
-                               .environmentObject(settingsVM)
-                               .environment(\.modelContext, modelContext)
+              
+                               
+                           
+                           
                        case .appointments:
                            AddAppointmentSheet()  // ← HIER!
                                      .environmentObject(authService)
@@ -129,7 +150,53 @@ struct CalendarView: View {
                        }
                    }
 
-            
+                   .sheet(item: $selectedVideoForConfig) { video in
+                       VideoScheduleConfigSheet(
+                           video: video,
+                           loopDuration: $playbackSettings.loopDurationSeconds, repetitions: $playbackSettings.repetitions,
+                           pauseSeconds: $playbackSettings.pauseSeconds,
+                           onAdd: {
+                               print("🔍 Speichern...")
+                               
+                               if let scheduleId = editingScheduleId,
+                                  let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                                   
+                                   // ✅ WICHTIG: Werte SETZEN vor updateSchedule!
+                                   schedule.customRepetitions = playbackSettings.repetitions
+                                   schedule.customPauseSeconds = playbackSettings.pauseSeconds
+                                   schedule.customLoopDurationSeconds = playbackSettings.loopDurationSeconds
+                                   
+                                   print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
+                                   progressVM.updateSchedule(schedule, for: authService.currentUser!)
+
+                               }
+                  
+                               selectedVideoForConfig = nil
+                               editingScheduleId = nil
+                           },
+                           onCancel: {
+                               selectedVideoForConfig = nil
+                               editingScheduleId = nil
+           
+
+                           }
+                       )
+                   }
+                   .sheet(isPresented: $showVideoPlayer) {
+                       if let video = selectedVideoForPlayer,
+                          let scheduleId = selectedScheduleId {
+                           VideoPlayerView(
+                               video: video,
+                               scheduleId: scheduleId,  // ✅ DEINE STATE VARIABLE!
+                               progressViewModel: progressVM
+                           )
+                       }
+                   }
+
+                   .onAppear {
+                       print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
+                       progressVM.loadToday(for: authService.currentUser!)
+                   }
         }
     }
     
