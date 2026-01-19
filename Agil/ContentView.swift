@@ -17,7 +17,7 @@ struct ContentView: View {
                         .environmentObject(AppDependencies.shared.progressViewModel)
                         .environmentObject(AppDependencies.shared.videoLibraryVM)
                         .environmentObject(AppDependencies.shared.settingsViewModel)
-                   //     .environmentObject(AppDependencies.shared.trainingData)
+                        .environmentObject(AppDependencies.shared.profileViewModel)
                         .environmentObject(WeeklySettings())
                         
                 }

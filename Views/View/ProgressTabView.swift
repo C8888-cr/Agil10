@@ -12,6 +12,17 @@ struct ProgressTabView: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var profileVM: ProfileViewModel
+    @State private var activeSheet: SheetType?
+
+
+    enum SheetType: Identifiable {
+        case
+        profile,
+        settings
+        var id: Self { self }
+    }
+
     
     var body: some View {
         NavigationView {
@@ -35,6 +46,34 @@ struct ProgressTabView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Fortschritt")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Profil") { activeSheet = .profile }
+                            Button("Einstellungen") { activeSheet = .settings }
+                    } label: {
+                        Image(systemName: "person.crop.circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 30, height: 30)
+                    }
+                }
+            }
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .settings:
+                    SettingsView() // ← user Parameter
+                        .environmentObject(settingsVM)   // ← VM injizieren!
+                        .environment(\.modelContext, settingsVM.modelContext)
+                        .onDisappear {
+                            progressVM.loadToday(for: authService.currentUser!)
+                        }
+                    
+                case .profile:
+                    ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
+                              .environment(\.modelContext, settingsVM.modelContext)
+                }
+            }
             .onAppear {
                 guard let user = authService.currentUser else { return }
                 progressVM.calculateAllProgress(for: user)

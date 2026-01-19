@@ -92,7 +92,7 @@ class AppDependencies {
     lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext,
     authService:authService)
     
- //   lazy var trainingData = TrainingData(weeklySettings: WeeklySettings())
+    lazy var profileViewModel = ProfileViewModel(modelContext: modelContext, authService: authService)
     
  //   lazy var trainingViewModel = TrainingViewModel()
     

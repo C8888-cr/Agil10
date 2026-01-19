@@ -9,7 +9,7 @@ struct LibraryView: View {
     @EnvironmentObject var authService: AuthService
     @Environment(\.modelContext) private var modelContext
     
-    
+    @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var viewModel: VideoLibraryViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
@@ -74,7 +74,8 @@ struct LibraryView: View {
                 await setupView()
             }
             .sheet(isPresented: $showProfile) {
-                ProfileView()
+                ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
+                          .environment(\.modelContext, settingsVM.modelContext)
             }
             .sheet(isPresented: $showSettings) {
                 settingsSheet

@@ -6,10 +6,11 @@ struct HomeView: View {
     
     
     @EnvironmentObject var authService: AuthService
-  //  @EnvironmentObject var trainingData: TrainingData
+
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var profileVM: ProfileViewModel
 
     
     
@@ -100,7 +101,8 @@ struct HomeView: View {
                         }
                         
                 case .profile:
-                    ProfileView()
+                    ProfileView(profileVM: profileVM)
+                              .environment(\.modelContext, settingsVM.modelContext)
                 case .library:
                     NavigationStack {  // ✅ WICHTIG: NavigationStack!
                         LibraryView(

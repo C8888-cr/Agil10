@@ -4,7 +4,7 @@ import SwiftUI
 import SwiftData
 
 struct CalendarView: View {
-    
+    @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var progressVM: ProgressViewModel
     
@@ -138,7 +138,8 @@ struct CalendarView: View {
                                .environmentObject(settingsVM)
                            }
                        case .profile:
-                           ProfileView()
+                           ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
+                                     .environment(\.modelContext, settingsVM.modelContext)
               
                                
                            

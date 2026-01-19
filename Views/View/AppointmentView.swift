@@ -3,7 +3,7 @@ import SwiftUI
 import SwiftData
 
 struct AppointmentView: View {
-    
+    @EnvironmentObject var profileVM: ProfileViewModel
     
     @EnvironmentObject var authService: AuthService
     @Environment(\.modelContext) private var modelContext
@@ -79,7 +79,8 @@ struct AppointmentView: View {
             }
         }
         .sheet(isPresented: $showProfile) {
-            ProfileView()
+            ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
+                      .environment(\.modelContext, settingsVM.modelContext)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
