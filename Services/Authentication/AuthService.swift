@@ -125,7 +125,7 @@ class AuthService: ObservableObject {
           firstName: String,
           lastName: String,
           isTherapist: Bool,
-          praxisId: Int?
+          praxisId: UUID?
       ) async throws {
           isLoading = true
           defer { isLoading = false }

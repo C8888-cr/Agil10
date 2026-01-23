@@ -28,7 +28,7 @@ protocol AuthServiceProtocol {
           firstName: String,
           lastName: String,
           role: UserRole,
-          praxisId: Int?
+          praxisId: UUID?
     )
                 async throws -> (User, String)  // ✅ (User, Token)
 }

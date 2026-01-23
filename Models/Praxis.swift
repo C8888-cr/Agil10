@@ -11,7 +11,7 @@ import Foundation
 import CoreLocation
 import MapKit
 
-final class Praxis: @unchecked Sendable {
+final class Praxis: @unchecked Sendable, Identifiable {
     // MARK: - Core Properties
     var id: UUID  // ✅ UUID statt Int!
     var name: String
