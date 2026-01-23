@@ -97,17 +97,21 @@ class AppointmentViewModel: ObservableObject {
               setError(.parsingFailed("Kein User eingeloggt"))
               return
           }
-        
+        print("👤 Current User: \(user.id)")
         
         isLoading = true
         do {
             let appointments = try await parseEmailUseCase.execute(emailText)  // ✅ [Appointment]
-            
-            // ✅ NEU: Allen Appointments User zuweisen
-            appointments.forEach { $0.userId = user.id }
+            print("📧 Parsed \(appointments.count) appointments")
             
             
-            await loadAppointments()
+            // ✅ User zuweisen
+                for apt in appointments {
+                    apt.userId = user.id
+                    print("   → \(apt.therapist) | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
+                }
+                
+                await loadAppointments()
             clearErrors()
             print("✅ Imported: \(appointments.count) appointments")  // ✅ FIX!
         } catch let error as AppointmentError {

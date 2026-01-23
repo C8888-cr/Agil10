@@ -42,9 +42,20 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
             sortBy: [SortDescriptor(\.date)]
         )
         
-        let allAppointments = try self.modelContext.fetch(descriptor)  // ← DEIN modelContext!
-        return allAppointments.filter { $0.userId == self.userId }
-    }
+        let allAppointments = try self.modelContext.fetch(descriptor)
+        // 🔍 DEBUG
+        print("📦 Total Appointments in DB: \(allAppointments.count)")
+        print("👤 Filtering for userId: \(self.userId)")
+        
+        for apt in allAppointments {
+               print("   → \(apt.therapist) | userId: \(apt.userId?.uuidString ?? "NIL") | date: \(apt.date)")
+           }
+           
+           let filtered = allAppointments.filter { $0.userId == self.userId }
+           print("✅ Filtered result: \(filtered.count)")
+           
+           return filtered
+       }
 
 
 
@@ -73,9 +84,20 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         return try modelContext.fetch(descriptor)
     }
     
+    
+    
     func save(_ appointment: Appointment) throws {
+        
+        print("💾 Saving appointment:")
+        print("   → Therapist: \(appointment.therapist)")
+        print("   → userId: \(appointment.userId?.uuidString ?? "❌ NIL")")
+        print("   → Date: \(appointment.date)")
+        
+        
         modelContext.insert(appointment)
         try modelContext.save()
+        
+        print("✅ Saved successfully")
     }
     
     func delete(_ appointment: Appointment) throws {
