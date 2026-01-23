@@ -5,7 +5,7 @@
 //  Created by Christiane Roth on 30.11.25.
 //
 
-/*
+
 //
 //  SignUpView.swift
 //  Agil9.0
@@ -387,7 +387,7 @@ struct SignUpView: View {
     SignUpView(
     )
 }
-*/
+/*
 import SwiftUI
 
 struct SignUpView: View {
@@ -395,3 +395,4 @@ struct SignUpView: View {
         Text("TEMP - SignUpView")
     }
 }
+*/
