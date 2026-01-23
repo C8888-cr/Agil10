@@ -21,6 +21,7 @@ final class MockAuthService: AuthServiceProtocol {
         let lastName: String
         let password: String
         let isTherapist: Bool
+        let praxisId: UUID?
         
         func toUser() -> User {
             User(
@@ -29,7 +30,8 @@ final class MockAuthService: AuthServiceProtocol {
                 lastName: lastName,
                 email: email,
                 passwordHash: password,
-                role: .patient
+                role: isTherapist ? .therapist : .patient,
+                praxisId: praxisId
             )
         }
     }
@@ -42,7 +44,8 @@ final class MockAuthService: AuthServiceProtocol {
             firstName: "Max",
             lastName: "Mustermann",
             password: "patient1",
-            isTherapist: false
+            isTherapist: false,
+            praxisId: PraxisDataManager.praxis4Id
         ),
         "therapist@agil.de": MockUserRecord(
             id: MockAuthService.mockTherapistId,
@@ -50,7 +53,8 @@ final class MockAuthService: AuthServiceProtocol {
             firstName: "Christiane",
             lastName: "Roth",
             password: "therapist1",
-            isTherapist: true
+            isTherapist: true,
+            praxisId: PraxisDataManager.praxis4Id
         )
     ]
     
@@ -60,7 +64,8 @@ final class MockAuthService: AuthServiceProtocol {
         password: String,
         firstName: String,
         lastName: String,
-        role: UserRole
+        role: UserRole,
+        praxisId: UUID?
     ) async throws -> (User, String) {
         
         // ✅ Prüfe ob Email bereits existiert
@@ -76,7 +81,8 @@ final class MockAuthService: AuthServiceProtocol {
             firstName: firstName,
             lastName: lastName,
             password: password,
-            isTherapist: role == .therapist
+            isTherapist: role == .therapist,
+            praxisId: praxisId
         )
         
         // ✅ Speichere in Mock-Datenbank
@@ -89,7 +95,8 @@ final class MockAuthService: AuthServiceProtocol {
             lastName: lastName,
             email: email,
             passwordHash: "",  // ✅ Wird nie zurückgegeben
-            role: role
+            role: role,
+            praxisId: praxisId
         )
         
         // ✅ Token generieren
@@ -128,7 +135,8 @@ final class MockAuthService: AuthServiceProtocol {
             lastName: record.lastName,
             email: record.email,
             passwordHash: "",
-            role: .patient
+            role: .patient,
+            praxisId: record.praxisId
         )
         
         // ✅ Token generieren
@@ -190,7 +198,8 @@ final class MockAuthService: AuthServiceProtocol {
             firstName: record.firstName,
             lastName: record.lastName,
             password: newPassword,
-            isTherapist: record.isTherapist
+            isTherapist: record.isTherapist,
+            praxisId: record.praxisId
         )
         mockUsers[email.lowercased()] = updatedRecord
         

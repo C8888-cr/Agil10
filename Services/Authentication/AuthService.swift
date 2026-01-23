@@ -125,7 +125,7 @@ class AuthService: ObservableObject {
           firstName: String,
           lastName: String,
           isTherapist: Bool,
-          praxisId: Int?
+          praxisId: UUID?
       ) async throws {
           isLoading = true
           defer { isLoading = false }
@@ -145,7 +145,8 @@ class AuthService: ObservableObject {
               password: password,
               firstName: firstName,
               lastName: lastName,
-              role: isTherapist ? .therapist : .patient
+              role: isTherapist ? .therapist : .patient,
+              praxisId: praxisId 
           )
           
           // ✅ Beide speichern

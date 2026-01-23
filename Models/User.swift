@@ -74,7 +74,7 @@ final class User: @unchecked Sendable {
                 self.roleRaw = role.rawValue
                 self.isPremium = isPremium
                 self.createdAt = Date()
-                self.praxisId = praxisId
+                self.praxisId = praxisId ?? PraxisDataManager.praxis2Id
             }
         }
 
@@ -87,7 +87,8 @@ extension User {
             lastName: "Mustermann",
             email: "patient@agil.de",
             passwordHash: "patient1",
-            role: .patient  // ← Muss angegeben werden
+            role: .patient,
+            praxisId: PraxisDataManager.praxis4Id
         )
     }
     
@@ -98,7 +99,8 @@ extension User {
             lastName: "Müller",
             email: "therapeut@agil.de",
             passwordHash: "therapeut1",
-            role: .therapist  // ← Muss angegeben werden
+            role: .therapist,
+            praxisId: PraxisDataManager.praxis4Id 
         )
     }
 }
