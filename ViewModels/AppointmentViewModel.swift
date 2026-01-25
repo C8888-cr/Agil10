@@ -31,7 +31,7 @@ class AppointmentViewModel: ObservableObject {
     private let parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
     
     // MARK: - State
-    @Published private(set) var appointments: [Appointment] = []
+    @Published var appointments: [Appointment] = []
     @Published var isLoading = false
     @Published var showingError = false
     

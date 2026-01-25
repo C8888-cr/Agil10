@@ -117,6 +117,7 @@ struct AppointmentCardView: View {
 }
 */
 import SwiftUI
+import SwiftData
 
 // MARK: - AppointmentCardView mit Maps-Integration
 struct AppointmentCardView: View {

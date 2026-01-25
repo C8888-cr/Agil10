@@ -1,6 +1,6 @@
 
 import SwiftUI
-
+import SwiftData
 
 struct ImportResultsView: View {
     @Environment(\.dismiss) private var dismiss

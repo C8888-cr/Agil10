@@ -2,7 +2,7 @@
 //  AppointmentToolbar.swift
 
 import SwiftUI
-
+import SwiftData
 
 struct AppointmentToolbar: ToolbarContent {
     let showingManualEntry: () -> Void

@@ -9,7 +9,7 @@ struct AppointmentView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
-    @State private var viewModel: AppointmentViewModel
+    @StateObject private var viewModel: AppointmentViewModel
     @State private var showingManualEntry = false
     @State private var showingEmailImport = false
     @State private var emailText = ""
@@ -22,7 +22,7 @@ struct AppointmentView: View {
     
     // ✅ CLEAN: ViewModel wird von außen übergeben
     init(viewModel: AppointmentViewModel) {
-        _viewModel = State(initialValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
         
     }
     

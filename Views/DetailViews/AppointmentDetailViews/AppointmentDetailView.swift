@@ -21,9 +21,12 @@ struct AppointmentDetailView: View {
     
     @State private var showingCancelSheet = false
     @State private var cancelReason = ""
+
     
-    // ✅ User Email (sollte später aus User Context kommen)
-    private let userEmail = "user@example.com"
+    private var userEmail: String {
+          authService.currentUser?.email ?? ""
+      }
+
     
     private var region: MKCoordinateRegion {
         if let coordinate = appointment.coordinate {
@@ -189,20 +192,29 @@ struct AppointmentDetailView: View {
                                             CancelAppointmentView(
                                                 appointment: appointment,
                                                 viewModel: viewModel,
-                                                isPresented: $showingCancelSheet,
-                                                userEmail: userEmail
+                                                isPresented: $showingCancelSheet
                                             )
+                                            .environmentObject(authService) 
                                         }
                                     }
                                 }
                             }
                             // MARK: - Cancel Appointment View
                             struct CancelAppointmentView: View {
+                                
+                                @EnvironmentObject var authService: AuthService
                                 @Environment(\.dismiss) private var dismiss
+                                
+                                private var userEmail: String {
+                                    authService.currentUser?.email ?? ""
+                                }
+                                
                                 let appointment: Appointment
                                 let viewModel: AppointmentViewModel
+                                
+                                
                                 @Binding var isPresented: Bool
-                                let userEmail: String
+                           
                                 
                                 @State private var cancelReason = ""
                                 @State private var isProcessing = false
@@ -295,6 +307,9 @@ struct ManualAppointmentEntryView: View {
     @State private var locationAddress = ""
     @State private var notes = ""
     @State private var showingAlert = false
+    @State private var showingError = false  // ← NEU!
+    @State private var errorMessage = ""
+    
     
     var body: some View {
         NavigationStack {
@@ -365,8 +380,10 @@ struct ManualAppointmentEntryView: View {
     private func saveAppointment() {
         
         // ✅ RICHTIG
-        guard let user = authService.currentUser else {
+        guard authService.currentUser != nil else {
             print("❌ Kein User eingeloggt")
+            errorMessage = "Nicht eingeloggt"
+            showingError = true
             return
         }
         

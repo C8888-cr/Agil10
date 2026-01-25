@@ -9,13 +9,13 @@ import SwiftData
 // MARK: - Protocol
 @MainActor
 protocol AppointmentRepositoryProtocol {
-    func fetchAll() throws -> [Appointment]
-    func fetchUpcoming() throws -> [Appointment]
-    func fetchPast() throws -> [Appointment]
-    func fetchHighlighted() throws -> [Appointment]
-    func save(_ appointment: Appointment) throws
-    func delete(_ appointment: Appointment) throws
-    func checkDuplicate(date: Date, therapist: String) throws -> Bool
+    func fetchAll() async throws -> [Appointment]
+    func fetchUpcoming() async throws -> [Appointment]
+    func fetchPast() async throws -> [Appointment]
+    func fetchHighlighted() async throws -> [Appointment]
+    func save(_ appointment: Appointment) async throws
+    func delete(_ appointment: Appointment) async throws
+    func checkDuplicate(date: Date, therapist: String) async throws -> Bool
 }
 // MARK: - Repository
 @MainActor
@@ -36,7 +36,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
     
     // MARK: - Fetch Methods
     
-    func fetchAll() throws -> [Appointment] {
+    func fetchAll() async throws -> [Appointment] {
         guard let userId = currentUserId else {
             print("⚠️ fetchAll: Kein User eingeloggt")
             return []
@@ -50,7 +50,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         return appointments
     }
     
-    func fetchUpcoming() throws -> [Appointment] {
+    func fetchUpcoming() async throws -> [Appointment] {
         guard let userId = currentUserId else {
             print("⚠️ fetchUpcoming: Kein User eingeloggt")
             return []
@@ -66,7 +66,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         return try modelContext.fetch(descriptor)
     }
     
-    func fetchPast() throws -> [Appointment] {
+    func fetchPast() async throws -> [Appointment] {
         guard let userId = currentUserId else {
             print("⚠️ fetchPast: Kein User eingeloggt")
             return []
@@ -82,7 +82,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         return try modelContext.fetch(descriptor)
     }
     
-    func fetchHighlighted() throws -> [Appointment] {
+    func fetchHighlighted() async throws -> [Appointment] {
         guard let userId = currentUserId else {
             print("⚠️ fetchHighlighted: Kein User eingeloggt")
             return []
@@ -100,7 +100,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
     
     // MARK: - Save/Delete
     
-    func save(_ appointment: Appointment) throws {
+    func save(_ appointment: Appointment) async throws {
         guard let userId = currentUserId else {
             throw AppointmentError.notFound  // ⚠️ Besserer Error: .noUserLoggedIn
         }
@@ -118,7 +118,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         print("✅ Saved with userId: \(userId)")
     }
     
-    func delete(_ appointment: Appointment) throws {
+    func delete(_ appointment: Appointment) async throws {
         modelContext.delete(appointment)
         try modelContext.save()
         print("🗑️ Deleted appointment: \(appointment.therapist)")
@@ -126,8 +126,8 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
     
     // MARK: - Duplicate Check
     
-    func checkDuplicate(date: Date, therapist: String) throws -> Bool {
-        let appointments = try fetchAll()  // ✅ Nutzt fetchAll (filtered nach userId)
+    func checkDuplicate(date: Date, therapist: String) async throws -> Bool {
+        let appointments = try await fetchAll()  // ✅ Nutzt fetchAll (filtered nach userId)
         
         let isDuplicate = appointments.contains { existing in
             Calendar.current.isDate(existing.date, inSameDayAs: date) &&

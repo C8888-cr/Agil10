@@ -15,6 +15,7 @@
 
 // Features/Appointments/Presentation/Views/AddAppointmentSheet.swift
 import SwiftUI
+import SwiftData
 import CoreLocation
 struct AddAppointmentSheet: View {
     @EnvironmentObject var authService: AuthService
