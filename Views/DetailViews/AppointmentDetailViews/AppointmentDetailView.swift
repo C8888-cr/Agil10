@@ -381,34 +381,34 @@ struct ManualAppointmentEntryView: View {
         finalComponents.hour = timeComponents.hour
         finalComponents.minute = timeComponents.minute
         
-        guard let finalDate = calendar.date(from: finalComponents) else { return }
-        
-        
-        
-        
-        // ✅ EXAKTE Reihenfolge wie im Appointment.init
-        let newAppointment = Appointment(
-            id: UUID(),                                                   // 1
-            date: finalDate,                                              // 2
-            therapist: therapistName,                                     // 3
-            locationName: locationName.isEmpty ? nil : locationName,      // 4
-            locationAddress: locationAddress.isEmpty ? nil : locationAddress, // 5 ✅
-            locationLatitude: nil,                                        // 6
-            locationLongitude: nil,                                       // 7
-            notes: notes.isEmpty ? nil : notes,                          // 8 ✅
-            emailUID: nil,                                               // 9
-            status: .confirmed,                                          // 10
-            userId: user.id,
-            praxisId: user.praxisId ?? UUID()
-               
-        )
-        Task {
-            await viewModel.addAppointment(newAppointment)
+        guard let finalDate = calendar.date(from: finalComponents) else {
+            print("❌ Datum ungültig")
+            return
         }
-        showingAlert = true
+        
+        
+        
+        Task {
+            print("💾 Speichere Manual Appointment: \(therapistName) am \(finalDate)")
+            
+            // ✅ RICHTIGE Funktion verwenden!
+            await viewModel.addAppointmentManual(
+                date: finalDate,
+                therapist: therapistName,
+                locationName: locationName.isEmpty ? nil : locationName,
+                locationAddress: locationAddress.isEmpty ? nil : locationAddress,
+                latitude: nil,
+                longitude: nil,
+                notes: notes.isEmpty ? nil : notes
+            )
+            
+            await MainActor.run {
+                print("✅ Appointment gespeichert!")
+                showingAlert = true
+            }
+        }
     }
 }
-    
     
 
 #Preview("Appointment Detail") {
