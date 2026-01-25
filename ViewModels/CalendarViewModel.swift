@@ -5,6 +5,9 @@ import SwiftData
 
 @MainActor
 final class CalendarViewModel: ObservableObject {
+    
+    //Dependencies
+    private let modelContext: ModelContext
  
     private let calendar: Calendar = .current
     
@@ -17,8 +20,11 @@ final class CalendarViewModel: ObservableObject {
 
     
     weak var progressViewModel: ProgressViewModel?
-    init(selectedDate: Date = Date()) {
+    
+    
+    init(selectedDate: Date = Date(), modelContext: ModelContext,) {
            self.selectedDate = selectedDate
+           self.modelContext = modelContext
            self.anchorDate = selectedDate
        }
     

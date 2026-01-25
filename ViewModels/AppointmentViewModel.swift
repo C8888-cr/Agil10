@@ -6,6 +6,9 @@ import SwiftData
 @MainActor
 class AppointmentViewModel: ObservableObject {
     
+    
+    private let modelContext: ModelContext
+    
     // ✅ AuthService aus AppDependencies holen
        private var authService: AuthService {
            AppDependencies.shared.authService
@@ -56,6 +59,7 @@ class AppointmentViewModel: ObservableObject {
     
     // MARK: - Init (mit allen Dependencies)
         init(
+            modelContext: ModelContext,
             repository: AppointmentRepository,
             emailParser: EmailParserService,
             detectAppointmentChangesUseCase: DetectAppointmentChangesUseCase,
@@ -70,6 +74,7 @@ class AppointmentViewModel: ObservableObject {
         
         ) {
          //   self.repository = repository
+            self.modelContext = modelContext
             self.emailParser = emailParser
             self.detectAppointmentChangesUseCase = detectAppointmentChangesUseCase
             self.cancelAppointmentUseCase = cancelAppointmentUseCase

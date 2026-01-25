@@ -55,7 +55,7 @@ struct AddAppointmentUseCase {
         }
         
         // Duplikat-Check
-        let isDuplicate = try repository.checkDuplicate(
+        let isDuplicate = try await repository.checkDuplicate(
             date: appointment.date,
             therapist: appointment.therapist
            
@@ -67,7 +67,7 @@ struct AddAppointmentUseCase {
         
         // Speichern
         do {
-            try repository.save(appointment)
+            try await repository.save(appointment)
         } catch {
             throw AppointmentError.saveFailed(error.localizedDescription)  
         }

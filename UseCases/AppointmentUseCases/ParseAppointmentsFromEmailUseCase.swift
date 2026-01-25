@@ -35,7 +35,7 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
         let parsedAppointments = await emailParser.parseAppointments(from: emailText)
         
         // 3️⃣ Existierende Termine laden
-        let existingAppointments = try repository.fetchAll()
+        let existingAppointments = try await repository.fetchAll()
         
         // 4️⃣ Änderungen erkennen
         let changes = detectChangesUseCase.execute(
@@ -46,12 +46,12 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
         
         // 5️⃣ Neue Termine speichern
         for appointment in changes.added {
-            try repository.save(appointment)
+            try await repository.save(appointment)
         }
         
         // 6️⃣ Geänderte und abgesagte speichern
         for appointment in changes.modified + changes.cancelled {
-            try repository.save(appointment)
+            try await repository.save(appointment)
         }
         
         print("✅ Email import completed: \(changes.added.count) added, \(changes.modified.count) modified, \(changes.cancelled.count) cancelled")

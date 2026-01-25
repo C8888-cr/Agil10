@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import SwiftData
+
 
 struct CompactWeekView: View {
 @EnvironmentObject var appointmentViewModel: AppointmentViewModel
@@ -63,12 +65,19 @@ struct CompactWeekView: View {
     }
 }
 #Preview {
-    let calVM = CalendarViewModel()
+    let previewContainer = try! ModelContainer(
+        for: VideoSchedule.self, Appointment.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    
+    let context = previewContainer.mainContext
+    let calVM = CalendarViewModel(modelContext: context)
     let apptVM = PreviewHelper.createAppointmentViewModel()
-    calVM.selectedDate = Calendar.current.date(from: DateComponents(year: 2025, month: 11, day: 23))!
-    return VStack {
-        CompactWeekView()
-            .environmentObject(calVM)
-            .environmentObject(apptVM)
-    }
+    
+
+    
+    CompactWeekView()
+        .environmentObject(calVM)
+        .environmentObject(apptVM)
+        .modelContainer(previewContainer)
 }

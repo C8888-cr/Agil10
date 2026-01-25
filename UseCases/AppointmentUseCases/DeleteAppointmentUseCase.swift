@@ -23,6 +23,6 @@ struct DeleteAppointmentUseCase {
     }
     
     func execute(_ appointment: Appointment) async throws {
-        try repository.delete(appointment)
+        try await repository.delete(appointment)
     }
 }

@@ -23,10 +23,10 @@ class AppDependencies {
     
     // MARK: - Repositories (LAZY)
     // ✅ NEU (Fix 1)
-    var appointmentRepository: AppointmentRepository {  // lazy → var
-        let userId = authService.currentUser?.id ?? MockAuthService.mockPatientId
-        return AppointmentRepository(modelContext: modelContext, userId: userId)
-    }
+    lazy var appointmentRepository = AppointmentRepository(
+        modelContext: modelContext,
+        authService: authService  // ← AuthService statt userId!        return AppointmentRepository(modelContext: modelContext, userId: userId)
+    )
     
     
     // ✅ NACHHER (computed property = immer gleicher Context!):
@@ -72,6 +72,7 @@ class AppDependencies {
 
     
     lazy var appointmentViewModel = AppointmentViewModel(
+        modelContext: modelContext,
         repository: appointmentRepository,
         emailParser: emailParser,
         detectAppointmentChangesUseCase: detectAppointmentChangesUseCase,
@@ -85,7 +86,7 @@ class AppDependencies {
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
     
-    lazy var calendarViewModel = CalendarViewModel()
+    lazy var calendarViewModel = CalendarViewModel(modelContext: modelContext)
     
     lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
     

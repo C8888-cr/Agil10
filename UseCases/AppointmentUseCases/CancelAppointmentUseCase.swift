@@ -39,7 +39,7 @@ struct CancelAppointmentUseCase {
         
         // Status ändern
         appointment.status = .cancelled
-        try repository.save(appointment)
+        try await repository.save(appointment)
         
         // Email senden
         let emailContent = buildCancellationEmail(

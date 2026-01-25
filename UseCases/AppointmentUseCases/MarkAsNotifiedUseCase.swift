@@ -25,6 +25,6 @@ struct MarkAsNotifiedUseCase {
     func execute(_ appointment: Appointment) async throws {
         appointment.wasNotified = true
         appointment.isHighlighted = false
-        try repository.save(appointment)
+        try await repository.save(appointment)
     }
 }

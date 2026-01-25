@@ -196,6 +196,10 @@ struct CalendarView: View {
 
                    .onAppear {
                        print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
+                        
+                        Task {
+                            await appointmentViewModel.loadAppointments()
+                        }
                        progressVM.loadToday(for: authService.currentUser!)
                    }
         }
@@ -238,12 +242,13 @@ struct CalendarView: View {
     let context = ModelContext(container)
     
     let authService = AuthService(authServiceProtocol: MockAuthService())
+    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     let progressVM = ProgressViewModel(modelContext: context)
     let appointmentVM = AppDependencies.shared.appointmentViewModel
-    let calendarVM = CalendarViewModel()
-    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     
-    // ← VIDEO LIBRARY VM FEHLT! Hinzufügen:
+    // ✅ CalendarViewModel MIT modelContext
+    let calendarVM = CalendarViewModel(modelContext: context)
+    
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
@@ -252,13 +257,13 @@ struct CalendarView: View {
     
     let previewRepo = VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared)
     
-    return CalendarView(repository: previewRepo)
+    CalendarView(repository: previewRepo)
         .environmentObject(authService)
         .environmentObject(progressVM)
         .environmentObject(appointmentVM)
         .environmentObject(calendarVM)
         .environmentObject(settingsVM)
-        .environmentObject(videoLibraryVM)  // ← HIER!
+        .environmentObject(videoLibraryVM)
         .modelContainer(container)
         .frame(height: 900)
 }

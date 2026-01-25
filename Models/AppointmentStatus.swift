@@ -16,7 +16,7 @@
 // Features/Appointments/Models/AppointmentStatus.swift
 import Foundation
 import SwiftUI
-
+import SwiftData
 
 enum AppointmentStatus: String, Codable, CaseIterable {
     case scheduled = "scheduled"

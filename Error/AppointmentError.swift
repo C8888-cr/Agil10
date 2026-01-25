@@ -24,7 +24,7 @@ enum AppointmentError: LocalizedError {
     case notFound
     case emailSendFailed
     case validationFailed(String)
-    
+    case noUserLoggedIn
     
     var errorDescription: String? {
         switch self {
@@ -45,6 +45,8 @@ enum AppointmentError: LocalizedError {
             return "Email konnte nicht versendet werden"
         case .validationFailed(let message):  // ← FIX!
                   return "Validierung fehlgeschlagen: \(message)"
+        case .noUserLoggedIn:
+                   return "Kein User eingeloggt"
         }
     }
     
@@ -66,6 +68,8 @@ enum AppointmentError: LocalizedError {
             return "Die Email-App konnte nicht geöffnet werden."
         case .validationFailed(let details):
                    return "Die Eingabevalidierung ist fehlgeschlagen: \(details)"
+        case .noUserLoggedIn:
+            return "Kein User eingeloggt"
         }
     }
     
@@ -85,6 +89,9 @@ enum AppointmentError: LocalizedError {
             return "Stelle sicher, dass eine Email-App installiert ist."
         case .validationFailed:
             return "Überprüfe deine Eingaben und versuche es erneut."
+        case .noUserLoggedIn:
+            return "Bitte logge dich ein."
+            
         }
     }
 }
