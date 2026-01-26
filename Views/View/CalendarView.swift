@@ -144,9 +144,9 @@ struct CalendarView: View {
                                .environmentObject(settingsVM)
                            }
                        case .profile:
-                           ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
+                           ProfileView(profileVM: profileVM)
                                      .environment(\.modelContext, settingsVM.modelContext)
-              
+
                                
                            
                            

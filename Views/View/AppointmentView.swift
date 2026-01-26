@@ -3,6 +3,8 @@ import SwiftUI
 import SwiftData
 
 struct AppointmentView: View {
+    
+    
     @EnvironmentObject var profileVM: ProfileViewModel
     
     @EnvironmentObject var authService: AuthService

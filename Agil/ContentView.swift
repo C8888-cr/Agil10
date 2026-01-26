@@ -26,7 +26,9 @@ struct ContentView: View {
                 NavigationStack {
                     AppointmentView(viewModel: AppDependencies.shared.appointmentViewModel)
                         .environmentObject(AppDependencies.shared.appointmentViewModel)  // ← HINZUFÜGEN!
-                        .environmentObject(AppDependencies.shared.authService) 
+                        .environmentObject(AppDependencies.shared.authService)
+                        .environmentObject(AppDependencies.shared.settingsViewModel)
+                        .environmentObject(AppDependencies.shared.profileViewModel)
                 }
                 .tabItem { Label("Appointments", systemImage: "person.fill") }
                 
@@ -38,7 +40,7 @@ struct ContentView: View {
                         .environmentObject(AppDependencies.shared.videoLibraryVM)
                         .environmentObject(AppDependencies.shared.settingsViewModel)
                         .environmentObject(WeeklySettings())
-                        
+                        .environmentObject(AppDependencies.shared.profileViewModel)
                 
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
@@ -46,7 +48,9 @@ struct ContentView: View {
                 NavigationStack {
                     ProgressTabView()
                         .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.progressViewModel)  // ← Falls nötig
+                        .environmentObject(AppDependencies.shared.progressViewModel)
+                        .environmentObject(AppDependencies.shared.settingsViewModel)
+                        .environmentObject(AppDependencies.shared.profileViewModel)
                 }
                 .tabItem { Label("Progress", systemImage: "chart.bar.xaxis") }
                 
@@ -55,7 +59,7 @@ struct ContentView: View {
                         .environmentObject(AppDependencies.shared.authService)
                         .environmentObject(AppDependencies.shared.videoLibraryVM)
                         .environmentObject(AppDependencies.shared.settingsViewModel)
-                
+                        .environmentObject(AppDependencies.shared.profileViewModel)
                  
                 }
                 .tabItem { Label("Library", systemImage: "book.fill") }
