@@ -103,7 +103,9 @@ struct DetectAppointmentChangesUseCase {
         return false
     }
 }
-struct AppointmentChanges {
+struct AppointmentChanges: Identifiable {
+    let id = UUID()
+    
     var added: [Appointment] = []
     var modified: [Appointment] = []
     var cancelled: [Appointment] = []

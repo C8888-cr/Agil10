@@ -14,7 +14,7 @@ struct AppointmentView: View {
     @State private var showingEmailImport = false
     @State private var emailText = ""
     @State private var showingImportResults = false
-    @State private var importResults: AppointmentChanges?
+    @State private var importResults: AppointmentChanges? = nil
     @State private var showProfile = false
     @State private var showSettings = false
     
@@ -59,12 +59,26 @@ struct AppointmentView: View {
             EmailImportView(
                 emailText: $emailText,
                 onImport: {
-                    // ✅ Task für async Funktion
                     Task {
-                       try await viewModel.parseAppointmentsFromEmail(emailText)
-                        showingEmailImport = false
-                        showingImportResults = true
-                        emailText = ""
+                        do {
+                            let changes = try await viewModel.parseAppointmentsFromEmail(emailText)
+                            
+                            // ✅ Results setzen
+                            importResults = changes
+                            emailText = ""
+                            
+                            // ✅ Email-Sheet schließen
+                            showingEmailImport = false
+                            
+                            // ✅ Kurz warten
+                            try? await Task.sleep(nanoseconds: 300_000_000)
+                            
+                            // Results-Sheet öffnet sich automatisch durch sheet(item:)!
+                            
+                        } catch {
+                            print("❌ Error: \(error)")
+                            showingEmailImport = false
+                        }
                     }
                 },
                 onDismiss: {
@@ -72,6 +86,11 @@ struct AppointmentView: View {
                     emailText = ""
                 }
             )
+        }
+        // ✅ Öffnet automatisch, wenn importResults != nil
+        .sheet(item: $importResults) { changes in
+            ImportResultsView(changes: changes)
+                .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showingEmailImport) {
             EmailImportView(
