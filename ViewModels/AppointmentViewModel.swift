@@ -20,7 +20,7 @@ class AppointmentViewModel: ObservableObject {
        }
     // MARK: - Dependencies
     private let markAsNotifiedUseCase: MarkAsNotifiedUseCase
-    private let parseEmailUseCase: ParseEmailUseCase
+//    private let parseEmailUseCase: ParseEmailUseCase
     private let loadAppointmentsUseCase: LoadAppointmentsUseCase
     private let emailParser: EmailParserService
     private let detectAppointmentChangesUseCase: DetectAppointmentChangesUseCase
@@ -68,7 +68,7 @@ class AppointmentViewModel: ObservableObject {
             emailService: EmailService,
             markAsNotifiedUseCase: MarkAsNotifiedUseCase,
             loadAppointmentsUseCase: LoadAppointmentsUseCase,
-            parseEmailUseCase: ParseEmailUseCase,
+        //    parseEmailUseCase: ParseEmailUseCase,
             deleteAppointmentUseCase: DeleteAppointmentUseCase,
             parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
         
@@ -82,7 +82,7 @@ class AppointmentViewModel: ObservableObject {
             self.emailService = emailService
             self.markAsNotifiedUseCase = markAsNotifiedUseCase
             self.loadAppointmentsUseCase = loadAppointmentsUseCase
-            self.parseEmailUseCase = parseEmailUseCase
+          //  self.parseEmailUseCase = parseEmailUseCase
             self.deleteAppointmentUseCase = deleteAppointmentUseCase
             self.parseAppointmentsFromEmailUseCase = parseAppointmentsFromEmailUseCase
             
@@ -94,9 +94,9 @@ class AppointmentViewModel: ObservableObject {
     
     
     // MARK: - Public Methods
-        
+ /*
         /// Email-Import
-    func parseAppointmentsFromEmail(_ emailText: String) async {
+    func parseAppointmentsFromEmailOld(_ emailText: String) async {
         // ✅ User prüfen
           guard let user = currentUser else {
               setError(.parsingFailed("Kein User eingeloggt"))
@@ -129,6 +129,50 @@ class AppointmentViewModel: ObservableObject {
         }
         isLoading = false
     }
+*/
+    /// Email-Import mit Changes-Detection
+    func parseAppointmentsFromEmail(_ emailText: String) async throws -> AppointmentChanges {
+        // ✅ User prüfen
+        guard let user = currentUser else {
+            setError(.parsingFailed("Kein User eingeloggt"))
+            throw AppointmentError.parsingFailed("Kein User eingeloggt")
+        }
+        
+        print("👤 Current User: \(user.id)")
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            // ✅ Use Case aufrufen (parsed + speichert + DetectChanges)
+            let changes = try await parseAppointmentsFromEmailUseCase.execute(emailText: emailText)
+            
+            // ✅ User zu ALLEN neuen/geänderten Terminen hinzufügen
+            for apt in changes.added + changes.modified + changes.cancelled {
+                apt.userId = user.id
+                print("   → \(apt.therapist) | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
+            }
+            
+            // ✅ Liste refreshen
+            await loadAppointments()
+            clearErrors()
+            
+            print("✅ Email import: \(changes.changesSummary)")
+            
+            return changes
+            
+        } catch let error as AppointmentError {
+            setError(error)
+            throw error
+        } catch let error as ValidationError {
+            validationError = error
+            showingError = true
+            throw error
+        } catch {
+            setError(.parsingFailed(error.localizedDescription))
+            throw error
+        }
+    }
      /// Termine neu laden
      func loadAppointments() async {
          guard let user = currentUser else {
@@ -149,18 +193,29 @@ class AppointmentViewModel: ObservableObject {
     
 
     func addAppointmentManual(
-        date: Date, therapist: String,
-        locationName: String? = nil, locationAddress: String? = nil,
-        latitude: Double? = nil, longitude: Double? = nil, notes: String? = nil
+        date: Date,
+        therapist: String,
+        locationName: String? = nil,
+        locationAddress: String? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        notes: String? = nil
     ) async {
         do {
-            try await addAppointmentUseCase.executeManual(
-                date: date, therapist: therapist,
-                locationName: locationName, locationAddress: locationAddress,
-                latitude: latitude, longitude: longitude, notes: notes
-            )
+               let savedAppointment = try await addAppointmentUseCase.executeManual(
+                   date: date,
+                   therapist: therapist,
+                   locationName: locationName,
+                   locationAddress: locationAddress,
+                   latitude: latitude,
+                   longitude: longitude,
+                   notes: notes
+               )
+            print("✅ Appointment saved: \(savedAppointment.therapist) on \(savedAppointment.date)")
+            
             await loadAppointments()
             clearErrors()
+            
         } catch {
             // Dein Error-Handling
             if let error = error as? AppointmentError {
@@ -302,7 +357,7 @@ class AppointmentViewModel: ObservableObject {
     
     // MARK: - Private Methods
        
-       private func setError(_ error: AppointmentError) {
+    func setError(_ error: AppointmentError) {
            currentError = error
            validationError = nil
            showingError = true
@@ -312,4 +367,5 @@ class AppointmentViewModel: ObservableObject {
            validationError = nil
            showingError = false
        }
+    
 }

@@ -252,7 +252,7 @@ struct LocationResultRow: View {
 #Preview("Location Result Row - Ausgewählt") {
     let items = PreviewHelper.createSampleMapItems()
     
-    return VStack(spacing: 0) {
+    VStack(spacing: 0) {
         LocationResultRow(
             item: items[0],
             isSelected: true

@@ -432,7 +432,7 @@ struct ManualAppointmentEntryView: View {
     let viewModel = PreviewHelper.createAppointmentViewModel()
     let appointment = PreviewHelper.createSampleAppointments()[0]
     
-    return AppointmentDetailView(
+    AppointmentDetailView(
         appointment: appointment,
         viewModel: viewModel
     )

@@ -61,7 +61,7 @@ struct AppointmentView: View {
                 onImport: {
                     // ✅ Task für async Funktion
                     Task {
-                        await viewModel.parseAppointmentsFromEmail(emailText)
+                       try await viewModel.parseAppointmentsFromEmail(emailText)
                         showingEmailImport = false
                         showingImportResults = true
                         emailText = ""
@@ -73,10 +73,35 @@ struct AppointmentView: View {
                 }
             )
         }
-        .sheet(isPresented: $showingImportResults) {
-            if let results = importResults {
-                ImportResultsView(changes: results)
-            }
+        .sheet(isPresented: $showingEmailImport) {
+            EmailImportView(
+                emailText: $emailText,
+                onImport: {
+                    Task {
+                        do {
+                            // ✅ NEUE Methode mit Return
+                            let changes = try await viewModel.parseAppointmentsFromEmail(emailText)
+                            
+                            // ✅ Results speichern
+                            importResults = changes
+                            
+                            // ✅ UI updaten
+                            showingEmailImport = false
+                            showingImportResults = true
+                            emailText = ""
+                            
+                        } catch {
+                            print("❌ Email import failed: \(error)")
+                            // Optional: Error dem User zeigen
+                            viewModel.setError(.parsingFailed(error.localizedDescription))
+                        }
+                    }
+                },
+                onDismiss: {
+                    showingEmailImport = false
+                    emailText = ""
+                }
+            )
         }
         .sheet(isPresented: $showProfile) {
             ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen

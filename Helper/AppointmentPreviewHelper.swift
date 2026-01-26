@@ -1,21 +1,15 @@
 //
-//  PreviewHelper.swift
+//  AppointmentPreviewHelper.swift
 //  Agil
 //
 //  Created by Christiane Roth on 25.11.25.
 //
-
-
-// Features/Appointments/Presentation/Helpers/PreviewHelper.swift
 import Foundation
 import SwiftData
 import MapKit
-import Contacts
-
-
-struct PreviewHelper {
+import Contacts  // ✅ NEU!
+struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
     
-    // ✅ In-Memory ModelContainer (wird nicht gespeichert)
     static func createModelContainer() -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try! ModelContainer(
@@ -24,244 +18,189 @@ struct PreviewHelper {
         )
         return container
     }
+    
     @MainActor
-      static func createMockAuthService() -> AuthService {
-          let authService = AuthService(authServiceProtocol: MockAuthService())
-          
-          // ✅ Mock User setzen
-          authService.currentUser = User(
-              id: UUID(),
-              email: "preview@example.com",
-              passwordHash: "mock",
-              role: .patient
-          )
-          authService.isAuthenticated = true
-          
-          return authService
-      }
-      
-    // ✅ ViewModel mit Mock-Daten
-    // ✅ ViewModel mit Mock-Daten
-       @MainActor
-       static func createAppointmentViewModel() -> AppointmentViewModel {
-           let container = createModelContainer()
-           let context = ModelContext(container)
-           
-           // ✅ Mock AuthService erstellen
-           let authService = createMockAuthService()
-           
-           // ✅ Repository mit AuthService (nicht Type!)
-           let repository = AppointmentRepository(
-               modelContext: context,
-               authService: authService  // ✅ Instanz statt Type
-           )
-           
-           let emailService = EmailService()
-           let emailParser = EmailParserService()
-           
-           // Optional: Sample-Daten einfügen
-           let sampleAppointments = createSampleAppointments()
-           for appointment in sampleAppointments {
-               context.insert(appointment)
-           }
-           try? context.save()
-           
-           return AppointmentViewModel(
-            modelContext: ModelContext(container),
-               repository: repository,
-               emailParser: emailParser,
-               detectAppointmentChangesUseCase: DetectAppointmentChangesUseCase(
-                   repository: repository
-               ),
-               cancelAppointmentUseCase: CancelAppointmentUseCase(
-                   repository: repository,
-                   emailService: emailService
-               ),
-               addAppointmentUseCase: AddAppointmentUseCase(
-                   repository: repository,
-                   authService: authService  // ✅ Gleicher AuthService
-               ),
-               emailService: emailService,
-               markAsNotifiedUseCase: MarkAsNotifiedUseCase(
-                   repository: repository
-               ),
-               loadAppointmentsUseCase: LoadAppointmentsUseCase(
-                   repository: repository
-               ),
-               parseEmailUseCase: ParseEmailUseCase(
-                   parser: emailParser
-               ),
-               deleteAppointmentUseCase: DeleteAppointmentUseCase(
-                   repository: repository
-               ),
-               parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase(
-                   repository: repository,
-                   emailParser: emailParser,
-                   detectChangesUseCase: DetectAppointmentChangesUseCase(
-                       repository: repository
-                   )
-               )
-           )
-       }
-       
-       // ✅ Beispiel-Termine für Previews
-       static func createSampleAppointments() -> [Appointment] {
-           let mockUserId = UUID()  // ✅ Gleiche userId für alle
-           
-           return [
-               Appointment(
-                   date: Date().addingTimeInterval(86400),
-                   therapist: "Dr. Schmidt",
-                   locationName: "Therapie-Praxis Mitte",
-                   locationAddress: "Unter den Linden 1, 10117 Berlin",
-                   locationLatitude: 52.520008,
-                   locationLongitude: 13.404954,
-                   notes: "Bitte 10 Minuten früher kommen",
-                   emailUID: nil,
-                   status: .confirmed,
-                   userId: mockUserId,
-                   praxisId: UUID()
-               ),
-               Appointment(
-                   date: Date().addingTimeInterval(172800),
-                   therapist: "Frau Müller",
-                   locationName: "Physiotherapie Nord",
-                   locationAddress: "Hauptstraße 42, 12345 Berlin",
-                   locationLatitude: 52.530000,
-                   locationLongitude: 13.415000,
-                   notes: nil,
-                   emailUID: nil,
-                   status: .confirmed,
-                   userId: mockUserId,
-                   praxisId: UUID()
-               ),
-               Appointment(
-                   date: Date().addingTimeInterval(-86400),
-                   therapist: "Herr Weber",
-                   locationName: nil,
-                   locationAddress: nil,
-                   locationLatitude: nil,
-                   locationLongitude: nil,
-                   notes: "Termin wurde abgesagt",
-                   emailUID: nil,
-                   status: .cancelled,
-                   userId: mockUserId,
-                   praxisId: UUID()
-               )
-           ]
-       }
-   }
-   // MARK: - Map Items Extension
-   extension PreviewHelper {
-       static func createSampleMapItems() -> [MKMapItem] {
-           let locations = [
-               (name: "Therapie-Praxis Mitte", lat: 52.520008, lon: 13.404954, street: "Unter den Linden 1", city: "Berlin", zip: "10117"),
-               (name: "Physiotherapie Nord", lat: 52.530000, lon: 13.415000, street: "Hauptstraße 42", city: "Berlin", zip: "12345"),
-               (name: "Reha-Zentrum Süd", lat: 52.500000, lon: 13.400000, street: "Parkstraße 15", city: "Berlin", zip: "10115"),
-               (name: "Ergotherapie West", lat: 52.510000, lon: 13.390000, street: "Bahnhofstraße 8", city: "Berlin", zip: "10178")
-           ]
-           
-           return locations.map { location in
-               let coordinate = CLLocationCoordinate2D(latitude: location.lat, longitude: location.lon)
-               let placemark = MKPlacemark(
-                   coordinate: coordinate,
-                   addressDictionary: [
-                       CNPostalAddressStreetKey: location.street,
-                       CNPostalAddressCityKey: location.city,
-                       CNPostalAddressPostalCodeKey: location.zip
-                   ]
-               )
-               
-               let mapItem = MKMapItem(placemark: placemark)
-               mapItem.name = location.name
-               return mapItem
-           }
-       }
-   }
-   // MARK: - User Extension
-   extension PreviewHelper {
-       static func createSampleUser() -> User {
-           return User(
-               id: UUID(),
-               email: "test@example.com",
-               passwordHash: "hashedPassword123",
-               role: .patient
-           )
-       }
-   }
-   // MARK: - Video Repository Extension
-   extension PreviewHelper {
-       static func createVideoRepository() -> VideoRepositoryMock {
-           return VideoRepositoryMock()
-       }
-   }
-   // MARK: - Mock Video Repository
-   class VideoRepositoryMock: VideoRepositoryProtocol {
-       private var mockVideos: [Video] = []
-       
-       init() {
-           self.mockVideos = []
-       }
-       
-       func createVideo(metadata: Video) async throws {
-           mockVideos.append(metadata)
-       }
-       
-       func fetchAllVideos(for user: User) async throws -> [Video] {
-           mockVideos
-       }
-       
-       func fetchAllVideos() async throws -> [Video] {
-           mockVideos
-       }
-       
-       func fetchVideo(by id: UUID) async throws -> Video? {
-           mockVideos.first { $0.id == id }
-       }
-       
-       func updateVideo(metadata: Video) async throws {
-           if let index = mockVideos.firstIndex(where: { $0.id == metadata.id }) {
-               mockVideos[index] = metadata
-           }
-       }
-       
-       func deleteVideo(metadata: Video) async throws {
-           mockVideos.removeAll { $0.id == metadata.id }
-       }
-       
-       func toggleFavorite(metadata: Video) async throws { }
-       func updateLastUsed(metadata: Video) async throws { }
-       
-       func fetchFilteredVideos(
-           category: ExerciseCategory?,
-           bodyRegion: BodyRegion?,
-           equipment: Equipment?,
-           searchText: String?,
-           favoritesOnly: Bool,
-           for user: User
-       ) async throws -> [Video] {
-           mockVideos
-       }
-       
-       func uploadVideo(
-           from sourceURL: URL,
-           title: String,
-           category: ExerciseCategory,
-           bodyRegion: BodyRegion,
-           equipment: Equipment,
-           defaultRepetitions: Int,
-           defaultPauseSeconds: Int,
-           loopDurationSeconds: Int?,
-           for user: User
-       ) async throws -> Video {
-           fatalError("uploadVideo not implemented in mock")
-       }
-       
-       func fetchVideosByCategory(_ category: String) async throws -> [Video] {
-           mockVideos
-       }
-       
-       func searchVideos(query: String) async throws -> [Video] {
-           mockVideos
-       }
-   }
+    static func createMockAuthService() -> AuthService {
+        let authService = AuthService(authServiceProtocol: MockAuthService())
+        
+        authService.currentUser = User(
+            id: UUID(),
+            email: "preview@example.com",
+            passwordHash: "mock",
+            role: .patient
+        )
+        authService.isAuthenticated = true
+        
+        return authService
+    }
+    
+    @MainActor
+    static func createAppointmentViewModel() -> AppointmentViewModel {
+        let container = createModelContainer()
+        let context = ModelContext(container)
+        
+        let authService = createMockAuthService()
+        
+        let repository = AppointmentRepository(
+            modelContext: context,
+            authService: authService
+        )
+        
+        let emailService = EmailService()
+        let emailParser = EmailParserService()
+        
+        // ✅ Use Cases erstellen
+        let addAppointmentUseCase = AddAppointmentUseCase(
+            repository: repository,
+            authService: authService
+        )
+        
+        let detectChangesUseCase = DetectAppointmentChangesUseCase(
+            repository: repository
+        )
+        
+        // Sample-Daten
+        let sampleAppointments = createSampleAppointments()
+        for appointment in sampleAppointments {
+            context.insert(appointment)
+        }
+        try? context.save()
+        
+        // ✅ ALLE 12 PARAMETER!
+        return AppointmentViewModel(
+            modelContext: context,
+            repository: repository,
+            emailParser: emailParser,
+            detectAppointmentChangesUseCase: detectChangesUseCase,
+            cancelAppointmentUseCase: CancelAppointmentUseCase(
+                repository: repository,
+                emailService: emailService
+            ),
+            addAppointmentUseCase: addAppointmentUseCase,
+            emailService: emailService,
+            markAsNotifiedUseCase: MarkAsNotifiedUseCase(
+                repository: repository
+            ),
+            loadAppointmentsUseCase: LoadAppointmentsUseCase(
+                repository: repository
+            ),
+       /*     parseEmailUseCase: ParseEmailUseCase(
+                parser: emailParser,
+                addAppointmentUseCase: addAppointmentUseCase
+            ),*/
+            deleteAppointmentUseCase: DeleteAppointmentUseCase(
+                repository: repository
+            ),
+            parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase(
+                repository: repository,
+                emailParser: emailParser,
+                detectChangesUseCase: detectChangesUseCase
+            )
+        )
+    }
+    
+    static func createSampleAppointments() -> [Appointment] {
+        let mockUserId = UUID()
+        
+        return [
+            Appointment(
+                date: Date().addingTimeInterval(86400),
+                therapist: "Dr. Schmidt",
+                locationName: "Therapie-Praxis Mitte",
+                locationAddress: "Unter den Linden 1, 10117 Berlin",
+                locationLatitude: 52.520008,
+                locationLongitude: 13.404954,
+                notes: "Bitte 10 Minuten früher kommen",
+                emailUID: nil,
+                status: .confirmed,
+                userId: mockUserId,
+                praxisId: UUID()
+            ),
+            Appointment(
+                date: Date().addingTimeInterval(172800),
+                therapist: "Frau Müller",
+                locationName: "Physiotherapie Nord",
+                locationAddress: "Hauptstraße 42, 12345 Berlin",
+                locationLatitude: 52.530000,
+                locationLongitude: 13.415000,
+                notes: nil,
+                emailUID: nil,
+                status: .confirmed,
+                userId: mockUserId,
+                praxisId: UUID()
+            ),
+            Appointment(
+                date: Date().addingTimeInterval(-86400),
+                therapist: "Herr Weber",
+                locationName: nil,
+                locationAddress: nil,
+                locationLatitude: nil,
+                locationLongitude: nil,
+                notes: "Termin wurde abgesagt",
+                emailUID: nil,
+                status: .cancelled,
+                userId: mockUserId,
+                praxisId: UUID()
+            )
+        ]
+    }
+    
+    // ✅ RAUS aus createSampleAppointments!
+    static func createSampleMapItems() -> [MKMapItem] {
+        let items: [MKMapItem] = [
+            createMapItem(
+                name: "Therapie-Praxis Mitte",
+                street: "Unter den Linden",
+                number: "1",
+                zip: "10117",
+                city: "Berlin",
+                latitude: 52.520008,
+                longitude: 13.404954
+            ),
+            createMapItem(
+                name: "Physiotherapie Nord",
+                street: "Hauptstraße",
+                number: "42",
+                zip: "12345",
+                city: "Berlin",
+                latitude: 52.530000,
+                longitude: 13.415000
+            ),
+            createMapItem(
+                name: "Gesundheitszentrum Süd",
+                street: "Bergstraße",
+                number: "15",
+                zip: "10963",
+                city: "Berlin",
+                latitude: 52.500000,
+                longitude: 13.400000
+            )
+        ]
+        
+        return items
+    }
+    
+    // ✅ PRIVATE Helper
+    private static func createMapItem(
+        name: String,
+        street: String,
+        number: String,
+        zip: String,
+        city: String,
+        latitude: Double,
+        longitude: Double
+    ) -> MKMapItem {
+        let placemark = MKPlacemark(
+            coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
+            addressDictionary: [
+                CNPostalAddressCityKey: city,
+                CNPostalAddressPostalCodeKey: zip,
+                CNPostalAddressStreetKey: "\(street) \(number)"
+            ]
+        )
+        
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = name
+        return mapItem
+    }
+}

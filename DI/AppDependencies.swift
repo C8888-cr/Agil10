@@ -53,7 +53,7 @@ class AppDependencies {
     lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
         repository: appointmentRepository,
         emailService: emailService)
-    lazy var parseEmailUseCase = ParseEmailUseCase(parser: emailParser)
+ //   lazy var parseEmailUseCase = ParseEmailUseCase(parser: emailParser)
     lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(repository: appointmentRepository)
     lazy var markAsNotifiedUseCase = MarkAsNotifiedUseCase(repository: appointmentRepository)
     lazy var loadAppointmentsUseCase = LoadAppointmentsUseCase(repository: appointmentRepository)
@@ -81,7 +81,7 @@ class AppDependencies {
         emailService: emailService,
         markAsNotifiedUseCase: markAsNotifiedUseCase,
         loadAppointmentsUseCase: loadAppointmentsUseCase,
-        parseEmailUseCase: parseEmailUseCase,
+    //    parseEmailUseCase: parseEmailUseCase,
         deleteAppointmentUseCase: deleteAppointmentUseCase,
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
