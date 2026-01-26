@@ -18,6 +18,15 @@ struct DailyProgressCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     
+    
+    // ✅ @Query für Termine
+       @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+       
+       // ✅ Gefilterte Termine (nur zukünftige)
+       private var appointments: [Appointment] {
+           allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+       }
+    
     // ✅ Berechne Ziel aus ProgressVM-Werten
     // ✅ KORRIGIERT: Direkt aus Settings holen!
     private var todaysTargetMinutes: Int {
@@ -150,16 +159,25 @@ struct DailyProgressCard: View {
      @EnvironmentObject var progressVM: ProgressViewModel  // ✅ GEÄNDERT!
      @EnvironmentObject var appointmentViewModel: AppointmentViewModel
      
+     // ✅ @Query für Termine
+        @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+        
+        // ✅ Gefilterte Termine (nur zukünftige)
+        private var appointments: [Appointment] {
+            allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+        }
+     
+     
      var body: some View {
          HStack(spacing: 16) {
              // Daily Progress (kompakt)
              CompactProgressView()
              
              // Termin
-             if let nextAppointment = appointmentViewModel.nextAppointment {
-                 CompactAppointmentView(appointment: nextAppointment)
-             }
-         }
+                       if let nextAppointment = appointmentViewModel.nextAppointment(from: appointments) {
+                           CompactAppointmentView(appointment: nextAppointment)
+                       }
+                   }
          .frame(maxWidth: .infinity)
          .padding()
          .background(Color(.systemBackground))

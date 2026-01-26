@@ -17,6 +17,16 @@ struct AppointmentView: View {
     @State private var importResults: AppointmentChanges? = nil
     @State private var showProfile = false
     @State private var showSettings = false
+
+    @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+        
+    
+    // ✅ Filter in computed property (weil #Predicate addingTimeInterval nicht kann)
+       private var appointments: [Appointment] {
+           let cutoffDate = Date().addingTimeInterval(-86400) // 24h zurück
+           return allAppointments.filter { $0.date > cutoffDate }
+       }
+    
     
     
     
@@ -31,13 +41,16 @@ struct AppointmentView: View {
         ZStack {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
-            if viewModel.appointments.isEmpty {
+            if appointments.isEmpty {
                 EmptyStateView(
                     showingManualEntry: { showingManualEntry = true },
                     showingEmailImport: { showingEmailImport = true }
                 )
             } else {
-                AppointmentsList(viewModel: viewModel) 
+                AppointmentsList(
+                    appointments: appointments,
+                    viewModel: viewModel
+                               )
             }
         }
         .navigationTitle("Termine")

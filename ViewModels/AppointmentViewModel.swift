@@ -31,7 +31,7 @@ class AppointmentViewModel: ObservableObject {
     private let parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
     
     // MARK: - State
-    @Published var appointments: [Appointment] = []
+   
     @Published var isLoading = false
     @Published var showingError = false
     
@@ -86,9 +86,7 @@ class AppointmentViewModel: ObservableObject {
             self.deleteAppointmentUseCase = deleteAppointmentUseCase
             self.parseAppointmentsFromEmailUseCase = parseAppointmentsFromEmailUseCase
             
-            Task {
-                       await loadAppointments()
-                   }
+
         }
     
     
@@ -154,7 +152,7 @@ class AppointmentViewModel: ObservableObject {
             }
             
             // ✅ Liste refreshen
-            await loadAppointments()
+            
             clearErrors()
             
             print("✅ Email import: \(changes.changesSummary)")
@@ -174,7 +172,7 @@ class AppointmentViewModel: ObservableObject {
         }
     }
      /// Termine neu laden
-     func loadAppointments() async {
+/*     func loadAppointments() async {
          guard let user = currentUser else {
                 appointments = []
                 return
@@ -190,7 +188,7 @@ class AppointmentViewModel: ObservableObject {
          }
          isLoading = false
      }
-    
+ */
 
     func addAppointmentManual(
         date: Date,
@@ -213,7 +211,7 @@ class AppointmentViewModel: ObservableObject {
                )
             print("✅ Appointment saved: \(savedAppointment.therapist) on \(savedAppointment.date)")
             
-            await loadAppointments()
+      
             clearErrors()
             
         } catch {
@@ -244,7 +242,7 @@ class AppointmentViewModel: ObservableObject {
             
            do {
                try await addAppointmentUseCase.execute(appointment)
-               await loadAppointments()
+              
                clearErrors()
            } catch let error as AppointmentError {
                setError(error)
@@ -270,7 +268,7 @@ class AppointmentViewModel: ObservableObject {
                    reason: reason,
                    userEmail: userEmail
                )
-               await loadAppointments()
+             
                clearErrors()
            } catch let error as AppointmentError {
                setError(error)
@@ -283,7 +281,7 @@ class AppointmentViewModel: ObservableObject {
        func deleteAppointment(_ appointment: Appointment) async {
            do {
                try await deleteAppointmentUseCase.execute(appointment)
-               await loadAppointments()
+             
                clearErrors()
            } catch let error as AppointmentError {
                setError(error)
@@ -296,7 +294,7 @@ class AppointmentViewModel: ObservableObject {
        func markAsNotified(_ appointment: Appointment) async {
            do {
                try await markAsNotifiedUseCase.execute(appointment)
-               await loadAppointments()
+       
                clearErrors()
            } catch let error as AppointmentError {
                setError(error)
@@ -307,53 +305,52 @@ class AppointmentViewModel: ObservableObject {
     
     /// UI Refresh
        func refresh() async {
-           await loadAppointments()
+        
        }
     
     
     // MARK: - Computed Properties
-    var filter: AppointmentFilter {
-        AppointmentFilter(appointments)
-    }
-        
-    var nextAppointment: Appointment? {
-        filter.nextAppointment
-    }
-    
-    var upcomingAppointments: [Appointment] {
-        filter.upcomingAppointments
-    }
-    
-    var otherUpcomingAppointments: [Appointment] {
-        filter.otherUpcomingAppointments
+    func filter(for appointments: [Appointment]) -> AppointmentFilter {
+           AppointmentFilter(appointments)
        }
-    
-    var pastAppointments: [Appointment] {
-        filter.pastAppointments
-    }
-    
-    var highlightedAppointments: [Appointment] {
-        filter.highlightedAppointments
-    }
-    
-    var hasHighlightedAppointments: Bool {
-        filter.hasHighlightedAppointments
-    }
-    
-
-    // MARK: - Calendar Helpers
-    
-    func hasAppointment(on date: Date) -> Bool {
-        appointments.contains { appointment in
-            Calendar.current.isDate(appointment.date, inSameDayAs: date)
-        }
-    }
-    
-    func appointment(for date: Date) -> Appointment? {
-        appointments.first { appointment in
-            Calendar.current.isDate(appointment.date, inSameDayAs: date)
-        }
-    }
+       
+       func nextAppointment(from appointments: [Appointment]) -> Appointment? {
+           filter(for: appointments).nextAppointment
+       }
+       
+       func upcomingAppointments(from appointments: [Appointment]) -> [Appointment] {
+           filter(for: appointments).upcomingAppointments
+       }
+       
+       func otherUpcomingAppointments(from appointments: [Appointment]) -> [Appointment] {
+           filter(for: appointments).otherUpcomingAppointments
+       }
+       
+       func pastAppointments(from appointments: [Appointment]) -> [Appointment] {
+           filter(for: appointments).pastAppointments
+       }
+       
+       func highlightedAppointments(from appointments: [Appointment]) -> [Appointment] {
+           filter(for: appointments).highlightedAppointments
+       }
+       
+       func hasHighlightedAppointments(in appointments: [Appointment]) -> Bool {
+           filter(for: appointments).hasHighlightedAppointments
+       }
+       
+       // MARK: - Calendar Helpers
+       
+       func hasAppointment(on date: Date, in appointments: [Appointment]) -> Bool {
+           appointments.contains { appointment in
+               Calendar.current.isDate(appointment.date, inSameDayAs: date)
+           }
+       }
+       
+       func appointment(for date: Date, in appointments: [Appointment]) -> Appointment? {
+           appointments.first { appointment in
+               Calendar.current.isDate(appointment.date, inSameDayAs: date)
+           }
+       }
     
     // MARK: - Private Methods
        

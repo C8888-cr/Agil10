@@ -12,7 +12,13 @@ import SwiftData
 struct CompactWeekView: View {
 @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
-
+    // ✅ @Query für Termine
+       @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+       
+       // ✅ Gefilterte Termine
+       private var appointments: [Appointment] {
+           allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+       }
     var body: some View {
         VStack(spacing: 12) {
             
@@ -46,7 +52,7 @@ struct CompactWeekView: View {
                                      date: date,
                                      isSelected: date.isSameDay(as: calendarViewModel.selectedDate),
                                      isToday: date.isSameDay(as: Date()),
-                                     hasAppointment: appointmentViewModel.hasAppointment(on: date)
+                                     hasAppointment: appointmentViewModel.hasAppointment(on: date, in: appointments)
                                  
                  //       hasExercises: trainingViewModel.hasExercises(on: date),
                  //       exerciseProgress: trainingViewModel.progressForDate(date)

@@ -13,7 +13,13 @@ struct CalendarView: View {
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
-    
+    // ✅ @Query für Termine
+       @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+       
+       // ✅ Gefilterte Termine
+       private var appointments: [Appointment] {
+           allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+       }
 
     
     @State private var showFilterSheet = false
@@ -71,7 +77,7 @@ struct CalendarView: View {
                         VStack(spacing: 20) {
                             SelectedDateInfoView(
                                 selectedDate: calendarViewModel.selectedDate,
-                                appointments: appointmentViewModel.appointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
+                                appointments: appointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
                                 onAddAppointment: {
                                     activeSheet = .appointments
                                     print("Add Appointment tapped") })
@@ -197,9 +203,7 @@ struct CalendarView: View {
                    .onAppear {
                        print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
                         
-                        Task {
-                            await appointmentViewModel.loadAppointments()
-                        }
+                       
                        progressVM.loadToday(for: authService.currentUser!)
                    }
         }
