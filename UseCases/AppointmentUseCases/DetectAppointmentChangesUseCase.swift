@@ -34,13 +34,17 @@ struct DetectAppointmentChangesUseCase {
                     existing.lastModified = Date()
                     existing.emailUID = emailHash
                     changes.modified.append(existing)
-                }
+                
             } else {
-                // Neuer Termin
-                parsed.emailUID = emailHash
-                changes.added.append(parsed)
-            }
-        }
+                          // ✅ NEU: Unverändert
+                          changes.unchanged.append(existing)
+                      }
+                  } else {
+                      // Neuer Termin
+                      parsed.emailUID = emailHash
+                      changes.added.append(parsed)
+                  }
+              }
         
         // Gelöschte Termine erkennen (NUR zukünftige!)
         for existing in futureAppointments where existing.emailUID != nil {
@@ -109,6 +113,8 @@ struct AppointmentChanges: Identifiable {
     var added: [Appointment] = []
     var modified: [Appointment] = []
     var cancelled: [Appointment] = []
+    var unchanged: [Appointment] = []
+    
     
     var hasChanges: Bool {
         !added.isEmpty || !modified.isEmpty || !cancelled.isEmpty
@@ -130,6 +136,10 @@ struct AppointmentChanges: Identifiable {
         if !cancelled.isEmpty {
             messages.append("\(cancelled.count) abgesagt")
         }
+        
+        if !unchanged.isEmpty {
+                   messages.append("\(unchanged.count) unverändert")
+               }
         
         return messages.joined(separator: ", ")
     }
