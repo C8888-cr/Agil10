@@ -5,8 +5,17 @@
 //  Created by Christiane Roth on 21.12.25.
 //
 import SwiftUI
+import SwiftData
+
 final class MockAuthService: AuthServiceProtocol {
-   
+    private weak var modelContext: ModelContext?
+    
+    // ✅ NEU: Init mit ModelContext
+      init(modelContext: ModelContext? = nil) {
+          self.modelContext = modelContext
+      }
+    // ✅ NEU: Token-Mapping
+     private var activeTokens: [String: String] = [:]
     
     
     // ✅ FESTE IDs
@@ -57,6 +66,8 @@ final class MockAuthService: AuthServiceProtocol {
             praxisId: PraxisDataManager.praxis4Id
         )
     ]
+  
+    
     
     // ✅ SIGN UP (neue User registrieren)
     func signUp(
@@ -101,10 +112,16 @@ final class MockAuthService: AuthServiceProtocol {
         
         // ✅ Token generieren
         let token = "mock-token-\(UUID().uuidString)"
+        activeTokens[token] = email.lowercased()
+        
         
         print("✅ MockAuthService: User registriert - \(email)")
         print("🔑 Token: \(token)")
-        
+        // ✅ In SwiftData einfügen
+             if let context = modelContext {
+                 context.insert(newUser)
+                 try? context.save()
+             }
         // ✅ Simuliere Netzwerk-Delay
         try await Task.sleep(nanoseconds: 1_500_000_000)
         
@@ -141,7 +158,7 @@ final class MockAuthService: AuthServiceProtocol {
         
         // ✅ Token generieren
         let token = "mock-token-\(UUID().uuidString)"
-        
+        activeTokens[token] = email.lowercased()
         print("✅ Mock Login erfolgreich für: \(email)")
         print("🔑 Token: \(token)")
         
@@ -150,8 +167,17 @@ final class MockAuthService: AuthServiceProtocol {
     
     // 👤 FETCH CURRENT USER (mit Token)
     func fetchCurrentUser() async throws -> User? {
+        
+        guard let token = KeychainHelper.load(forKey: "sessionToken") else {
+                  return nil
+              }
         // ✅ In echter App: Token validieren
         // ✅ Hier: Return einfach ersten User
+        // ✅ NEU: Email aus Token holen
+              guard let email = activeTokens[token] else {
+                  return nil
+              }
+        
         
         guard let record = mockUsers["patient@agil.de"] else {
             return nil
