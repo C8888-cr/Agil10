@@ -36,7 +36,7 @@ class PraxisDataManager {
             latitude: nil,
             longitude: nil,
             telefon: "069 95108770",
-            website: nil
+            website: "https://physio-agil.de"
         ),
         Praxis(
             id: PraxisDataManager.praxis2Id,  // ✅ 2
@@ -101,4 +101,18 @@ class PraxisDataManager {
     ]
     
     private init() {}
+    
+    // ✅ Helper: Praxis by ID finden
+       func getPraxis(by id: UUID) -> Praxis? {
+           praxen.first { $0.id == id }
+       }
+       
+       // ✅ Helper: Name by ID
+       func getPraxisName(for id: UUID?) -> String {
+           guard let id = id,
+                 let praxis = getPraxis(by: id) else {
+               return "Keine Praxis ausgewählt"
+           }
+           return praxis.name
+       }
 }
