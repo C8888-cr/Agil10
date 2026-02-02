@@ -138,8 +138,9 @@ struct AppointmentView: View {
             )
         }
         .sheet(isPresented: $showProfile) {
-            ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
-                      .environment(\.modelContext, settingsVM.modelContext)
+            ProfileView()
+                .environmentObject(authService)
+                .environment(\.modelContext, profileVM.modelContext)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()

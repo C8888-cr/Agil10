@@ -32,7 +32,10 @@ struct HomeView: View {
         var id: Self { self }
     }
 
-    
+    // ✅ Computed property für sicheren Zugriff
+       private var currentUser: User? {
+           authService.currentUser
+       }
     
     
     var body: some View {
@@ -101,8 +104,9 @@ struct HomeView: View {
                         }
                         
                 case .profile:
-                    ProfileView(profileVM: profileVM)
-                              .environment(\.modelContext, settingsVM.modelContext)
+                    ProfileView()
+                        .environmentObject(authService)
+                        .environment(\.modelContext, profileVM.modelContext)
                 case .library:
                     NavigationStack {  // ✅ WICHTIG: NavigationStack!
                         LibraryView(
@@ -165,9 +169,13 @@ struct HomeView: View {
             }
 
             .onAppear {
-                print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
-                progressVM.loadToday(for: authService.currentUser!)
-            }
+                      guard let user = currentUser else {
+                          print("⚠️ HomeView: Kein User eingeloggt")
+                          return
+                      }
+                      print("🏠 HomeView onAppear - currentUser.email: '\(user.email)'")
+                      progressVM.loadToday(for: user)
+                  }
 
             
     }

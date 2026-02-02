@@ -30,6 +30,10 @@ struct LibraryView: View {
         self.onVideoSelected = onVideoSelected
     }
     
+    
+    private var currentUser: User? {
+           authService.currentUser
+       }
     var body: some View {
         
         
@@ -74,8 +78,9 @@ struct LibraryView: View {
                 await setupView()
             }
             .sheet(isPresented: $showProfile) {
-                ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
-                          .environment(\.modelContext, settingsVM.modelContext)
+                ProfileView()
+                    .environmentObject(authService)
+                    .environment(\.modelContext, profileVM.modelContext)
             }
             .sheet(isPresented: $showSettings) {
                 settingsSheet

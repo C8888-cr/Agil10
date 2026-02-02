@@ -70,8 +70,9 @@ struct ProgressTabView: View {
                         }
                     
                 case .profile:
-                    ProfileView(profileVM: profileVM) // Profil View mit dem richtigen Parameter erstellen
-                              .environment(\.modelContext, settingsVM.modelContext)
+                    ProfileView()
+                        .environmentObject(authService)
+                        .environment(\.modelContext, profileVM.modelContext)
                 }
             }
             .onAppear {

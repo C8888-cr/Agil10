@@ -48,7 +48,9 @@ struct CalendarView: View {
         
     }
 
-
+    private var currentUser: User? {
+           authService.currentUser
+       }
 
     enum SheetType: Identifiable {
         case
@@ -144,8 +146,9 @@ struct CalendarView: View {
                                .environmentObject(settingsVM)
                            }
                        case .profile:
-                           ProfileView(profileVM: profileVM)
-                                     .environment(\.modelContext, settingsVM.modelContext)
+                           ProfileView()
+                               .environmentObject(authService)
+                               .environment(\.modelContext, profileVM.modelContext)
 
                                
                            
@@ -201,11 +204,13 @@ struct CalendarView: View {
                    }
 
                    .onAppear {
-                       print("🏠 HomeView onAppear - currentUser.email: '\(authService.currentUser!.email)'")
-                        
-                       
-                       progressVM.loadToday(for: authService.currentUser!)
-                   }
+                               guard let user = currentUser else {
+                                   print("⚠️ HomeView: Kein User eingeloggt")
+                                   return
+                               }
+                               print("🏠 HomeView onAppear - currentUser.email: '\(user.email)'")
+                               progressVM.loadToday(for: user)
+                           }
         }
     }
     
