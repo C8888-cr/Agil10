@@ -105,15 +105,14 @@ struct VideoLibraryUploadSheet: View {
     
     // MARK: - Upload Logic
     
-     func uploadVideo() {
-         
-         // ✅ Zuerst User prüfen
-               guard let user = authService.currentUser else {
-                   uploadError = "Kein Benutzer angemeldet"
-                   showError = true
-                   return
-               }
-         
+    func uploadVideo() {
+        // ✅ User-Check ganz oben (synchron)
+        guard let user = authService.currentUser else {
+            uploadError = "Kein Benutzer angemeldet"
+            showError = true
+            return
+        }
+        
         guard let videoItem = viewModel.selectedVideoItem else {
             uploadError = "Kein Video ausgewählt"
             showError = true
@@ -122,14 +121,14 @@ struct VideoLibraryUploadSheet: View {
         
         isUploading = true
         
-        Task {
+        Task { @MainActor in  // ✅ Explizit MainActor
             do {
                 // 1. Video laden
                 guard let movie = try await videoItem.loadTransferable(type: VideoTransferable.self) else {
                     throw VideoStorageError.invalidURL
                 }
                 
-                // 2. Upload durchführen
+                // 2. Upload
                 let repository = viewModel.repository as? VideoRepository
                 _ = try await repository?.uploadVideo(
                     from: movie.url,
@@ -143,17 +142,14 @@ struct VideoLibraryUploadSheet: View {
                     for: user
                 )
                 
-                // 3. Erfolg - View aktualisieren
-                if let user = authService.currentUser {
-                    await viewModel.loadVideos(for: user)
-                }
+                // 3. View aktualisieren
+                await viewModel.loadVideos(for: user)
                 
-                // 4. Sheet schließen
-                await MainActor.run {
-                    dismiss()
-                }
+                // 4. Schließen (bereits @MainActor)
+                dismiss()
                 
             } catch let error as VideoStorageError {
+                // Error handling
                 switch error {
                 case .fileTooLarge:
                     uploadError = "Das Video ist zu groß. Maximal 200 MB erlaubt."
@@ -170,5 +166,6 @@ struct VideoLibraryUploadSheet: View {
             
             isUploading = false
         }
+    
     }
 }

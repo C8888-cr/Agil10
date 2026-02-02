@@ -1,28 +1,17 @@
-//
-//  MockAuthService.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 21.12.25.
-//
 import SwiftUI
 import SwiftData
-
 final class MockAuthService: AuthServiceProtocol {
     private weak var modelContext: ModelContext?
     
-    // ✅ NEU: Init mit ModelContext
-      init(modelContext: ModelContext? = nil) {
-          self.modelContext = modelContext
-      }
-    // ✅ NEU: Token-Mapping
-     private var activeTokens: [String: String] = [:]
+    init(modelContext: ModelContext? = nil) {
+        self.modelContext = modelContext
+    }
     
+    private var activeTokens: [String: String] = [:]
     
-    // ✅ FESTE IDs
     static let mockPatientId = UUID(uuidString: "12345678-1234-5678-1234-123456789ABC")!
     static let mockTherapistId = UUID(uuidString: "87654321-4321-8765-4321-CBA987654321")!
     
-    // ✅ Mock User Record Struktur
     struct MockUserRecord {
         let id: UUID
         let email: String
@@ -45,7 +34,6 @@ final class MockAuthService: AuthServiceProtocol {
         }
     }
     
-    // 🎭 Fake-Datenbank
     private var mockUsers: [String: MockUserRecord] = [
         "patient@agil.de": MockUserRecord(
             id: MockAuthService.mockPatientId,
@@ -66,10 +54,8 @@ final class MockAuthService: AuthServiceProtocol {
             praxisId: PraxisDataManager.praxis4Id
         )
     ]
-  
     
-    
-    // ✅ SIGN UP (neue User registrieren)
+    // ✅ SIGN UP
     func signUp(
         email: String,
         password: String,
@@ -79,12 +65,16 @@ final class MockAuthService: AuthServiceProtocol {
         praxisId: UUID?
     ) async throws -> (User, String) {
         
-        // ✅ Prüfe ob Email bereits existiert
+        print("🔧 MockAuthService.signUp() START")
+          print("   email: \(email)")
+          print("   firstName: \(firstName)")
+          print("   lastName: \(lastName)")
+          print("   role: \(role)")
+        
         if mockUsers[email.lowercased()] != nil {
             throw AuthError.emailAlreadyExists
         }
         
-        // ✅ Erstelle neuen User
         let newUserId = UUID()
         let newRecord = MockUserRecord(
             id: newUserId,
@@ -96,103 +86,144 @@ final class MockAuthService: AuthServiceProtocol {
             praxisId: praxisId
         )
         
-        // ✅ Speichere in Mock-Datenbank
+        
+        
         mockUsers[email.lowercased()] = newRecord
         
-        // ✅ Erstelle User-Objekt
         let newUser = User(
             id: newUserId,
             firstName: firstName,
             lastName: lastName,
             email: email,
-            passwordHash: "",  // ✅ Wird nie zurückgegeben
+            passwordHash: "",
             role: role,
             praxisId: praxisId
         )
+        print("✅ User-Objekt erstellt: \(newUser.fullName)")
         
-        // ✅ Token generieren
-        let token = "mock-token-\(UUID().uuidString)"
-        activeTokens[token] = email.lowercased()
-        
-        
-        print("✅ MockAuthService: User registriert - \(email)")
-        print("🔑 Token: \(token)")
-        // ✅ In SwiftData einfügen
-             if let context = modelContext {
-                 context.insert(newUser)
-                 try? context.save()
-             }
-        // ✅ Simuliere Netzwerk-Delay
-        try await Task.sleep(nanoseconds: 1_500_000_000)
-        
-        return (newUser, token)
-    }
-
+        // ✅ In SwiftData speichern
+          if let context = modelContext {
+              context.insert(newUser)
+              
+              do {
+                  try context.save()
+                  print("✅ User in SwiftData gespeichert!")
+                  
+                  // ✅ Verify
+                  let descriptor = FetchDescriptor<User>(
+                      predicate: #Predicate<User> { u in
+                          u.id == newUserId
+                      }
+                  )
+                  if let savedUser = try? context.fetch(descriptor).first {
+                      print("✅ VERIFY: User aus DB geladen: \(savedUser.fullName)")
+                  }
+                  
+              } catch {
+                  print("❌ FEHLER beim Speichern: \(error)")
+                  print("   Context: \(context)")
+              }
+          } else {
+              print("⚠️ KEIN ModelContext vorhanden!")
+          }
+          
+          let token = "mock-token-\(UUID().uuidString)"
+          activeTokens[token] = email.lowercased()
+          
+          print("✅ MockAuthService: User registriert")
+          print("🔑 Token: \(token)")
+          
+          try await Task.sleep(nanoseconds: 1_500_000_000)
+          
+          return (newUser, token)
+      }
     
-
-    // 🔐 LOGIN
+    // ✅ LOGIN - FIXED
     func login(email: String, password: String) async throws -> (user: User, sessionToken: String) {
-        // ✅ Simuliere Netzwerk-Delay
         try await Task.sleep(nanoseconds: 1_500_000_000)
         
-        // ✅ Suche User
         guard let record = mockUsers[email.lowercased()] else {
             throw AuthError.userNotFound
         }
         
-        // ✅ Prüfe Passwort
         guard record.password == password else {
             throw AuthError.invalidCredentials
         }
         
-        // ✅ Erstelle User-Objekt
-        let user = User(
-            id: record.id,
-            firstName: record.firstName,
-            lastName: record.lastName,
-            email: record.email,
-            passwordHash: "",
-            role: .patient,
-            praxisId: record.praxisId
-        )
+        var user: User
         
-        // ✅ Token generieren
+        if let context = modelContext {
+            // ✅ Email vorher extrahieren
+            let emailLowercase = email.lowercased()
+            
+            let descriptor = FetchDescriptor<User>(
+                predicate: #Predicate<User> { u in
+                    u.email == emailLowercase
+                }
+            )
+            
+            if let existingUser = try? context.fetch(descriptor).first {
+                user = existingUser
+                print("✅ User aus SwiftData geladen: \(user.fullName)")
+            } else {
+                user = record.toUser()
+                context.insert(user)
+                try? context.save()
+                print("✅ User in SwiftData gespeichert")
+            }
+        } else {
+            user = record.toUser()
+        }
+        
         let token = "mock-token-\(UUID().uuidString)"
         activeTokens[token] = email.lowercased()
+        
         print("✅ Mock Login erfolgreich für: \(email)")
         print("🔑 Token: \(token)")
         
         return (user, sessionToken: token)
     }
     
-    // 👤 FETCH CURRENT USER (mit Token)
+    // ✅ FETCH CURRENT USER - FIXED
     func fetchCurrentUser() async throws -> User? {
-        
         guard let token = KeychainHelper.load(forKey: "sessionToken") else {
-                  return nil
-              }
-        // ✅ In echter App: Token validieren
-        // ✅ Hier: Return einfach ersten User
-        // ✅ NEU: Email aus Token holen
-              guard let email = activeTokens[token] else {
-                  return nil
-              }
-        
-        
-        guard let record = mockUsers["patient@agil.de"] else {
             return nil
         }
         
-        print("✅ Mock: Current User geladen")
-        return record.toUser()
+        guard let email = activeTokens[token] else {
+            return nil
+        }
+        
+        guard let context = modelContext else {
+            print("❌ Kein ModelContext vorhanden")
+            return nil
+        }
+        
+        // ✅ Email vorher extrahieren
+        let emailLowercase = email.lowercased()
+        
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { user in
+                user.email == emailLowercase
+            }
+        )
+        
+        guard let user = try? context.fetch(descriptor).first else {
+            print("❌ User nicht in SwiftData gefunden: \(email)")
+            return nil
+        }
+        
+        print("✅ Mock: Current User aus SwiftData geladen")
+        print("   Name: \(user.fullName)")
+        return user
     }
     
-    // 👋 LOGOUT
+    // ✅ LOGOUT
     func logout() async {
         print("👋 Mock Logout")
     }
     
-    // 📧 PASSWORD RESET EMAIL
+    // ✅ PASSWORD RESET EMAIL
     func sendPasswordResetEmail(email: String) async throws -> String {
         try await Task.sleep(nanoseconds: 1_000_000_000)
         
@@ -205,7 +236,7 @@ final class MockAuthService: AuthServiceProtocol {
         return resetCode
     }
     
-    // 🔐 CONFIRM PASSWORD RESET
+    // ✅ CONFIRM PASSWORD RESET
     func confirmPasswordReset(email: String, resetCode: String, newPassword: String) async throws {
         try await Task.sleep(nanoseconds: 1_000_000_000)
         
@@ -217,7 +248,6 @@ final class MockAuthService: AuthServiceProtocol {
             throw AuthError.userNotFound
         }
         
-        // ✅ Update Passwort in Mock-DB
         let updatedRecord = MockUserRecord(
             id: record.id,
             email: record.email,

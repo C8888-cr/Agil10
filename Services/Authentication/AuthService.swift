@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
+
 
 @MainActor
 class AuthService: ObservableObject {
     
 
-    
+    private weak var modelContext: ModelContext?
     
     
     @Published var currentUser: User? = nil
@@ -22,12 +24,14 @@ class AuthService: ObservableObject {
     private let authServiceProtocol: AuthServiceProtocol
     
     
-    init(authServiceProtocol: AuthServiceProtocol) {  // ✅ Normal!
-          self.authServiceProtocol = authServiceProtocol
-        // ✅ Token beim Start laden
-              self.sessionToken = KeychainHelper.load(forKey: "sessionToken")
-              self.isAuthenticated = sessionToken != nil
-          }
+    init(authServiceProtocol: AuthServiceProtocol,
+            modelContext: ModelContext? = nil) {  // ✅ Optional
+           self.authServiceProtocol = authServiceProtocol
+           self.modelContext = modelContext  // ✅ Speichern
+           
+           self.sessionToken = KeychainHelper.load(forKey: "sessionToken")
+           self.isAuthenticated = sessionToken != nil
+       }
     
     // 🔐 LOGIN mit Token
      func login(email: String, password: String) async throws {
@@ -124,7 +128,7 @@ class AuthService: ObservableObject {
           password: String,
           firstName: String,
           lastName: String,
-          isTherapist: Bool,
+          role: UserRole,
           praxisId: UUID?
       ) async throws {
           isLoading = true
@@ -145,7 +149,7 @@ class AuthService: ObservableObject {
               password: password,
               firstName: firstName,
               lastName: lastName,
-              role: isTherapist ? .therapist : .patient,
+              role: role,
               praxisId: praxisId 
           )
           
@@ -160,5 +164,40 @@ class AuthService: ObservableObject {
           print("✅ User registriert: \(newUser.email)")
           print("🔑 Token: \(token)")
       }
+    // ✅ NEU: User aktualisieren
+      func updateUser(firstName: String, lastName: String) throws {
+          guard let user = currentUser,
+                let context = modelContext else { return }
+          
+          user.firstName = firstName
+          user.lastName = lastName
+          
+          try context.save()
+          objectWillChange.send()  // ✅ View-Update erzwingen
+          
+          print("✅ User gespeichert: \(user.fullName)")
+      }
 }
 
+
+extension AuthService {
+    
+    /// ✅ Session beim App-Start laden
+    func loadSavedSession() async {
+        // ✅ Prüfe ob Token vorhanden
+        guard KeychainHelper.load(forKey: "sessionToken") != nil else {
+            print("⚠️ Kein gespeicherter Token gefunden")
+            return
+        }
+        
+        // ✅ Versuche User zu laden
+        do {
+            try await fetchCurrentUser()
+            print("✅ Session wiederhergestellt")
+        } catch {
+            print("❌ Session konnte nicht geladen werden: \(error)")
+            // Token ungültig → Logout
+            await logout()
+        }
+    }
+}

@@ -4,21 +4,42 @@
 //
 //  Created by Christiane Roth on 18.01.26.
 //
-
 import SwiftUI
 import SwiftData
 import Combine
-
-
 @MainActor
 class ProfileViewModel: ObservableObject {
     
     let modelContext: ModelContext
-    let authService: AuthService  // ✅ Als Property speichern
+    let authService: AuthService
     
+    @Published var currentUserInContext: User?  // ✅ Published, damit View reagiert
     
-     var currentUserInContext: User? {
-        guard let userId = authService.currentUser?.id else { return nil }
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(modelContext: ModelContext, authService: AuthService) {
+        self.modelContext = modelContext
+        self.authService = authService
+        
+        print("🔧 ProfileViewModel.init()")
+        
+        // ✅ Initial User laden
+        loadCurrentUser()
+        
+        // ✅ Bei User-Änderung neu laden
+        authService.$currentUser
+            .sink { [weak self] _ in
+                self?.loadCurrentUser()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func loadCurrentUser() {
+        guard let userId = authService.currentUser?.id else {
+            print("⚠️ ProfileVM: Kein User eingeloggt")
+            currentUserInContext = nil
+            return
+        }
         
         let descriptor = FetchDescriptor<User>(
             predicate: #Predicate<User> { u in
@@ -26,23 +47,17 @@ class ProfileViewModel: ObservableObject {
             }
         )
         
-        return try? modelContext.fetch(descriptor).first
+        currentUserInContext = try? modelContext.fetch(descriptor).first
+        
+        if let user = currentUserInContext {
+            print("✅ ProfileVM: User geladen - \(user.email)")
+        } else {
+            print("⚠️ ProfileVM: User nicht in Context gefunden")
+        }
     }
     
-    // ✅ AuthService als Parameter übergeben
-    init(modelContext: ModelContext, authService: AuthService) {
-        self.modelContext = modelContext
-        self.authService = authService  // ✅ Speichern!
-        
-      
-        print("👤 AuthService.currentUser: \(authService.currentUser?.email ?? "nil")")
-        
-        guard let user = authService.currentUser else {
-            print("⚠️ No user logged in - warte auf setUser()")
-            return
-        }
-        
-        print("✅ User gefunden: \(user.email)")
-      
+    // ✅ Nach Edit neu laden
+    func refreshUser() {
+        loadCurrentUser()
     }
 }

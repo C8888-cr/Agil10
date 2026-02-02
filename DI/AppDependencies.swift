@@ -108,23 +108,32 @@ class AppDependencies {
     
 
     
-    // ✅ NEUER INIT
-      private init() {
-          // 1. SwiftData ZUERST
-          self.modelContainer = PersistenceController.shared.container
-          self.modelContext = modelContainer.mainContext
-          
-          // 2. AUTH SERVICE erstellen (Mock/Real Switch)
-          #if DEBUG
-          self.authService = AuthService(authServiceProtocol: MockAuthService())
-          #else
-          self.authService = AuthService(authServiceProtocol: RealAuthService())
-          #endif
-          
-          // 3. Services (nicht lazy - leichtgewichtig)
-          self.emailParser = EmailParserService()
-          self.emailService = EmailService()
-          
+    // Core/DI/AppDependencies.swift
+    private init() {
+        // 1. SwiftData ZUERST
+        self.modelContainer = PersistenceController.shared.container
+        self.modelContext = modelContainer.mainContext
         
-      }
+        print("✅ AppDependencies.init()")
+        print("   ModelContext: \(modelContext)")
+        
+        // 2. AUTH SERVICE erstellen (Mock/Real Switch)
+        #if DEBUG
+        let mockService = MockAuthService(modelContext: modelContext)
+          self.authService = AuthService(
+              authServiceProtocol: mockService,
+              modelContext: modelContext  // ✅ Context übergeben!
+          )
+          #else
+          self.authService = AuthService(
+              authServiceProtocol: RealAuthService(),
+              modelContext: modelContext  // ✅ Auch hier!
+          )
+        print("✅ RealAuthService erstellt")
+        #endif
+        
+        // 3. Services (nicht lazy - leichtgewichtig)
+        self.emailParser = EmailParserService()
+        self.emailService = EmailService()
+    }
   }

@@ -20,23 +20,37 @@ struct AppointmentView: View {
     @State private var showProfile = false
     @State private var showSettings = false
 
-    @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+    @Query private var allAppointments: [Appointment]
         
-    
-    // ✅ Filter in computed property (weil #Predicate addingTimeInterval nicht kann)
+    // ✅ Filter in computed property
        private var appointments: [Appointment] {
+           guard let currentUserId = authService.currentUser?.id else {
+               print("⚠️ Kein User eingeloggt - keine Termine")
+               return []
+           }
+           
            let cutoffDate = Date().addingTimeInterval(-86400) // 24h zurück
-           return allAppointments.filter { $0.date > cutoffDate }
+           
+           return allAppointments.filter { appointment in
+               appointment.userId == currentUserId &&  // ✅ USER-FILTER!
+               appointment.date > cutoffDate
+           }
        }
-    
-    
-    
-    
-    // ✅ CLEAN: ViewModel wird von außen übergeben
-    init(viewModel: AppointmentViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
-        
-    }
+       
+       // ✅ Init mit User-Filter
+       init(viewModel: AppointmentViewModel) {
+           _viewModel = StateObject(wrappedValue: viewModel)
+           
+           // ✅ Query mit User-Filter (wird bei jedem View-Init neu erstellt)
+           let userId = viewModel.authService.currentUser?.id ?? UUID()
+           
+           _allAppointments = Query(
+               filter: #Predicate<Appointment> { appointment in
+                   appointment.userId == userId
+               },
+               sort: \Appointment.date
+           )
+       }
     
     var body: some View {
         
@@ -70,7 +84,7 @@ struct AppointmentView: View {
         .sheet(isPresented: $showingManualEntry) {
             ManualAppointmentEntryView(viewModel: viewModel)
         }
-        .sheet(isPresented: $showingEmailImport) {
+ /*       .sheet(isPresented: $showingEmailImport) {
             EmailImportView(
                 emailText: $emailText,
                 onImport: {
@@ -101,7 +115,7 @@ struct AppointmentView: View {
                     emailText = ""
                 }
             )
-        }
+        }*/
         // ✅ Öffnet automatisch, wenn importResults != nil
         .sheet(item: $importResults) { changes in
             ImportResultsView(changes: changes)

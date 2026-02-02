@@ -10,7 +10,7 @@ class AppointmentViewModel: ObservableObject {
     private let modelContext: ModelContext
     
     // ✅ AuthService aus AppDependencies holen
-       private var authService: AuthService {
+    var authService: AuthService {
            AppDependencies.shared.authService
        }
        

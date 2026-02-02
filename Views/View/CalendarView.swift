@@ -14,12 +14,12 @@ struct CalendarView: View {
     @EnvironmentObject private var settingsVM: SettingsViewModel
     
     // ✅ @Query für Termine
-       @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
+    @Query private var allAppointments: [Appointment]
        
-       // ✅ Gefilterte Termine
-       private var appointments: [Appointment] {
-           allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
-       }
+    // ✅ Gefilterte Termine (nur 24h Cutoff, User-Filter schon in Query!)
+      private var appointments: [Appointment] {
+          allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+      }
 
     
     @State private var showFilterSheet = false
@@ -45,13 +45,24 @@ struct CalendarView: View {
     init(repository: VideoRepositoryProtocol,
          onVideoSelected: ((Video) -> Void)? = nil) {
         self.onVideoSelected = onVideoSelected
+        // ✅ Variante 1: Query OHNE Filter, Filter in computed property
+            _allAppointments = Query(sort: \Appointment.date)
+        }
         
-    }
-
-    private var currentUser: User? {
-           authService.currentUser
-       }
-
+        private var currentUser: User? {
+            authService.currentUser
+        }
+        
+        // ✅ Gefilterte Termine (MIT User-Check!)
+        private var userAppointments: [Appointment] {
+            guard let userId = currentUser?.id else {
+                return []
+            }
+            return allAppointments.filter {
+                $0.userId == userId &&
+                $0.date > Date().addingTimeInterval(-86400)
+            }
+        }
     enum SheetType: Identifiable {
         case
         library,
@@ -79,7 +90,7 @@ struct CalendarView: View {
                         VStack(spacing: 20) {
                             SelectedDateInfoView(
                                 selectedDate: calendarViewModel.selectedDate,
-                                appointments: appointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
+                                appointments: userAppointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
                                 onAddAppointment: {
                                     activeSheet = .appointments
                                     print("Add Appointment tapped") })

@@ -1,27 +1,25 @@
 import SwiftUI
 import SwiftData
-
-
 struct ProfileView: View {
     @EnvironmentObject var authService: AuthService
     @Environment(\.modelContext) var modelContext
+    // ✅ Einfach: User kommt direkt vom AuthService
+       private var currentUser: User? {
+           authService.currentUser
+       }
     
-    @StateObject private var profileVM: ProfileViewModel
-
-      init(profileVM: ProfileViewModel) {
-          self._profileVM = StateObject(wrappedValue: profileVM)
-      }
+    
+  
+    
     @State private var isEditing = false
     @State private var editFirstName = ""
     @State private var editLastName = ""
-    var user: User? {
-        profileVM.currentUserInContext
-    }
     
     var body: some View {
         NavigationStack {
             Form {
-                if let user = user {  // 🛠️ Sicherstellen, dass der Benutzer verfügbar ist
+                // ✅ Nutze Published Property vom ViewModel
+                if let user = currentUser {
                     // Persönliche Daten
                     Section("Persönliche Daten") {
                         HStack {
@@ -106,9 +104,11 @@ struct ProfileView: View {
                         }
                     }
                 } else {
-                    ContentUnavailableView("Kein Profil",
-                                    systemImage: "person",
-                                    description: Text("Bitte einloggen."))
+                    ContentUnavailableView(
+                        "Kein Profil",
+                        systemImage: "person.circle.fill",
+                        description: Text("Bitte einloggen, um dein Profil zu sehen.")
+                    )
                 }
             }
             .navigationTitle("Mein Profil")
@@ -124,30 +124,60 @@ struct ProfileView: View {
             }
             .onAppear {
                 resetEditFields()
+                debugUserInDatabase()
             }
         }
     }
     
     // MARK: - Actions
-    private func startEditing() {
-        guard let user = user else { return }
-        editFirstName = user.firstName
-        editLastName = user.lastName
-        isEditing = true
-    }
-    
+       private func startEditing() {
+           guard let user = currentUser else { return }
+           editFirstName = user.firstName
+           editLastName = user.lastName
+           isEditing = true
+       }
+       
     private func saveChanges() {
-        guard let user = user else { return }
-        
-        user.firstName = editFirstName
-        user.lastName = editLastName
+        do {
+            try authService.updateUser(
+                firstName: editFirstName,
+                lastName: editLastName
+            )
+            print("✅ Profil gespeichert!")
+        } catch {
+            print("❌ Fehler: \(error)")
+        }
         
         isEditing = false
     }
     
-    private func resetEditFields() {
-        guard let user = user else { return }
-        editFirstName = user.firstName
-        editLastName = user.lastName
+    
+       private func resetEditFields() {
+           guard let user = currentUser else {
+               editFirstName = ""
+               editLastName = ""
+               return
+           }
+           editFirstName = user.firstName
+           editLastName = user.lastName
+       }
+    private func debugUserInDatabase() {
+        guard let user = currentUser else { return }
+        let userId = user.id
+        
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id == userId
+            }
+        )
+        
+        if let dbUser = try? modelContext.fetch(descriptor).first {
+            print("🔍 DEBUG User in DB:")
+            print("   firstName: \(dbUser.firstName)")
+            print("   lastName: \(dbUser.lastName)")
+            print("   fullName: \(dbUser.fullName)")
+        } else {
+            print("❌ User nicht in DB gefunden")
+        }
     }
-}
+   }
