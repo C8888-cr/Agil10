@@ -45,8 +45,11 @@ struct HomeView: View {
             
                    // compactRingView
                     DailyProgressCard()
-                        .environmentObject(settingsVM) 
-                    
+                        .environmentObject(settingsVM)
+           /*         CompactTopSection()
+                        .environmentObject(progressVM)
+                        .environmentObject(settingsVM)
+                     */
                     // Liste der heutigen Videos
                     ExercisesSection(
                         onToggleCompletion: { schedule in
@@ -196,4 +199,59 @@ struct HomeView: View {
     }
 
 */
+}
+#Preview {
+    let mockUser = User(
+        email: "preview@example.com",
+        passwordHash: "", role: .patient
+    )
+    
+    let mockVideo = Video(
+        title: "Schulter Mobilisation",
+        videoFileName: "shoulder.mov",
+        category: .mobility,
+        bodyRegion: .cervicalSpine,
+        equipment: .noEquipment,
+        durationSeconds: 120,
+        defaultRepetitions: 3,
+        defaultPauseSeconds: 30,
+        loopDurationSeconds: 120,
+        rating: 4
+    )
+    
+    let mockSchedule = VideoSchedule(
+        scheduledDate: Date(),
+        orderIndex: 0,
+        video: mockVideo,
+        customRepetitions: 3,
+        customPauseSeconds: 30,
+        customLoopDurationSeconds: 120
+    )
+    
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VideoSchedule.self, Appointment.self,
+        configurations: config
+    )
+    
+    let context = ModelContext(container)
+    
+    let authService = AuthService(authServiceProtocol: MockAuthService())
+ 
+    let appointmentVM = AppDependencies.shared.appointmentViewModel
+    let progressVM = ProgressViewModel(modelContext: context)
+    
+    let videoLibraryVM = VideoLibraryViewModel(
+        repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
+        modelContext: context,
+        storageService: .shared
+    )
+    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
+    
+   HomeView()
+        .environmentObject(authService)
+        .environmentObject(progressVM)
+        .environmentObject(videoLibraryVM)
+        .environmentObject(settingsVM)
+        .environmentObject(appointmentVM)
 }
