@@ -781,3 +781,32 @@ extension ProgressViewModel {
      }
     
 }
+extension ProgressViewModel {
+    private func getExerciseTypeSummary() -> [(type: ExerciseCategory, count: Int, duration: Int)] {
+        // Schritt 1: Videos holen
+        let allVideos = todaysSchedules.compactMap { $0.video }
+        
+        // Schritt 2: Gültige IDs holen - KORRIGIERT!
+        let descriptor = FetchDescriptor<Video>()
+        let validVideoIDs = (try? modelContext.fetch(descriptor).map { $0.persistentModelID }) ?? []
+        
+        // Schritt 3: Filtern
+        let videos = allVideos.filter { validVideoIDs.contains($0.persistentModelID) }
+        
+        // Schritt 4: Gruppieren
+        let grouped = Dictionary(grouping: videos) { $0.category }
+        
+        // Schritt 5: Zusammenfassen
+        let summary = grouped.map { type, videos in
+            (
+                type: type,
+                count: videos.count,
+                duration: videos.reduce(0) { $0 + ($1.loopDurationSeconds) }
+            )
+        }
+        
+        // Schritt 6: Sortieren
+        return summary.sorted { $0.duration > $1.duration }
+    }
+}
+
