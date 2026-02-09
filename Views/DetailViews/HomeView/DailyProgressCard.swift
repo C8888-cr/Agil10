@@ -94,7 +94,13 @@ struct DailyProgressCard: View {
                 }
             }
             
-            // Exercise Type Breakdown
+            Divider()
+            
+            
+            if let nextAppointment = appointmentViewModel.nextAppointment(from: appointments) {
+                CompactAppointmentView(appointment: nextAppointment)
+            }
+            /*         // Exercise Type Breakdown
             if !progressVM.todaysSchedules.isEmpty {
                 Divider()
                 
@@ -116,7 +122,7 @@ struct DailyProgressCard: View {
                         }
                     }
                 }
-            }
+            }*/
         }
         .padding()
         .background(
@@ -169,9 +175,9 @@ struct DailyProgressCard: View {
      
      
      var body: some View {
-         HStack(spacing: 16) {
+         VStack(spacing: 16) {
              // Daily Progress (kompakt)
-             CompactProgressView()
+             DailyProgressCard()
              
              // Termin
                        if let nextAppointment = appointmentViewModel.nextAppointment(from: appointments) {
@@ -267,19 +273,34 @@ struct DailyProgressCard: View {
                      .font(.caption)
                      .foregroundColor(.secondary)
              }
-             
-             Text(appointment.timeString)
-                 .font(.title3)
-                 .fontWeight(.semibold)
-                 .foregroundColor(.primary)
-             
-             Text(appointment.dateString)
-                 .font(.caption)
-                 .foregroundColor(.secondary)
-             
-             Text(appointment.therapist)
-                 .font(.caption)
-                 .foregroundColor(.secondary)
+             HStack(spacing: 12) {
+                 Text(appointment.timeString)
+                     .font(.title3)
+                     .fontWeight(.semibold)
+                     .foregroundColor(.primary)
+                 
+                 /*    Text(appointment.dateString)
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+                  */
+                 VStack(alignment: .leading, spacing: 2) {
+                     Text(appointment.therapist)
+                         .font(.caption)
+                         .foregroundColor(.secondary)
+                     Text(appointment.locationName ?? "")
+                         .font(.caption)
+                         .foregroundColor(.secondary)
+                     
+                     // ✅ Notizen optional
+                                       if let notes = appointment.notes, !notes.isEmpty {
+                                           Text(notes)
+                                               .font(.caption2)
+                                               .foregroundColor(.secondary)
+                                               .italic()
+                                       }
+                 }
+                 Spacer()
+             }
          }
          .frame(maxWidth: .infinity, alignment: .leading)
      }
@@ -320,6 +341,61 @@ struct DailyProgressCard: View {
       //  .environmentObject(deps.trainingData)
         .environmentObject(WeeklySettings())
         .environmentObject(deps.progressViewModel)
-        .environmentObject(deps.appointmentViewModel)  // ✅ Aus AppDependencies!
+        .environmentObject(deps.appointmentViewModel)
+        .environmentObject(deps.settingsViewModel)
         .modelContainer(deps.modelContainer)
+}
+#Preview("CompactAppointmentView") {
+    let appointment = Appointment(
+        id: UUID(),
+        date: Date().addingTimeInterval(86400 * 3),
+        therapist: "Dr. Schmidt",
+        locationName: "Praxis Schmidt",
+        locationAddress: "Musterstr. 1, 10115 Berlin",
+        locationLatitude: 52.52,
+        locationLongitude: 13.40,
+        notes: "Physiotherapie Schulter",
+        emailUID: "test@example.com",
+        status: .confirmed,
+        userId: UUID(),
+        therapistId: UUID(),
+        praxisId: UUID()
+    )
+    
+    return CompactAppointmentView(appointment: appointment)
+        .padding()
+        .background(Color(.systemGray6))
+}
+#Preview("CompactTopSection mit Appointment") {
+    let deps = AppDependencies.shared
+    
+    // ✅ Mock Appointment erstellen
+    let mockAppointment = Appointment(
+        id: UUID(),
+        date: Date().addingTimeInterval(86400 * 2),  // Übermorgen
+        therapist: "Dr. Schmidt",
+        locationName: "Praxis Schmidt",
+        locationAddress: "Musterstr. 1, 10115 Berlin",
+        locationLatitude: 52.52,
+        locationLongitude: 13.40,
+        notes: "Physiotherapie Schulter",
+        emailUID: "test@example.com",
+        status: .confirmed,
+        userId: UUID(),
+        therapistId: UUID(),
+        praxisId: UUID()
+    )
+    
+    // ✅ Zu ModelContext hinzufügen
+    let context = deps.modelContainer.mainContext
+    context.insert(mockAppointment)
+    try? context.save()
+    
+    return CompactTopSection()
+        .environmentObject(deps.progressViewModel)
+        .environmentObject(deps.appointmentViewModel)  // ← VERWENDE DIES!
+        .environmentObject(deps.settingsViewModel)
+        .modelContainer(deps.modelContainer)
+        .padding()
+        .background(Color(.systemGray6))
 }
