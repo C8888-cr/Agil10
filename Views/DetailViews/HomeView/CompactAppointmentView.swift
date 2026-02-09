@@ -1,3 +1,12 @@
+//
+//  CompactAppointmentView.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 09.02.26.
+//
+import SwiftUI
+import SwiftData
+
  // MARK: - Compact Appointment View
  struct CompactAppointmentView: View {
      let appointment: Appointment
@@ -40,3 +49,24 @@
          .frame(maxWidth: .infinity, alignment: .leading)
      }
  }
+#Preview("CompactAppointmentView") {
+    let appointment = Appointment(
+        id: UUID(),
+        date: Date().addingTimeInterval(86400 * 3),
+        therapist: "Dr. Schmidt",
+        locationName: "Praxis Schmidt",
+        locationAddress: "Musterstr. 1, 10115 Berlin",
+        locationLatitude: 52.52,
+        locationLongitude: 13.40,
+        notes: "Physiotherapie Schulter",
+        emailUID: "test@example.com",
+        status: .confirmed,
+        userId: UUID(),
+        therapistId: UUID(),
+        praxisId: UUID()
+    )
+    
+    return CompactAppointmentView(appointment: appointment)
+        .padding()
+        .background(Color(.systemGray6))
+}
