@@ -4,7 +4,7 @@
 //
 //  Created by Christiane Roth on 26.11.25.
 //
-
+/*
 
 //
 //  TrainingOverlayView.swift
@@ -114,3 +114,4 @@ struct TrainingOverlayView: View {
         )
     }
 }
+*/
