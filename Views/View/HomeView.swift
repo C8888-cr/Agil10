@@ -46,10 +46,7 @@ struct HomeView: View {
                    // compactRingView
                     DailyProgressCard()
                         .environmentObject(settingsVM)
-           /*         CompactTopSection()
-                        .environmentObject(progressVM)
-                        .environmentObject(settingsVM)
-                     */
+
                     // Liste der heutigen Videos
                     ExercisesSection(
                         onToggleCompletion: { schedule in
