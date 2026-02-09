@@ -571,111 +571,116 @@ struct VideoScheduleRow: View {
     @State private var showDeleteAlert = false
     
     var body: some View {
-        HStack(spacing: 16) {
-            // ← Thumbnail mit Play-Button
-            ZStack {
-                thumbnailView
-                    .frame(width: 100, height: 75)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                // Play Button Overlay
-                Button(action: { onPlay(video) }) {
-                    ZStack {
-                        Circle()
-                            .fill(.ultraThinMaterial)
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "play.fill")
-                            .font(.title3)
-                            .foregroundStyle(.white)
+       
+            HStack(spacing: 16) {
+                // ← Thumbnail mit Play-Button
+                ZStack {
+                    thumbnailView
+                        .frame(width: 100, height: 75)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    
+                    // Play Button Overlay
+                    Button(action: { onPlay(video) }) {
+                        ZStack {
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: "play.fill")
+                                .font(.title3)
+                                .foregroundStyle(.white)
+                        }
                     }
-                }
-                .buttonStyle(.plain)
-            }
-            
-            // Info
-            VStack(alignment: .leading, spacing: 6) {
-                Text(video.title)
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(schedule.isCompleted ? .secondary : .primary)
-                    .lineLimit(2)
-                
-                // Stats
-                HStack(spacing: 12) {
-                    Label("\(schedule.effectiveRepetitions)×", systemImage: "repeat")
-                    Label(schedule.formattedDuration, systemImage: "clock")
-                    if schedule.effectivePauseSeconds > 0 {
-                        Label("\(schedule.effectivePauseSeconds)s", systemImage: "pause")
+                        Text(video.title)
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(schedule.isCompleted ? .secondary : .primary)
+                            .lineLimit(2)
+                            .buttonStyle(.plain)
                     }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
                 
-                // Tags
-                HStack(spacing: 8) {
-                    TagView(text: video.category.rawValue, icon: video.category.icon)
-                    TagView(text: video.bodyRegion.rawValue, icon: video.bodyRegion.icon)
+                // Info
+              VStack(alignment: .leading, spacing: 6) {
+              /*      Text(video.title)
+                        .font(.body)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(schedule.isCompleted ? .secondary : .primary)
+                        .lineLimit(2)
+                    */
+                    // Stats
+                    VStack(spacing: 12) {
+                        Label("\(schedule.effectiveRepetitions)×", systemImage: "repeat")
+                        Label(schedule.formattedDuration, systemImage: "clock")
+                        if schedule.effectivePauseSeconds > 0 {
+                            Label("\(schedule.effectivePauseSeconds)s", systemImage: "pause")
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    
+                    
                 }
-            }
-            
-            Spacer()
-            
-            // ← Actions Ecke
-            VStack(alignment: .trailing, spacing: 12) {
-                // Menu oben rechts
-                Menu {
-                    Button("Konfigurieren") { onConfig() }
-                    Button("Löschen", role: .destructive) { showDeleteAlert = true }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
                 
                 Spacer()
                 
-                // Erledigt unten rechts
-                Button(action: onToggleCompletion) {
-                    Image(systemName: schedule.isCompleted ? "checkmark.circle.fill" : "circle")
-                        .font(.title2)
-                        .foregroundStyle(schedule.isCompleted ? .green : .secondary)
+                // ← Actions Ecke
+          //      VStack(alignment: .trailing, spacing: 12) {
+                VStack(spacing: 12) {
+                    // Menu oben rechts
+                    Menu {
+                        Button("Konfigurieren") { onConfig() }
+                        Button("Löschen", role: .destructive) { showDeleteAlert = true }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    
+                 //   Spacer()
+                    
+                    // Erledigt unten rechts
+                    Button(action: onToggleCompletion) {
+                        Image(systemName: schedule.isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.title2)
+                            .foregroundStyle(schedule.isCompleted ? .green : .secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
+            }
+            
+            .padding(16)
+            .background(schedule.isCompleted ? Color.green.opacity(0.1) : Color(.systemBackground))
+            .opacity(schedule.isCompleted ? 0.7 : 1.0)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+            .alert("Löschen?", isPresented: $showDeleteAlert) {
+                Button("Löschen", role: .destructive) { onDelete() }
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("'\(video.title)' entfernen?")
             }
         }
-        .padding(16)
-        .background(schedule.isCompleted ? Color.green.opacity(0.1) : Color(.systemBackground))
-        .opacity(schedule.isCompleted ? 0.7 : 1.0)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-        .alert("Löschen?", isPresented: $showDeleteAlert) {
-            Button("Löschen", role: .destructive) { onDelete() }
-            Button("Abbrechen", role: .cancel) {}
-        } message: {
-            Text("'\(video.title)' entfernen?")
-        }
-    }
     
-    private var thumbnailView: some View {
-        Group {
-            if let thumbnailFileName = video.thumbnailFileName,
-               let thumbnail = ThumbnailGeneratorService.shared.loadThumbnail(fileName: thumbnailFileName) {
-                Image(uiImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                ZStack {
-                    Color.secondary.opacity(0.2)
-                    Image(systemName: "video.fill")
-                        .font(.title)
-                        .foregroundStyle(.secondary)
+        private var thumbnailView: some View {
+            Group {
+                if let thumbnailFileName = video.thumbnailFileName,
+                   let thumbnail = ThumbnailGeneratorService.shared.loadThumbnail(fileName: thumbnailFileName) {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    ZStack {
+                        Color.secondary.opacity(0.2)
+                        Image(systemName: "video.fill")
+                            .font(.title)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
     }
-}
+
 // Tag Helper View
 struct TagView: View {
     let text: String
