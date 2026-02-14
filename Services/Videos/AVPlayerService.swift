@@ -108,12 +108,14 @@ final class AVPlayerService: ObservableObject {
     // MARK: - Playback Control
     
     func play() {
+        print("▶️ Play aufgerufen (State: \(state))")
         guard state != .playing else { return }
         player?.play()
         state = .playing
     }
     
     func pause() {
+        print("⏸️ Pause aufgerufen")
         guard state == .playing else { return }
         player?.pause()
         state = .paused
@@ -128,11 +130,13 @@ final class AVPlayerService: ObservableObject {
     }
     
     func seek(to time: TimeInterval) {
+        
         let cmTime = CMTime(seconds: time, preferredTimescale: 600)
         player?.seek(to: cmTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
     func seekForward(seconds: TimeInterval = 10) {
+        
         let newTime = progress.currentTime + seconds
         seek(to: min(newTime, progress.duration))
     }
