@@ -33,7 +33,7 @@ final class VideoPlayerViewModel: ObservableObject {
     private var hasReachedLoopEnd = false
     
     let playerService: AVPlayerService
-    private let video: Video
+    let video: Video
     private let fileService: VideoFileService
     private let progressViewModel: ProgressViewModel?
     private let scheduleId: UUID?
@@ -52,7 +52,31 @@ final class VideoPlayerViewModel: ObservableObject {
     var formattedDuration: String {
         formatTime(playerService.progress.duration)
     }
-    
+    // ✅ NEU: Loop-Dauer aus Schedule holen (schon vorhanden in settings!)
+       var currentLoopDuration: TimeInterval {
+           TimeInterval(settings.loopDurationSeconds)
+       }
+       
+       // ✅ NEU: Progress innerhalb des aktuellen Loops (0.0 - 1.0)
+       var loopProgress: Double {
+           guard currentLoopDuration > 0 else { return 0 }
+           
+           // Modulo für Loop-Position
+           let timeInLoop = totalPlayTime.truncatingRemainder(dividingBy: currentLoopDuration)
+           return min(1.0, max(0.0, timeInLoop / currentLoopDuration))
+       }
+       
+       // ✅ NEU: Formatierte Zeit für Loop
+       var loopTimeText: String {
+           let timeInLoop = totalPlayTime.truncatingRemainder(dividingBy: currentLoopDuration)
+           return "\(formatTime(timeInLoop)) / \(formatTime(currentLoopDuration))"
+       }
+       
+       // ✅ NEU: Aktueller Loop Index (1, 2, 3, ...)
+       var currentLoopIndex: Int {
+           guard currentLoopDuration > 0 else { return 1 }
+           return Int(totalPlayTime / currentLoopDuration) + 1
+       }
     
     // MARK: - Initialization
     init(video: Video, scheduleId: UUID? = nil, progressViewModel: ProgressViewModel? = nil) {

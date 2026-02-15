@@ -242,40 +242,69 @@ struct VideoPlayerView: View {
     */
     // MARK: - Progress Bar
  
+    // In VideoPlayerView.swift
     private var progressBar: some View {
         GeometryReader { geometry in
             let safeWidth = max(100, geometry.size.width)
-            let duration = max(0.1, viewModel.playerService.progress.duration)
-            let bufferedRatio = min(1.0, max(0.0, viewModel.playerService.progress.bufferedTime / duration))
-            let progressRatio = min(1.0, max(0.0, viewModel.playerService.progress.progress))
             
-            ZStack(alignment: .leading) {
-                // Background
-                Capsule()
-                    .fill(Color.white.opacity(0.3))
-                    .frame(height: 4)
-                
-                // Buffered
-                Capsule()
-                    .fill(Color.white.opacity(0.5))
-                    .frame(width: safeWidth * bufferedRatio, height: 4)
-                
-                // Progress
-                Capsule()
-                    .fill(Color.white)
-                    .frame(width: safeWidth * progressRatio, height: 4)
-            }
-            .frame(width: safeWidth, height: 4)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        let seekRatio = max(0, min(1, value.location.x / safeWidth))
-                        let newTime = seekRatio * duration
-                        viewModel.seek(to: newTime)
+            // ✅ LOOP-BASIERTE Werte (verwendet totalPlayTime!)
+            let loopDuration = viewModel.currentLoopDuration
+            let timeInLoop = viewModel.totalPlayTime.truncatingRemainder(dividingBy: max(0.1, loopDuration))
+            let progressRatio = min(1.0, max(0.0, timeInLoop / max(0.1, loopDuration)))
+            
+            VStack(spacing: 8) {
+                // ✅ Zeit-Anzeige
+                HStack {
+                    Text(viewModel.loopTimeText)
+                        .font(.caption2)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .monospacedDigit()
+                    
+                    Spacer()
+                    
+                    // ✅ Loop-Indikator (nur im Training Mode)
+                    if viewModel.settings.mode == .training,
+                       let progress = viewModel.trainingProgress {
+                        Text("Runde \(viewModel.currentLoopIndex)")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.6))
                     }
-            )
+                }
+                
+                // ✅ Progress Bar
+                ZStack(alignment: .leading) {
+                    // Background
+                    Capsule()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(height: 4)
+                    
+                    // Progress (Loop-basiert!)
+                    Capsule()
+                        .fill(Color.white)
+                        .frame(width: safeWidth * progressRatio, height: 4)
+                }
+                .frame(width: safeWidth, height: 4)
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            let seekRatio = max(0, min(1, value.location.x / safeWidth))
+                            
+                            // ✅ Seek innerhalb des aktuellen Loops
+                            let currentLoopIndex = Int(viewModel.totalPlayTime / loopDuration)
+                            let loopStartTime = TimeInterval(currentLoopIndex) * loopDuration
+                            let newTime = loopStartTime + (seekRatio * loopDuration)
+                            
+                            // ✅ WICHTIG: totalPlayTime manuell setzen!
+                            viewModel.totalPlayTime = newTime
+                            
+                            // Dann Player seek
+                            let videoTime = newTime.truncatingRemainder(dividingBy: max(0.1, Double(viewModel.video.durationSeconds)))
+                            viewModel.seek(to: videoTime)
+                        }
+                )
+            }
         }
-        .frame(height: 20)
+        .frame(height: 40)  // ✅ Mehr Platz für Text
     }
  
     // MARK: - Speed Menu
