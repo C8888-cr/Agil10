@@ -42,7 +42,7 @@ final class VideoPlayerViewModel: ObservableObject {
     private var controlsTimer: Timer?
     private var pauseTimer: Timer?
     private var dismissAction: (() -> Void)?
-    
+    private var lastLoggedTime: Int = -1
 
     // MARK: - Computed Properties
     var formattedCurrentTime: String {
@@ -406,9 +406,37 @@ final class VideoPlayerViewModel: ObservableObject {
           case .paused:
               isPlaying = false
           case .ended:
-              // ✅ Video zu Ende → aber Loop-Dauer prüft handleProgressUpdate!
-              print("🔄 Video-Ende - Loop-Check läuft in handleProgressUpdate")
-              isPlaying = false
+                 isPlaying = false
+                 print("🎬 Video-Ende erkannt bei totalPlayTime: \(String(format: "%.1f", totalPlayTime))s")
+                 
+                 // ✅ Nur wenn Training/Loop aktiv UND Loop nicht erreicht
+                 guard (settings.mode == .training || settings.mode == .loop),
+                       !hasReachedLoopEnd else {
+                     print("   → Kein Restart (Mode: \(settings.mode), hasReachedLoopEnd: \(hasReachedLoopEnd))")
+                     return
+                 }
+                 
+                 // ✅ Loop-Dauer bereits erreicht?
+                 if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) - 0.5 {
+                     print("⏹️ → Loop-Dauer erreicht (\(String(format: "%.1f", totalPlayTime))s) → STOPPEN")
+                     handleLoopEnd()
+                 }
+                 // ✅ Video muss neu starten
+                 else {
+                     print("🔄 → Loop noch nicht voll (\(String(format: "%.1f", totalPlayTime))s < \(settings.loopDurationSeconds)s)")
+                     print("   📹 Video neu starten...")
+                     
+                     Task { @MainActor in
+                         playerService.seek(to: .zero)
+                         try? await Task.sleep(nanoseconds: 100_000_000)
+                         print("   📞 Calling play()...")
+                         playerService.play()
+                         isPlaying = true
+                         playStartTime = Date()
+                         print("▶️ Video neu gestartet (state: \(playerService.state))")
+                     }
+                 }
+              
           case .failed(let error):
               self.error = error
               self.showError = true
@@ -424,53 +452,94 @@ final class VideoPlayerViewModel: ObservableObject {
 
       
     // ✅ OPTIMIERTE Progress-Update-Logik
-     private func handleProgressUpdate(_ progress: VideoProgress) {
-         // Keine Zeit-Tracking während Pause
-         guard !(trainingProgress?.isInPause ?? false) else {
-             return
-         }
-         
-         let now = Date()
-         let delta = now.timeIntervalSince(lastUpdateTime)
-         
-         // Zeit addieren wenn Playing
-         if playerService.state == .playing {
-             if playStartTime == nil {
-                 playStartTime = now
-             }
-             totalPlayTime += delta
-         }
-         
-         lastUpdateTime = now
-         
-         // 1. Loop-Dauer erreicht?
-         if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) && !hasReachedLoopEnd {
-             print("⏹️ Loop-Dauer erreicht: \(Int(totalPlayTime))s")
-             handleLoopEnd()
-             return
-         }
-         
-         // 2. Video-Ende innerhalb Loop → neu starten
-         if playerService.state == .ended &&
-            totalPlayTime < TimeInterval(settings.loopDurationSeconds) &&
-            !hasReachedLoopEnd {
-             
-             print("🔄 Video-Ende bei \(Int(totalPlayTime))s → Loop innerhalb Loop-Dauer")
-             playerService.seek(to: .zero)
-             playerService.play()
-             playStartTime = now
-             return
-         }
-         
-         // UI Progress aktualisieren
-         let ratio = progress.duration > 0 ? progress.currentTime / progress.duration : 0.0
-         watchProgress = min(1.0, max(0.0, ratio))
-         
-         progressViewModel?.updateVideoProgress(
-             for: video.id.uuidString,
-             progress: watchProgress
-         )
-     }
+    private func handleProgressUpdate(_ progress: VideoProgress) {
+        
+        let roundedTime = Int(totalPlayTime)
+          if roundedTime % 2 == 0 && roundedTime != lastLoggedTime {
+              print("🆕 handleProgressUpdate")
+              print("   state: \(playerService.state)")
+              print("   hasReachedLoopEnd: \(hasReachedLoopEnd)")
+              print("   totalPlayTime: \(String(format: "%.1f", totalPlayTime))s / \(settings.loopDurationSeconds)s")
+              lastLoggedTime = roundedTime
+          }
+        
+        guard !(trainingProgress?.isInPause ?? false) else {
+            return
+        }
+        
+        let now = Date()
+        let delta = now.timeIntervalSince(lastUpdateTime)
+        
+        // Zeit addieren wenn Playing
+        if playerService.state == .playing {
+            if playStartTime == nil {
+                playStartTime = now
+            }
+            totalPlayTime += delta
+        }
+        
+        lastUpdateTime = now
+        
+        // ✅ DEBUG: Zeit-Tracking (nur alle 5s)
+      
+        if roundedTime % 5 == 0 && roundedTime > 0 && roundedTime != lastLoggedTime {
+            print("⏱️ totalPlayTime: \(roundedTime)s / \(settings.loopDurationSeconds)s")
+            lastLoggedTime = roundedTime
+        }
+        
+        // ========================================
+        // 1️⃣ Video-Ende erreicht?
+        // ========================================
+        if playerService.state == .ended && !hasReachedLoopEnd {
+            print("🎬 Video-Ende bei \(String(format: "%.1f", totalPlayTime))s")
+            print("   Loop-Dauer: \(settings.loopDurationSeconds)s")
+            print("   Video-Dauer: \(Int(progress.duration))s")
+            
+            // Hat Loop-Dauer SCHON erreicht? (mit 0.5s Toleranz)
+            if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) - 0.5 {
+                print("⏹️ → Loop-Dauer erreicht (\(String(format: "%.1f", totalPlayTime))s >= \(settings.loopDurationSeconds)s) → PAUSE")
+                handleLoopEnd()
+                return
+            }
+            // Noch nicht → Video neu starten
+            else {
+                print("🔄 → Loop noch nicht voll (\(String(format: "%.1f", totalPlayTime))s < \(settings.loopDurationSeconds)s)")
+                print("   Video neu starten...")
+                
+                playerService.seek(to: .zero)
+                Task {
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    playerService.play()
+                    playStartTime = now
+                    print("▶️ Video neu gestartet")
+                }
+                return
+            }
+        }
+        
+        // ========================================
+        // 2️⃣ Loop-Dauer WÄHREND Playback erreicht
+        // ========================================
+        // (Für Videos LÄNGER als Loop-Dauer)
+        if totalPlayTime >= TimeInterval(settings.loopDurationSeconds) &&
+           !hasReachedLoopEnd &&
+           playerService.state == .playing {
+            print("⏹️ Loop-Dauer während Playback erreicht: \(Int(totalPlayTime))s → STOPPEN")
+            handleLoopEnd()
+            return
+        }
+        
+        // ========================================
+        // 3️⃣ UI Progress Update
+        // ========================================
+        let ratio = progress.duration > 0 ? progress.currentTime / progress.duration : 0.0
+        watchProgress = min(1.0, max(0.0, ratio))
+        
+        progressViewModel?.updateVideoProgress(
+            for: video.id.uuidString,
+            progress: watchProgress
+        )
+    }
     
     // MARK: - Cleanup
     
