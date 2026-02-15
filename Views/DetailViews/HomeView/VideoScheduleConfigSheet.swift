@@ -342,23 +342,17 @@ struct VideoScheduleConfigSheet: View {
                                     .foregroundStyle(.accent)
                             }
                             
-                            // ✅ KORRIGIERT: Berechnung ausgelagert
-                            let sliderRange = calculateSliderRange()
+                          
                             
                             Slider(
                                 value: .init(
                                     get: { Double(loopDuration) },
-                                    set: { newValue in
-                                        // ✅ Wert direkt clampen
-                                        loopDuration = min(
-                                            max(Int(newValue), sliderRange.min),
-                                            sliderRange.max
-                                        )
-                                    }
+                                    set: { loopDuration = Int($0) }
                                 ),
-                                in: Double(sliderRange.min)...Double(sliderRange.max),
-                                step: 5)
-                            
+                                in: 5...300,  // ✅ 5s bis 5min IMMER
+                                step: 5
+                            )
+                            .tint(.accent)
                         }
                         
                     } header: {
@@ -412,19 +406,12 @@ struct VideoScheduleConfigSheet: View {
                             }
                         }
                         .font(.subheadline)
+                        
                     }
                     
                     
                     .padding(.vertical, 4)
                     
-                    
-                    
-                  
-                    
-                    
-                    
-                        .padding()
-                        .background(Color(.systemBackground))
                 }
                 Button("Speichern") {
                     onAdd()
@@ -453,6 +440,14 @@ struct VideoScheduleConfigSheet: View {
                 Text(uploadError ?? "Unbekannter Fehler")
                 
             }
+            .onAppear {
+                           // Wenn loopDuration nicht gesetzt (0 oder ungültig),
+                           // dann auf Video-Dauer initialisieren
+                           if loopDuration == 0 || loopDuration < 5 {
+                               loopDuration = max(5, video.durationSeconds)
+                               print("📝 Loop-Dauer initialisiert auf: \(loopDuration)s")
+                           }
+                       }
         }
     }
 // ✅ NEU: Slider-Range berechnen (verhindert ungültige Werte)
@@ -479,4 +474,103 @@ private func formatSeconds(_ seconds: Int) -> String {
     }
     return "\(minutes) Min"
 }
+}
+#Preview("Standard Video (2 Min)") {
+    struct PreviewWrapper: View {
+        let authService = AuthService(authServiceProtocol: MockAuthService())
+        @State private var repetitions = 3
+        @State private var pauseSeconds = 30
+        @State private var loopDuration = 0
+        
+        var body: some View {
+            VideoScheduleConfigSheet(
+                video: Video(
+                    title: "Schulter Mobilisation",
+                    videoFileName: "test.mp4",
+                    category: .mobility,
+                    bodyRegion: .back,
+                    equipment: .noEquipment,
+                    durationSeconds: 120,
+                    fileSizeBytes: 25_000_000,
+                    defaultRepetitions: 3,
+                    defaultPauseSeconds: 30,
+                    loopDurationSeconds: 120,
+                    rating: 4
+                ),
+                loopDuration: $loopDuration,
+                repetitions: $repetitions,
+                pauseSeconds: $pauseSeconds,
+                onAdd: { print("✅ Hinzugefügt") },
+                onCancel: { print("❌ Abgebrochen") }
+            )
+            .environmentObject(authService)
+        }
+    }
+    return PreviewWrapper()
+}
+#Preview("Kurzes Video (30s)") {
+    struct PreviewWrapper: View {
+        let authService = AuthService(authServiceProtocol: MockAuthService())
+        @State private var repetitions = 5
+        @State private var pauseSeconds = 15
+        @State private var loopDuration = 0
+        
+        var body: some View {
+            VideoScheduleConfigSheet(
+                video: Video(
+                    title: "Nacken Dehnung",
+                    videoFileName: "neck.mp4",
+                    category: .stretching,
+                    bodyRegion: .cervicalSpine,
+                    equipment: .noEquipment,
+                    durationSeconds: 30,
+                    fileSizeBytes: 8_000_000,
+                    defaultRepetitions: 5,
+                    defaultPauseSeconds: 15,
+                    loopDurationSeconds: 30,
+                    rating: 5
+                ),
+                loopDuration: $loopDuration,
+                repetitions: $repetitions,
+                pauseSeconds: $pauseSeconds,
+                onAdd: { print("✅ Hinzugefügt") },
+                onCancel: { print("❌ Abgebrochen") }
+            )
+            .environmentObject(authService)
+        }
+    }
+    return PreviewWrapper()
+}
+#Preview("Langes Video (4 Min)") {
+    struct PreviewWrapper: View {
+        let authService = AuthService(authServiceProtocol: MockAuthService())
+        @State private var repetitions = 2
+        @State private var pauseSeconds = 60
+        @State private var loopDuration = 0
+        
+        var body: some View {
+            VideoScheduleConfigSheet(
+                video: Video(
+                    title: "Rücken Kräftigung",
+                    videoFileName: "back.mp4",
+                    category: .strength,
+                    bodyRegion: .lumbarSpine,
+                    equipment: .bodyweight,
+                    durationSeconds: 240,
+                    fileSizeBytes: 50_000_000,
+                    defaultRepetitions: 2,
+                    defaultPauseSeconds: 60,
+                    loopDurationSeconds: 240,
+                    rating: 4
+                ),
+                loopDuration: $loopDuration,
+                repetitions: $repetitions,
+                pauseSeconds: $pauseSeconds,
+                onAdd: { print("✅ Hinzugefügt") },
+                onCancel: { print("❌ Abgebrochen") }
+            )
+            .environmentObject(authService)
+        }
+    }
+    return PreviewWrapper()
 }
