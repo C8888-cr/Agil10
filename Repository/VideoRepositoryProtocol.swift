@@ -32,9 +32,9 @@ protocol VideoRepositoryProtocol {
         category: ExerciseCategory,
         bodyRegion: BodyRegion,
         equipment: Equipment,
-        defaultRepetitions: Int,
-        defaultPauseSeconds: Int,
-        loopDurationSeconds: Int?,
+    //    defaultRepetitions: Int,
+    //    defaultPauseSeconds: Int,
+    //    loopDurationSeconds: Int?,
         for user: User
     ) async throws -> Video
 }

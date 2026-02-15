@@ -18,10 +18,10 @@ struct VideoLibraryUploadSheet: View {
     @State private var selectedCategory: ExerciseCategory = .mobility
     @State private var selectedBodyRegion: BodyRegion = .fullBody
     @State private var selectedEquipment: Equipment = .noEquipment
-    @State private var defaultRepetitions = 3
-    @State private var defaultPauseSeconds = 30
-    @State private var loopDurationSeconds: Int?
-    @State private var useLoopDuration = false
+ //   @State private var defaultRepetitions = 3
+  //  @State private var defaultPauseSeconds = 30
+ //   @State private var loopDurationSeconds: Int?
+  //  @State private var useLoopDuration = false
     
     @State private var isUploading = false
     @State private var uploadError: String?
@@ -136,9 +136,9 @@ struct VideoLibraryUploadSheet: View {
                     category: selectedCategory,
                     bodyRegion: selectedBodyRegion,
                     equipment: selectedEquipment,
-                    defaultRepetitions: defaultRepetitions,
-                    defaultPauseSeconds: defaultPauseSeconds,
-                    loopDurationSeconds: useLoopDuration ? loopDurationSeconds : nil,
+                //    defaultRepetitions: defaultRepetitions,
+                //    defaultPauseSeconds: defaultPauseSeconds,
+               //     loopDurationSeconds: useLoopDuration ? loopDurationSeconds : nil,
                     for: user
                 )
                 

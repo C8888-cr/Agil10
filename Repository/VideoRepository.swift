@@ -10,6 +10,8 @@ import Foundation
 import SwiftData
 import AVFoundation
 import UIKit
+
+
 final class VideoRepository: VideoRepositoryProtocol {
     
     // MARK: - Properties
@@ -79,9 +81,9 @@ final class VideoRepository: VideoRepositoryProtocol {
         category: ExerciseCategory,
         bodyRegion: BodyRegion,
         equipment: Equipment,
-        defaultRepetitions: Int,
-        defaultPauseSeconds: Int,
-        loopDurationSeconds: Int?,
+     //   defaultRepetitions: Int,
+     //   defaultPauseSeconds: Int,
+    //    loopDurationSeconds: Int?,
         for user: User
     ) async throws -> Video {
         
@@ -140,9 +142,9 @@ final class VideoRepository: VideoRepositoryProtocol {
             equipment: equipment,
             durationSeconds: Int(duration),
             fileSizeBytes: fileSize,
-            defaultRepetitions: defaultRepetitions,
-            defaultPauseSeconds: defaultPauseSeconds,
-            loopDurationSeconds: loopDurationSeconds,
+         //   defaultRepetitions: defaultRepetitions,
+        //    defaultPauseSeconds: defaultPauseSeconds,
+        //    loopDurationSeconds: loopDurationSeconds,
             user: validUser,  // ✅ User aus Context!
             uploadedByTherapist: nil,
             isWatched: false,
