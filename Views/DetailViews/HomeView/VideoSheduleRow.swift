@@ -571,8 +571,9 @@ struct VideoScheduleRow: View {
     @State private var showDeleteAlert = false
     
     var body: some View {
-       
+  
             HStack(spacing: 16) {
+ 
                 // ← Thumbnail mit Play-Button
                 ZStack {
                     thumbnailView
@@ -591,30 +592,32 @@ struct VideoScheduleRow: View {
                                 .foregroundStyle(.white)
                         }
                     }
-                        Text(video.title)
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(schedule.isCompleted ? .secondary : .primary)
-                            .lineLimit(2)
-                            .buttonStyle(.plain)
-                    }
+                    
+                }
                 
                 // Info
-              VStack(alignment: .leading, spacing: 6) {
-              /*      Text(video.title)
-                        .font(.body)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(video.title)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(schedule.isCompleted ? .secondary : .primary)
                         .lineLimit(2)
-                    */
                     // Stats
-                    VStack(spacing: 12) {
+                    
+                    HStack(spacing: 12) {
+                        
                         Label("\(schedule.effectiveRepetitions)×", systemImage: "repeat")
-                        Label(schedule.formattedDuration, systemImage: "clock")
-                        if schedule.effectivePauseSeconds > 0 {
-                            Label("\(schedule.effectivePauseSeconds)s", systemImage: "pause")
-                        }
                     }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    
+                    
+                        HStack(spacing: 12) {
+                            Label(schedule.formattedDuration, systemImage: "clock")
+                            if schedule.effectivePauseSeconds > 0 {
+                                Label("\(schedule.effectivePauseSeconds)s", systemImage: "pause")
+                            }
+                        }
+                    
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     
@@ -624,7 +627,7 @@ struct VideoScheduleRow: View {
                 Spacer()
                 
                 // ← Actions Ecke
-          //      VStack(alignment: .trailing, spacing: 12) {
+                //      VStack(alignment: .trailing, spacing: 12) {
                 VStack(spacing: 12) {
                     // Menu oben rechts
                     Menu {
@@ -637,7 +640,7 @@ struct VideoScheduleRow: View {
                     }
                     .buttonStyle(.plain)
                     
-                 //   Spacer()
+                    //   Spacer()
                     
                     // Erledigt unten rechts
                     Button(action: onToggleCompletion) {
