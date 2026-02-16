@@ -157,8 +157,10 @@ final class VideoPlayerViewModel: ObservableObject {
                 
                 playerService.loadVideo(from: videoURL)
                 
-                // Auto-play nach laden
-                try await Task.sleep(nanoseconds: 500_000_000) // 0.5s warten
+                
+                try await waitForPlayerReady()
+   
+            
                 playerService.play()
                 isPlaying = true
                 
@@ -172,6 +174,24 @@ final class VideoPlayerViewModel: ObservableObject {
                 self.showError = true
             }
         }
+    }
+    
+    // ✅ NEU: Warte bis Player bereit ist
+    private func waitForPlayerReady() async throws {
+        guard let player = playerService.player else {
+            throw VideoError.playerNotReady
+        }
+        
+        // Warte max. 3 Sekunden auf "readyToPlay"
+        for _ in 0..<30 {
+            if player.currentItem?.status == .readyToPlay {
+                print("✅ Player bereit!")
+                return
+            }
+            try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
+        }
+        
+        throw VideoError.playerNotReady
     }
     
     // MARK: - Playback Control
