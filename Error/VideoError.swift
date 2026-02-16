@@ -28,6 +28,7 @@ enum VideoError: LocalizedError {
     case invalidURL
     case exportFailed
     case permissionDenied
+    case playerNotReady
     
     var errorDescription: String? {
         switch self {
@@ -45,6 +46,8 @@ enum VideoError: LocalizedError {
             return "Video-Export fehlgeschlagen"
         case .permissionDenied:
             return "Keine Berechtigung für Video-Zugriff"
+        case.playerNotReady:
+            return "Video-Player nicht bereit"
         }
     }
 }
