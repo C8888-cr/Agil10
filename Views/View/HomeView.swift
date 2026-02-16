@@ -22,6 +22,12 @@ struct HomeView: View {
     @State private var activeSheet: SheetType?
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
+    
+    // ⭐️ NEU: Rating State
+    @State private var showRatingSheet = false
+    @State private var ratingScheduleId: UUID?
+    @State private var ratingVideoTitle: String = ""
+    
 
 
     enum SheetType: Identifiable {
@@ -60,6 +66,9 @@ struct HomeView: View {
                                        selectedVideoForConfig = schedule.video ?? Video.previewMobility
                                        playbackSettings = PlaybackSettings(/* ... */)
                                    },
+                        
+                        
+                        
                         onPlay: { schedule, video in
                                        selectedScheduleId = schedule.id
                                        selectedVideoForPlayer = video
@@ -157,16 +166,52 @@ struct HomeView: View {
                     }
                 )
             }
-            .sheet(isPresented: $showVideoPlayer) {
-                if let video = selectedVideoForPlayer,
-                   let scheduleId = selectedScheduleId {
-                    VideoPlayerView(
-                        video: video,
-                        scheduleId: scheduleId,  // ✅ DEINE STATE VARIABLE!
-                        progressViewModel: progressVM
-                    )
-                }
-            }
+        // ⭐️ VIDEO PLAYER SHEET
+             .sheet(isPresented: $showVideoPlayer) {
+                 // ✅ onDismiss: Wird aufgerufen wenn VideoPlayer geschlossen wird
+                 if let video = selectedVideoForPlayer,
+                    let scheduleId = selectedScheduleId {
+                     
+                     // ⭐️ Rating vorbereiten
+                     ratingScheduleId = scheduleId
+                     ratingVideoTitle = video.title
+                     
+                     // ⭐️ Rating Sheet öffnen
+                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                         showRatingSheet = true
+                     }
+                 }
+             } content: {
+                 if let video = selectedVideoForPlayer,
+                    let scheduleId = selectedScheduleId {
+                     VideoPlayerView(
+                         video: video,
+                         scheduleId: scheduleId,
+                         progressViewModel: progressVM
+                     )
+                 }
+             }
+             
+             // ⭐️ RATING SHEET (kommt NACH VideoPlayer)
+             .sheet(isPresented: $showRatingSheet) {
+                 if let scheduleId = ratingScheduleId {
+                     VideoRatingSheet(
+                         videoTitle: ratingVideoTitle,
+                         onRate: { rating in
+                             print("⭐️ Rating \(rating) für Schedule \(scheduleId)")
+                             
+                             // ✅ Rating speichern
+                             if let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                                 progressVM.saveRating(rating, for: schedule, user: authService.currentUser!)
+                             }
+                             
+                             // State zurücksetzen
+                             ratingScheduleId = nil
+                             ratingVideoTitle = ""
+                         }
+                     )
+                 }
+             }
 
             .onAppear {
                       guard let user = currentUser else {

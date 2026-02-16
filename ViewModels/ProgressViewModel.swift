@@ -810,3 +810,21 @@ extension ProgressViewModel {
     }
 }
 
+extension ProgressViewModel {
+    
+    /// ⭐️ Rating speichern
+    func saveRating(_ rating: Int, for schedule: VideoSchedule, user: User) {
+        schedule.rating = rating
+        
+        // ✅ SwiftData Context speichern
+        do {
+            try modelContext.save()
+            print("✅ Rating \(rating) gespeichert für: \(schedule.video?.title ?? "Unknown")")
+            
+            // UI aktualisieren
+            objectWillChange.send()
+        } catch {
+            print("❌ Fehler beim Speichern des Ratings: \(error)")
+        }
+    }
+}

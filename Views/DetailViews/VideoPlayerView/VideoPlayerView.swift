@@ -57,6 +57,16 @@ struct VideoPlayerView: View {
         } message: {
             Text(viewModel.error?.localizedDescription ?? "Unbekannter Fehler")
         }
+        .sheet(isPresented: $viewModel.showRatingSheet) {
+                   VideoRatingSheet(
+                       videoTitle: video.title,
+                       onRate: { rating in
+                           viewModel.saveRating(rating)
+                       }
+                   )
+                   .presentationDetents([.medium, .large])
+                   .presentationDragIndicator(.visible)
+               }
     }
     
     // MARK: - Player Content

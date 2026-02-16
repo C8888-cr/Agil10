@@ -25,7 +25,7 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var showError = false
     @Published var error: Error?
     @Published private(set) var watchProgress: Double = 0.0 //für ProgressRing
-    
+    @Published var showRatingSheet = false
     
     // MARK: - Private Properties
     private var lastUpdateTime = Date()
@@ -585,7 +585,27 @@ final class VideoPlayerViewModel: ObservableObject {
         self.dismissAction = action
     }
     
-
+    // ✅ Rating speichern
+       func saveRating(_ rating: Int) {
+           print("⭐️ Rating gespeichert: \(rating)")
+           
+           if let scheduleId = scheduleId,
+              let progressVM = progressViewModel,
+              let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+              let user = AppDependencies.shared.authService.currentUser {
+               
+               // ✅ Rating setzen
+               schedule.rating = rating
+               
+               // ✅ Als completed markieren
+               progressVM.markCompletedSchedule(schedule, for: user)
+               
+               print("✅ Schedule '\(schedule.video?.title ?? "Unknown")' completed mit Rating \(rating)")
+           }
+           
+           // View schließen
+           dismissAction?()
+       }
     
     // MARK: - Helpers
     
