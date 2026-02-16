@@ -1167,7 +1167,7 @@ struct VideoScheduleRow: View {
             onPlay: { video in print("▶️ Play: \(video.title)") }
         )
         
-        Divider()
+    //    Divider()
         
         VideoScheduleRow(
             schedule: createMockSchedule(completed: true, rating: 5),

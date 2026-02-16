@@ -19,7 +19,7 @@ struct ExercisesSection: View {
     let onAddVideo: () -> Void
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 8) {
             ForEach(progressVM.todaysSchedules, id: \.id) { schedule in
                 let video = schedule.video ?? Video.previewMobility
                 
@@ -39,7 +39,7 @@ struct ExercisesSection: View {
                         onPlay(schedule, video)  // ← CALLBACK!
                     }
                 )
-                Divider()
+            //    Divider()
             }
             
             if progressVM.canAddMoreVideos {
@@ -53,9 +53,10 @@ struct ExercisesSection: View {
                         .foregroundColor(.white)
                         .cornerRadius(8)
                 }
-                .padding()
+                .padding(.top, 8)
             }
         }
+   //     .padding(.horizontal, 8)
     }
 }
 #Preview {
