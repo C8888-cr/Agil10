@@ -81,7 +81,7 @@ final class User: @unchecked Sendable {
 
 extension User {
     @MainActor static func mockPatient() -> User {
-        User(
+        let user = User(
             id: MockAuthService.mockPatientId,
             firstName: "Max",
             lastName: "Mustermann",
@@ -90,7 +90,10 @@ extension User {
             role: .patient,
             praxisId: PraxisDataManager.praxis4Id
         )
+        print("🧪 mockPatient erstellt – praxisId: \(String(describing: user.praxisId))")
+        return user
     }
+
     
     @MainActor static func mockTherapist() -> User {
         User(
