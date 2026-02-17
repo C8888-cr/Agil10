@@ -219,6 +219,15 @@ struct LoginView: View {
                 
                 try await authService.login(email: email, password: password)
                 
+                
+                if let user = authService.currentUser {
+                              print("🧪 AuthService.login – User VOR Speichern:")
+                              print("   email: \(user.email)")
+                              print("   firstName: \(user.firstName)")
+                              print("   lastName: \(user.lastName)")
+                              print("   praxisId: \(String(describing: user.praxisId))")
+                          }
+
                 await MainActor.run {
                     showLoading = false
                     isLoading = false
