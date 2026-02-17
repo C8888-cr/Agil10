@@ -33,7 +33,7 @@ final class MockAuthService: AuthServiceProtocol {
             )
         }
     }
-    
+
     private var mockUsers: [String: MockUserRecord] = [
         "patient@agil.de": MockUserRecord(
             id: MockAuthService.mockPatientId,
@@ -165,6 +165,10 @@ final class MockAuthService: AuthServiceProtocol {
             if let existingUser = try? context.fetch(descriptor).first {
                 user = existingUser
                 print("✅ User aus SwiftData geladen: \(user.fullName)")
+                
+                user.praxisId = PraxisDataManager.praxis4Id
+                   print("🔧 praxisId für \(user.fullName) GESETZT: \(user.praxisId!)")
+                
             } else {
                 user = record.toUser()
                 context.insert(user)
