@@ -25,7 +25,7 @@ struct ProgressTabView: View {
 
     
     var body: some View {
-        NavigationView {
+      
             ScrollView {
                 VStack(spacing: 24) {
                     // 🎯 Wochenübersicht mit schönen Balken
@@ -81,7 +81,7 @@ struct ProgressTabView: View {
             }
         }
     }
-}
+
 // MARK: - Weekly Progress Card
 struct WeeklyProgressCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
