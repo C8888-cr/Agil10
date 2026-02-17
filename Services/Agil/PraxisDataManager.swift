@@ -80,7 +80,7 @@ class PraxisDataManager {
             email: "agil-dornbusch@physio-agil.de",
             addresse: "Eschersheimer Landstraße 311",
             city: "Frankfurt",
-            postalCode: "603020",
+            postalCode: "60320",
             latitude: nil,
             longitude: nil,
             telefon: "069 94598465",
