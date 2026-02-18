@@ -33,8 +33,8 @@ class PraxisDataManager {
             addresse: "Kirchhainer Straße 29",
             city: "Frankfurt Eschersheim",
             postalCode: "60433",
-            latitude: nil,
-            longitude: nil,
+            latitude: 50.15343,
+            longitude: 8.66823,
             telefon: "069 95108770",
             website: "https://physio-agil.de"
         ),
@@ -45,8 +45,8 @@ class PraxisDataManager {
             addresse: "Kantapfelstraße 26",
             city: "Frankfurt Preungesheim",
             postalCode: "60435",
-            latitude: nil,
-            longitude: nil,
+            latitude: 50.15551,
+            longitude: 8.69913,
             telefon: "069 95497666",
             website: "https://physio-agil.de"
         ),
@@ -57,8 +57,8 @@ class PraxisDataManager {
             addresse: "Bahnstraße 37",
             city: "Langen",
             postalCode: "63225",
-            latitude: nil,
-            longitude: nil,
+            latitude: 49.99013,
+            longitude: 8.67027,
             telefon: "06103 2086030",
             website: "https://physio-agil.de"
         ),
@@ -69,8 +69,8 @@ class PraxisDataManager {
             addresse: "Juchostraße 7",
             city: "Frankfurt",
             postalCode: "60385",
-            latitude: nil,
-            longitude: nil,
+            latitude: 50.11972,
+            longitude: 8.71481,
             telefon: "069 449693",
             website: "https://physio-agil.de"
         ),
@@ -81,8 +81,8 @@ class PraxisDataManager {
             addresse: "Eschersheimer Landstraße 311",
             city: "Frankfurt",
             postalCode: "60320",
-            latitude: nil,
-            longitude: nil,
+            latitude: 50.13998,
+            longitude: 8.66957,
             telefon: "069 94598465",
             website: "https://physio-agil.de"
         ),
@@ -90,11 +90,11 @@ class PraxisDataManager {
             id: PraxisDataManager.praxis6Id,  // ✅ 6
             name: "agil Alt-Eschersheim",
             email: "agil-alt-eschersheim@physio-agil.de",
-            addresse: "Alt-Eschersheim 34, 60433 Frankfurt Alt Eschersheim",
-            city: "Frankfurt Alt Eschersheim",
+            addresse: "Alt-Eschersheim 34",
+            city: "Frankfurt",
             postalCode: "60433",
-            latitude: nil,
-            longitude: nil,
+            latitude: 50.16022,
+            longitude: 8.65543,
             telefon: "069 577662",
             website: "https://physio-agil.de"
         )
