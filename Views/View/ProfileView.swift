@@ -12,6 +12,7 @@ struct ProfileView: View {
     @State private var selectedImage: UIImage?
     @State private var showProfileEditSheet = false
     @State private var showRoleEditSheet = false
+    @State private var showEmailEditSheet = false
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -105,46 +106,13 @@ struct ProfileView: View {
                                 }
                             }
                             .onTapGesture {
-                                                           if isEditing {
-                                                               // NavigationLink oder Sheet öffnen
-                                                           }
-                                                       }
-                            
-                            
-                            
-                            // ✅ ROLLE
-                            InfoCard {
-                                VStack(spacing: 0) {
-                                    HStack {
-                                        Label {
-                                            Text("Berechtigungen")
-                                                .foregroundStyle(.secondary)
-                                        } icon: {
-                                            Image(systemName: "shield.lefthalf.filled")
-                                                .foregroundStyle(Color.accentColor.opacity(0.7))
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        HStack(spacing: 8) {
-                                            Text(user.role.rawValue.capitalized)
-                                                .fontWeight(.medium)
-                                                .foregroundStyle(user.role == .admin ? .orange : .primary)
-                                            
-                                            if isEditing {
-                                                Image(systemName: "chevron.right")
-                                                    .foregroundStyle(.gray)
-                                                    .font(.subheadline)
-                                            }
-                                        }
-                                    }
+                                if isEditing {
+                                    showEmailEditSheet = true
                                 }
                             }
-                            .onTapGesture {
-                                                           if isEditing {
-                                                               // NavigationLink oder Sheet öffnen
-                                                           }
-                                                       }
+                            .sheet(isPresented: $showEmailEditSheet) {
+                                EmailEditSheet(user: user)
+                            }
                             // ✅ PRAXIS
                             if let praxisId = praxisId,
                                let praxis = PraxisDataManager.shared.getPraxis(by: praxisId) {
