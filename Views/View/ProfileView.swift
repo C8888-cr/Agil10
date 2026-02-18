@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var showProfileHeaderEditSheet: Bool = false
     @State private var selectedImage: UIImage?
     @State private var showProfileEditSheet = false
+    @State private var showRoleEditSheet = false
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -69,10 +70,13 @@ struct ProfileView: View {
                                 }
                             }
                             .onTapGesture {
-                                                           if isEditing {
-                            // NavigationLink oder Sheet öffnen
-                                                           }
-                                                       }
+                                if isEditing {
+                                    showRoleEditSheet = true
+                                }
+                            }
+                            .sheet(isPresented: $showRoleEditSheet) {
+                                RoleEditSheet(user: user)
+                            }
                             // ✅ KONTAKT (ohne Title/Icon)
                             InfoCard {
                                 VStack(spacing: 0) {
