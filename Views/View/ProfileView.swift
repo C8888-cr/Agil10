@@ -117,8 +117,11 @@ struct ProfileView: View {
                             if let praxisId = praxisId,
                                let praxis = PraxisDataManager.shared.getPraxis(by: praxisId) {
                                 
-                                PraxisCard(praxis: praxis,
-                                isEditing: $isEditing
+                                PraxisCard(
+                                    user: user,
+                                        praxis: praxis,
+                                 
+                                        isEditing: $isEditing
                                 )
                             } else {
                                 InfoCard {
@@ -131,6 +134,7 @@ struct ProfileView: View {
                                     }
                                 }
                             }
+                            
                             InfoCard {
                                 VStack(spacing: 0) {
                                     HStack {
@@ -381,9 +385,10 @@ struct InfoRow: View {
 }
 // MARK: - PraxisCard
 struct PraxisCard: View {
+    let user: User
     let praxis: Praxis
     @Binding var isEditing: Bool
-    
+    @State private var showPraxisSelectionSheet = false
     
     var body: some View {
         InfoCard {
@@ -401,6 +406,7 @@ struct PraxisCard: View {
                                         .font(.subheadline)
                         }
                     }
+                    
                 }
 
                 // Adresse
@@ -409,8 +415,8 @@ struct PraxisCard: View {
                         Text(address)
                             .font(.subheadline)
                     } icon: {
-                        Image(systemName: "")
-                            .foregroundStyle(.red)
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundStyle(.accent)
                     }
                 }
                 
@@ -457,6 +463,14 @@ struct PraxisCard: View {
                     }
                 }
             }
+        }
+        .onTapGesture {
+            if isEditing {
+                showPraxisSelectionSheet = true
+            }
+        }
+        .sheet(isPresented: $showPraxisSelectionSheet) {
+            PraxisSelectionSheet(user: user)
         }
     }
 }
