@@ -8,8 +8,8 @@ struct ProfileView: View {
     private var currentUser: User? { authService.currentUser }
     
     @State private var isEditing = false
-    @State private var editFirstName = ""
-    @State private var editLastName = ""
+    @State private var showProfileHeaderEditSheet: Bool = false
+    @State private var selectedImage: UIImage?
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -28,33 +28,101 @@ struct ProfileView: View {
                             // ✅ HEADER
                             ProfileHeaderCard(
                                 user: user,
-                                isEditing: $isEditing,
-                                editFirstName: $editFirstName,
-                                editLastName: $editLastName
-                            )
+                                    isEditing: $isEditing
+                    )
+                            
                             .padding(.top)
+                            
+                            InfoCard {
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Label {
+                                            Text("Berechtigungen")
+                                                .foregroundStyle(.secondary)
+                                        } icon: {
+                                            Image(systemName: "shield.lefthalf.filled")
+                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        HStack(spacing: 8) {
+                                            Text(user.role.rawValue.capitalized)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(user.role == .admin ? .orange : .primary)
+                                            
+                                            if isEditing {
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.subheadline)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             
                             // ✅ KONTAKT (ohne Title/Icon)
                             InfoCard {
-                                InfoRow(label: "E-Mail", value: user.email, icon: "envelope")
-                            }
-                            
-                            // ✅ ROLLE
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Label {
+                                            Text ("E-Mail")
+                                                .foregroundStyle(.secondary)
+                                        } icon: {
+                                            Image(systemName: "envelope")
+                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        }
+                                        Spacer ()
+                                        
+                                        HStack(spacing: 8) {
+                                            Text(user.email)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(.primary)
+                                            
+                                            if isEditing {
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.subheadline)
+                                            }
+                                        }
+                                    }
+                                }
+                            }// ✅ ROLLE
                             InfoCard {
-                                InfoRow(
-                                    label: "Berechtigungen",
-                                    value: user.role.rawValue.capitalized,
-                                    icon: "shield.lefthalf.filled",
-                                    valueColor: user.role == .admin ? .orange : .primary
-                                )
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Label {
+                                            Text("Berechtigungen")
+                                                .foregroundStyle(.secondary)
+                                        } icon: {
+                                            Image(systemName: "shield.lefthalf.filled")
+                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        HStack(spacing: 8) {
+                                            Text(user.role.rawValue.capitalized)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(user.role == .admin ? .orange : .primary)
+                                            
+                                            if isEditing {
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.subheadline)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             
                             // ✅ PRAXIS
                             if let praxisId = praxisId,
                                let praxis = PraxisDataManager.shared.getPraxis(by: praxisId) {
                                 
-                                PraxisCard(praxis: praxis)
-                                
+                                PraxisCard(praxis: praxis,
+                                isEditing: $isEditing
+                                )
                             } else {
                                 InfoCard {
                                     HStack {
@@ -66,18 +134,36 @@ struct ProfileView: View {
                                     }
                                 }
                             }
-                            
-                            // ✅ ACCOUNT
                             InfoCard {
-                                InfoRow(
-                                    label: "Status",
-                                    value: user.isPremium ? "PREMIUM" : "Standard",
-                                    icon: user.isPremium ? "crown.fill" : "person",
-                                    valueColor: user.isPremium ? .yellow : .secondary
-                                )
+                                VStack(spacing: 0) {
+                                    HStack {
+                                        Label {
+                                            Text("Status")
+                                                .foregroundStyle(.secondary)
+                                        } icon: {
+                                            Image(systemName: user.isPremium ? "crown.fill" : "person",)
+                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        HStack(spacing: 8) {
+                                            Text(user.isPremium ? "PREMIUM" : "Standard",)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(user.isPremium ? .yellow : .secondary)
+                                            
+                                            if isEditing {
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundStyle(.gray)
+                                                    .font(.subheadline)
+                                            }
+                                        }
+                                    }
+                                }
                                 
-                                Divider()
-                                
+                                Spacer()
+                   
+                
                                 InfoRow(
                                     label: "Mitglied seit",
                                     value: user.createdAt.formatted(date: .abbreviated, time: .omitted),
@@ -89,23 +175,7 @@ struct ProfileView: View {
                             VStack(spacing: 12) {
                                 if isEditing {
                                     Button {
-                                        saveChanges()
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: "checkmark.circle.fill")
-                                            Text("Änderungen speichern")
-                                                .fontWeight(.semibold)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.accentColor)
-                                        .foregroundStyle(.white)
-                                        .cornerRadius(12)
-                                    }
-                                    
-                                    Button {
                                         isEditing = false
-                                        resetEditFields()
                                     } label: {
                                         HStack {
                                             Image(systemName: "xmark.circle")
@@ -116,22 +186,23 @@ struct ProfileView: View {
                                         .background(Color(.systemGray5))
                                         .foregroundStyle(.primary)
                                         .cornerRadius(12)
+                                        
+                                        
                                     }
-                                    
-                                } else {
-                                    Button {
-                                        startEditing()
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: "pencil.circle.fill")
-                                            Text("Profil bearbeiten")
-                                                .fontWeight(.semibold)
-                                        }
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.accentColor)
-                                        .foregroundStyle(.white)
-                                        .cornerRadius(12)
+                                  } else {
+                                      Button {
+                                          isEditing = true
+                                      } label: {
+                                          HStack {
+                                              Image(systemName: "pencil.circle.fill")
+                                              Text("Profil bearbeiten")
+                                                  .fontWeight(.semibold)
+                                          }
+                                          .frame(maxWidth: .infinity)
+                                          .padding()
+                                          .background(Color.accentColor)
+                                          .foregroundStyle(.white)
+                                          .cornerRadius(12)
                                     }
                                 }
                                 
@@ -167,45 +238,13 @@ struct ProfileView: View {
             .navigationTitle("Profil")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                resetEditFields()
                 debugUserInDatabase()
             }
         }
     }
     
     // MARK: - Actions
-    
-    private func startEditing() {
-        guard let user = currentUser else { return }
-        editFirstName = user.firstName
-        editLastName = user.lastName
-        isEditing = true
-    }
-    
-    private func saveChanges() {
-        do {
-            try authService.updateUser(
-                firstName: editFirstName,
-                lastName: editLastName
-            )
-            print("✅ Profil gespeichert!")
-        } catch {
-            print("❌ Fehler: \(error)")
-        }
-        
-        isEditing = false
-    }
-    
-    private func resetEditFields() {
-        guard let user = currentUser else {
-            editFirstName = ""
-            editLastName = ""
-            return
-        }
-        editFirstName = user.firstName
-        editLastName = user.lastName
-    }
-    
+
     private func debugUserInDatabase() {
         guard let user = currentUser else { return }
         let userId = user.id
@@ -231,8 +270,7 @@ struct ProfileView: View {
 struct ProfileHeaderCard: View {
     let user: User
     @Binding var isEditing: Bool
-    @Binding var editFirstName: String
-    @Binding var editLastName: String
+
     
     var body: some View {
         VStack(spacing: 16) {
@@ -256,30 +294,30 @@ struct ProfileHeaderCard: View {
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.accentColor)
             }
-            
-            // ✅ NAME
-            if isEditing {
-                VStack(spacing: 12) {
-                    TextField("Vorname", text: $editFirstName)
-                        .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.words)
+            // ✅ NAME mit PFEIL
+            ZStack {
+                
+                VStack(spacing: 4) {
+                    Text(user.fullName)
+                        .font(.title2.bold())
                     
-                    TextField("Nachname", text: $editLastName)
-                        .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.words)
+                    if let age = user.age {
+                        Text("\(age) Jahre")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .padding(.horizontal)
                 
-            } else {
-                Text(user.fullName)
-                    .font(.title2.bold())
-                
-                if let age = user.age {
-                    Text("\(age) Jahre")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                if isEditing {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.gray)
+                            .font(.subheadline)
+                    }
                 }
             }
+            .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
@@ -290,7 +328,7 @@ struct ProfileHeaderCard: View {
     }
 }
 // MARK: - InfoCard
-// MARK: - InfoCard (KOMPAKT)
+
 struct InfoCard<Content: View>: View {
     @ViewBuilder let content: Content
     
@@ -333,15 +371,27 @@ struct InfoRow: View {
 // MARK: - PraxisCard
 struct PraxisCard: View {
     let praxis: Praxis
+    @Binding var isEditing: Bool
+    
     
     var body: some View {
         InfoCard {
             VStack(alignment: .leading, spacing: 12) {
-                // Name
-                Text(praxis.name)
-                    .font(.title3.bold())
-                    .foregroundStyle(Color.accentColor)
-                
+                // Name mit Pfeil
+                ZStack(alignment: .leading) {
+                    Text(praxis.name)
+                        .font(.title3.bold())
+                        .foregroundStyle(Color.accentColor)
+                    if isEditing {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                    .foregroundStyle(.gray)
+                                        .font(.subheadline)
+                        }
+                    }
+                }
+
                 // Adresse
                 if let address = praxis.fullAddress {
                     Label {
