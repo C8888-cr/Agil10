@@ -1,3 +1,13 @@
+//
+//  ProfileHeaderEditSheet.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 18.02.26.
+//
+import SwiftUI
+import SwiftData
+
+// MARK: - ProfileHeaderEditSheet
 // MARK: - ProfileHeaderEditSheet
 struct ProfileHeaderEditSheet: View {
     @Environment(\.dismiss) var dismiss
@@ -50,10 +60,11 @@ struct ProfileHeaderEditSheet: View {
                                             )
                                         )
                                         .frame(width: 120, height: 120)
-                                    
-                                    Text(user.initials)
-                                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Color.accentColor)
+                                        .overlay(
+                                            Text(user.initials)
+                                                .font(.system(size: 48, weight: .bold, design: .rounded))
+                                                .foregroundStyle(Color.accentColor)
+                                        )
                                 }
                                 
                                 // Edit Button
@@ -66,7 +77,6 @@ struct ProfileHeaderEditSheet: View {
                                         .background(Circle().fill(Color(.systemBackground)).frame(width: 44, height: 44))
                                 }
                             }
-                            .frame(height: 120)
                             
                             Text("Profilbild ändern")
                                 .font(.caption)
@@ -75,34 +85,34 @@ struct ProfileHeaderEditSheet: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
                         
-                        // ✅ FORM SECTION
-                        VStack(spacing: 16) {
-                            // Vorname
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("Vorname", systemImage: "person.fill")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                
-                                TextField("Vorname", text: $firstName)
-                                    .textFieldStyle(.roundedBorder)
-                                    .textContentType(.givenName)
-                            }
-                            
-                            // Nachname
-                            VStack(alignment: .leading, spacing: 8) {
-                                Label("Nachname", systemImage: "person.fill")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                
-                                TextField("Nachname", text: $lastName)
-                                    .textFieldStyle(.roundedBorder)
-                                    .textContentType(.familyName)
+                        // ✅ VORNAME SECTION
+                        InfoCard {
+                            VStack(spacing: 0) {
+                                HStack {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(Color.accentColor.opacity(0.7))
+                                    
+                                    TextField(firstName.isEmpty ? "Vorname" : firstName, text: $firstName)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Spacer()
+                                }
                             }
                         }
-                        .padding()
-                        .background(Color(.systemBackground))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
+                        // ✅ NACHNAME SECTION
+                        InfoCard {
+                            VStack(spacing: 0) {
+                                HStack {
+                                    Image(systemName: "person.fill")
+                                        .foregroundStyle(Color.accentColor.opacity(0.7))
+                                    
+                                    TextField(lastName.isEmpty ? "Nachname" : lastName, text: $lastName)
+                                        .multilineTextAlignment(.leading)
+                                    
+                                    Spacer()
+                                }
+                            }
+                        }
                         
                         // ✅ ERROR MESSAGE
                         if let errorMessage = errorMessage {
@@ -184,4 +194,24 @@ struct ProfileHeaderEditSheet: View {
             errorMessage = "Fehler beim Laden des Bildes: \(error.localizedDescription)"
         }
     }
+
+    
+
+}
+#Preview {
+    let mockUser = User(
+        id: UUID(),
+        firstName: "Max",
+        lastName: "Mustermann",
+        email: "max@example.com",
+        passwordHash: "mock",
+        role: .patient,
+        praxisId: nil
+    )
+    
+    let authService = AuthService(authServiceProtocol: MockAuthService())
+    
+    ProfileHeaderEditSheet(user: mockUser)
+        .environmentObject(authService)
+        .modelContainer(for: User.self, inMemory: true)
 }
