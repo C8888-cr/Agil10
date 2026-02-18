@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-final class MockAuthService: AuthServiceProtocol {
+final class MockAuthService: AuthServiceProtocol, ObservableObject {
     private weak var modelContext: ModelContext?
     
     init(modelContext: ModelContext? = nil) {
