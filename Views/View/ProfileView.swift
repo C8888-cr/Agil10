@@ -10,6 +10,7 @@ struct ProfileView: View {
     @State private var isEditing = false
     @State private var showProfileHeaderEditSheet: Bool = false
     @State private var selectedImage: UIImage?
+    @State private var showProfileEditSheet = false
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -28,9 +29,16 @@ struct ProfileView: View {
                             // ✅ HEADER
                             ProfileHeaderCard(
                                 user: user,
-                                    isEditing: $isEditing
-                    )
-                            
+                                isEditing: $isEditing
+                            )
+                            .onTapGesture {
+                                if isEditing {
+                                    showProfileHeaderEditSheet = true
+                                }
+                            }
+                            .sheet(isPresented: $showProfileHeaderEditSheet) {
+                                ProfileHeaderEditSheet(user: user)
+                            }
                             .padding(.top)
                             
                             InfoCard {
@@ -60,7 +68,11 @@ struct ProfileView: View {
                                     }
                                 }
                             }
-                            
+                            .onTapGesture {
+                                                           if isEditing {
+                            // NavigationLink oder Sheet öffnen
+                                                           }
+                                                       }
                             // ✅ KONTAKT (ohne Title/Icon)
                             InfoCard {
                                 VStack(spacing: 0) {
@@ -87,7 +99,16 @@ struct ProfileView: View {
                                         }
                                     }
                                 }
-                            }// ✅ ROLLE
+                            }
+                            .onTapGesture {
+                                                           if isEditing {
+                                                               // NavigationLink oder Sheet öffnen
+                                                           }
+                                                       }
+                            
+                            
+                            
+                            // ✅ ROLLE
                             InfoCard {
                                 VStack(spacing: 0) {
                                     HStack {
@@ -115,7 +136,11 @@ struct ProfileView: View {
                                     }
                                 }
                             }
-                            
+                            .onTapGesture {
+                                                           if isEditing {
+                                                               // NavigationLink oder Sheet öffnen
+                                                           }
+                                                       }
                             // ✅ PRAXIS
                             if let praxisId = praxisId,
                                let praxis = PraxisDataManager.shared.getPraxis(by: praxisId) {
@@ -160,7 +185,11 @@ struct ProfileView: View {
                                         }
                                     }
                                 }
-                                
+                                .onTapGesture {
+                                                               if isEditing {
+                                                                   // NavigationLink oder Sheet öffnen
+                                                               }
+                                                           }
                                 Spacer()
                    
                 
@@ -178,8 +207,8 @@ struct ProfileView: View {
                                         isEditing = false
                                     } label: {
                                         HStack {
-                                            Image(systemName: "xmark.circle")
-                                            Text("Abbrechen")
+                                            Image(systemName: "checkmark.circle")
+                                            Text("Fertig")
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding()
@@ -290,10 +319,20 @@ struct ProfileHeaderCard: View {
                     .frame(width: 100, height: 100)
                     .shadow(color: Color.accentColor.opacity(0.3), radius: 10)
                 
-                Text(user.initials)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.accentColor)
-            }
+                // ✅ BILD ODER INITIALEN
+                               if let imageData = user.profileImage,
+                                  let uiImage = UIImage(data: imageData) {
+                                   Image(uiImage: uiImage)
+                                       .resizable()
+                                       .scaledToFill()
+                                       .frame(width: 100, height: 100)
+                                       .clipShape(Circle())
+                               } else {
+                                   Text(user.initials)
+                                       .font(.system(size: 36, weight: .bold, design: .rounded))
+                                       .foregroundStyle(Color.accentColor)
+                               }
+                           }
             // ✅ NAME mit PFEIL
             ZStack {
                 
