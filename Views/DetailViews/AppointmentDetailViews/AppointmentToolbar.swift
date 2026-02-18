@@ -10,6 +10,8 @@ struct AppointmentToolbar: ToolbarContent {
     let showingProfile: () -> Void
     let showingSettings: () -> Void
     
+    let authService: AuthService 
+    
     var body: some ToolbarContent {
         // LINKS: Plus-Menü
         ToolbarItem(placement: .navigationBarLeading) {
@@ -29,10 +31,25 @@ struct AppointmentToolbar: ToolbarContent {
                 Button("Profil", action: showingProfile)
                 Button("Einstellungen", action: showingSettings)
             } label: {
-                Image(systemName: "person.crop.circle")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 30, height: 30)
+                // ✅ PROFILBILD STATT ICON
+                         if let user = authService.currentUser,
+                            let imageData = user.profileImage,
+                            let uiImage = UIImage(data: imageData) {
+                             Image(uiImage: uiImage)
+                                 .resizable()
+                                 .scaledToFill()
+                                 .frame(width: 35, height: 35)
+                                 .clipShape(Circle())
+                         } else {
+                             Circle()
+                                 .fill(Color.accentColor.opacity(0.3))
+                                 .frame(width: 35, height: 35)
+                                 .overlay(
+                                    Text(authService.currentUser?.initials ?? "?")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(Color.accentColor)
+                                 )
+                         }
             }
         }
     }
@@ -46,7 +63,8 @@ struct AppointmentToolbar: ToolbarContent {
                     showingManualEntry: { print("Manual Entry") },
                     showingEmailImport: { print("Email Import") },
                     showingProfile: { print("Profile") },
-                    showingSettings: { print("Settings") }
+                    showingSettings: { print("Settings") },
+                    authService: AuthService(authServiceProtocol: MockAuthService())  // ✅ Direkt hier
                 )
             }
     }

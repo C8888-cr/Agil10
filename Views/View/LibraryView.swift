@@ -356,10 +356,25 @@ struct LibraryView: View {
                    showSettings = true
                 }
             } label: {
-                Image(systemName: "person.crop.circle")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 30, height: 30)
+                // ✅ PROFILBILD STATT ICON
+                           if let user = authService.currentUser,
+                              let imageData = user.profileImage,
+                              let uiImage = UIImage(data: imageData) {
+                               Image(uiImage: uiImage)
+                                   .resizable()
+                                   .scaledToFill()
+                                   .frame(width: 35, height: 35)
+                                   .clipShape(Circle())
+                           } else {
+                               Circle()
+                                   .fill(Color.accentColor.opacity(0.3))
+                                   .frame(width: 35, height: 35)
+                                   .overlay(
+                                       Text(authService.currentUser?.initials ?? "?")
+                                           .font(.system(size: 14, weight: .bold))
+                                           .foregroundStyle(Color.accentColor)
+                                   )
+                           }
             }
         }
     }

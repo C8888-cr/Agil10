@@ -77,7 +77,8 @@ struct AppointmentView: View {
                    showingManualEntry: { showingManualEntry = true },
                    showingEmailImport: { showingEmailImport = true },
                    showingProfile: { showProfile = true },
-                   showingSettings: { showSettings = true }
+                   showingSettings: { showSettings = true },
+                   authService: authService
                )
            }
         
