@@ -1,6 +1,9 @@
 
 import SwiftUI
 import SwiftData
+import MapKit
+
+
 struct ProfileView: View {
     
     @EnvironmentObject var authService: AuthService
@@ -409,18 +412,29 @@ struct PraxisCard: View {
                     
                 }
 
+           
                 // Adresse
                 if let address = praxis.fullAddress {
-                    Label {
-                        Text(address)
-                            .font(.subheadline)
-                    } icon: {
-                        Image(systemName: "mappin.circle.fill")
-                            .foregroundStyle(.accent)
+                    HStack(spacing: 12) {
+                        Label {
+                            Text(address)
+                                .font(.subheadline)
+                        } icon: {
+                            Image(systemName: "mappin.circle.fill")
+                                .foregroundStyle(.accent)
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            praxis.openInMaps()
+                        }) {
+                            Image(systemName: "map.fill")
+                                .foregroundStyle(.accent)
+                                .font(.title3)
+                        }
                     }
                 }
-                
-                Divider()
                 
                 // Kontakte
                 if let telefon = praxis.telefon {
