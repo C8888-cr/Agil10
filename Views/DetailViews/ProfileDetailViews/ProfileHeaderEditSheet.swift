@@ -6,8 +6,10 @@
 //
 import SwiftUI
 import SwiftData
+import PhotosUI
 
-// MARK: - ProfileHeaderEditSheet
+
+
 // MARK: - ProfileHeaderEditSheet
 struct ProfileHeaderEditSheet: View {
     @Environment(\.dismiss) var dismiss
@@ -20,6 +22,9 @@ struct ProfileHeaderEditSheet: View {
     @State private var showImagePicker = false
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var imageSelection: PhotosPickerItem?
+    
+    
     
     let user: User
     
@@ -27,6 +32,11 @@ struct ProfileHeaderEditSheet: View {
         self.user = user
         _firstName = State(initialValue: user.firstName)
         _lastName = State(initialValue: user.lastName)
+        
+        // ✅ BILD LADEN
+               if let imageData = user.profileImage {
+                   _selectedImage = State(initialValue: UIImage(data: imageData))
+               }
     }
     
     var body: some View {
@@ -69,15 +79,28 @@ struct ProfileHeaderEditSheet: View {
                                 
                                 // Edit Button
                                 Button {
-                                    showImagePicker = true
-                                } label: {
-                                    Image(systemName: "pencil.circle.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(Color.accentColor)
-                                        .background(Circle().fill(Color(.systemBackground)).frame(width: 44, height: 44))
+                                        showImagePicker = true
+                                    } label: {
+                                        Image(systemName: "pencil.circle.fill")
+                                            .font(.title2)
+                                            .foregroundStyle(Color.accentColor)
+                                            .background(Circle().fill(Color(.systemBackground)).frame(width: 44, height: 44))
+                                    }
                                 }
-                            }
-                            
+                                .photosPicker(
+                                    isPresented: $showImagePicker,
+                                    selection: $imageSelection,
+                                    matching: .images
+                                )
+                                .onChange(of: imageSelection) { oldValue, newValue in
+                                    Task {
+                                        if let data = try? await newValue?.loadTransferable(type: Data.self),
+                                           let image = UIImage(data: data) {
+                                            selectedImage = image
+                                        }
+                                    }
+                                }
+                                
                             Text("Profilbild ändern")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -171,7 +194,11 @@ struct ProfileHeaderEditSheet: View {
         user.firstName = firstName
         user.lastName = lastName
         
-        // TODO: Profilbild speichern (Backend/Storage)
+        // ✅ BILD SPEICHERN
+           if let selectedImage = selectedImage,
+              let imageData = selectedImage.jpegData(compressionQuality: 0.8) {
+               user.profileImage = imageData
+           }
         
         do {
             try modelContext.save()
