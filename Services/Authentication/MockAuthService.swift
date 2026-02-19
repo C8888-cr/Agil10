@@ -166,9 +166,6 @@ final class MockAuthService: AuthServiceProtocol, ObservableObject {
                 user = existingUser
                 print("✅ User aus SwiftData geladen: \(user.fullName)")
                 
-                user.praxisId = PraxisDataManager.praxis4Id
-                   print("🔧 praxisId für \(user.fullName) GESETZT: \(user.praxisId!)")
-                
             } else {
                 user = record.toUser()
                 context.insert(user)

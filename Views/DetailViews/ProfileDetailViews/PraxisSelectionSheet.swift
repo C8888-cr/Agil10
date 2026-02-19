@@ -14,7 +14,7 @@ struct PraxisSelectionSheet: View {
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var authService: AuthService
     
-    let user: User
+    @Bindable var user: User 
     @State private var selectedPraxisId: UUID?
     @State private var isSaving = false
     @State private var errorMessage: String?

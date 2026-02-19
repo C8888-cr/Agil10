@@ -8,7 +8,14 @@ struct ProfileView: View {
     
     @EnvironmentObject var authService: AuthService
     @Environment(\.modelContext) var modelContext
-    private var currentUser: User? { authService.currentUser }
+    
+    
+    @Query var users: [User]
+    
+    private var currentUser: User? {
+        guard let userId = authService.currentUser?.id else { return nil }
+        return users.first { $0.id == userId }  // ✅ Aus SwiftData statt AuthService
+    }
     
     @State private var isEditing = false
     @State private var showProfileHeaderEditSheet: Bool = false
@@ -16,6 +23,7 @@ struct ProfileView: View {
     @State private var showProfileEditSheet = false
     @State private var showRoleEditSheet = false
     @State private var showEmailEditSheet = false
+    @State private var showStatusEditSheet = false
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -165,10 +173,13 @@ struct ProfileView: View {
                                     }
                                 }
                                 .onTapGesture {
-                                                               if isEditing {
-                                                                   // NavigationLink oder Sheet öffnen
-                                                               }
-                                                           }
+                                    if isEditing {
+                                        showStatusEditSheet = true
+                                    }
+                                }
+                                .sheet(isPresented: $showStatusEditSheet) {
+                                    StatusEditSheet(user: user)
+                                }
                                 Spacer()
                    
                 
@@ -388,7 +399,7 @@ struct InfoRow: View {
 }
 // MARK: - PraxisCard
 struct PraxisCard: View {
-    let user: User
+    @Bindable var user: User 
     let praxis: Praxis
     @Binding var isEditing: Bool
     @State private var showPraxisSelectionSheet = false
@@ -487,4 +498,30 @@ struct PraxisCard: View {
             PraxisSelectionSheet(user: user)
         }
     }
+}
+#Preview {
+    @MainActor in
+    
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VideoSchedule.self, Appointment.self,
+        configurations: config
+    )
+    let context = ModelContext(container)
+    
+    // Setup
+    let authService = AuthService(authServiceProtocol: MockAuthService())
+    let mockUser = User.mockPatient()
+    context.insert(mockUser)
+    authService.currentUser = mockUser
+    
+    let progressVM = ProgressViewModel(modelContext: context)
+    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
+    
+    // ✅ Explizites return
+    return ProfileView()
+        .environmentObject(settingsVM)
+        .environmentObject(authService)
+        .environmentObject(progressVM)
+        .modelContainer(container)
 }
