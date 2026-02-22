@@ -29,12 +29,12 @@ struct AppointmentView: View {
                return []
            }
            
-           let cutoffDate = Date().addingTimeInterval(-86400) // 24h zurück
            
            return allAppointments.filter { appointment in
-               appointment.userId == currentUserId &&  // ✅ USER-FILTER!
-               appointment.date > cutoffDate
+               appointment.userId == currentUserId
            }
+                   .sorted { $0.date < $1.date }
+           
        }
        
        // ✅ Init mit User-Filter
