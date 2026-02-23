@@ -310,6 +310,11 @@ struct ManualAppointmentEntryView: View {
     @State private var showingError = false  // ← NEU!
     @State private var errorMessage = ""
     
+    private var userPraxis: Praxis? {
+           guard let praxisId = authService.currentUser?.praxisId else { return nil }
+           return PraxisDataManager.shared.praxen.first { $0.id == praxisId }
+       }
+    
     
     var body: some View {
         NavigationStack {
@@ -335,11 +340,36 @@ struct ManualAppointmentEntryView: View {
                         .textContentType(.name)
                 }
                 
-                Section("Ort (optional)") {
+                Section {
                     TextField("Praxisname", text: $locationName)
                     TextField("Adresse", text: $locationAddress)
                         .textContentType(.fullStreetAddress)
-                }
+                    
+                    
+                    // ✅ Hinweis wenn auto-ausgefüllt
+                                      if userPraxis != nil {
+                                          HStack(spacing: 6) {
+                                              Image(systemName: "checkmark.circle.fill")
+                                                  .foregroundColor(.green)
+                                                  .font(.caption)
+                                              Text("Automatisch aus deinem Profil übernommen")
+                                                  .font(.caption)
+                                                  .foregroundColor(.secondary)
+                                          }
+                                      }
+                                  } header: {
+                                      Text("Ort (optional)")
+                                  } footer: {
+                                      // ✅ Button zum Zurücksetzen auf Praxis-Daten
+                                      if let praxis = userPraxis {
+                                          Button {
+                                              fillPraxisData(praxis)
+                                          } label: {
+                                              Label("Meine Praxis eintragen", systemImage: "arrow.counterclockwise")
+                                                  .font(.caption)
+                                          }
+                                      }
+                                  }
                 
                 Section("Notizen (optional)") {
                     TextEditor(text: $notes)
@@ -374,8 +404,30 @@ struct ManualAppointmentEntryView: View {
             } message: {
                 Text("Dein Termin wurde erfolgreich hinzugefügt.")
             }
+            .onAppear {
+                          if let praxis = userPraxis {
+                              fillPraxisData(praxis)
+                          }
+                      }
         }
     }
+    
+    // ✅ NEU: Hilfsfunktion zum Befüllen
+      private func fillPraxisData(_ praxis: Praxis) {
+          locationName = praxis.name
+          
+          // Adresse zusammenbauen
+          let street = praxis.addresse ?? ""
+          let zip = praxis.postalCode ?? ""
+          let city = praxis.city ?? ""
+          
+          if !street.isEmpty {
+              locationAddress = "\(street), \(zip) \(city)"
+                  .trimmingCharacters(in: .whitespaces)
+          }
+      }
+    
+    
     
     private func saveAppointment() {
         
@@ -402,7 +454,9 @@ struct ManualAppointmentEntryView: View {
             print("❌ Datum ungültig")
             return
         }
-        
+        // ✅ Koordinaten der Praxis mitgeben
+               let latitude = userPraxis?.latitude
+               let longitude = userPraxis?.longitude
         
         
         Task {
@@ -414,8 +468,8 @@ struct ManualAppointmentEntryView: View {
                 therapist: therapistName,
                 locationName: locationName.isEmpty ? nil : locationName,
                 locationAddress: locationAddress.isEmpty ? nil : locationAddress,
-                latitude: nil,
-                longitude: nil,
+                latitude: latitude,     
+                longitude: longitude,
                 notes: notes.isEmpty ? nil : notes
             )
             
@@ -447,4 +501,13 @@ struct ManualAppointmentEntryView: View {
         viewModel: viewModel
     )
     .modelContainer(PreviewHelper.createModelContainer())
+}
+#Preview {
+    let container = PreviewHelper.createModelContainer()
+    let authService = PreviewHelper.createMockAuthService()
+    let viewModel = PreviewHelper.createAppointmentViewModel
+    
+    ManualAppointmentEntryView(viewModel: viewModel())
+        .environmentObject(authService)
+        .modelContainer(container)
 }

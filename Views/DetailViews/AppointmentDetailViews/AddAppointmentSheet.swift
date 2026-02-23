@@ -12,7 +12,7 @@
 //
 //  Created by Christiane Roth on 07.10.25.
 //
-
+/*
 // Features/Appointments/Presentation/Views/AddAppointmentSheet.swift
 import SwiftUI
 import SwiftData
@@ -171,3 +171,4 @@ struct AddAppointmentSheet: View {
     AddAppointmentSheet()
         .environmentObject(AppDependencies.shared.appointmentViewModel)
 }
+*/
