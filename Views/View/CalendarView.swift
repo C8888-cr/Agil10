@@ -165,7 +165,7 @@ struct CalendarView: View {
                            
                            
                        case .appointments:
-                           AddAppointmentSheet()  // ← HIER!
+                           ManualAppointmentEntryView(viewModel: appointmentViewModel)  // ← HIER!
                                      .environmentObject(authService)
                                      .environmentObject(appointmentViewModel)
                        }
