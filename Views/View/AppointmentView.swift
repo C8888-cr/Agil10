@@ -171,11 +171,13 @@ struct AppointmentView: View {
 #Preview {
     let container = PreviewHelper.createModelContainer()
     let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
+    let authService = AuthService(authServiceProtocol: MockAuthService())
    
     
     AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())
         .modelContainer(container)
-        .environmentObject(settingsVM)  // ← DEFINIERT!
+        .environmentObject(settingsVM)
+        .environmentObject(authService)
    
 }
 
