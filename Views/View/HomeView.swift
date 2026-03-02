@@ -258,10 +258,7 @@ struct HomeView: View {
 */
 }
 #Preview {
-    let mockUser = User(
-        email: "preview@example.com",
-        passwordHash: "", role: .patient
-    )
+
     
     let mockVideo = Video(
         title: "Schulter Mobilisation",
@@ -276,14 +273,6 @@ struct HomeView: View {
         rating: 4
     )
     
-    let mockSchedule = VideoSchedule(
-        scheduledDate: Date(),
-        orderIndex: 0,
-        video: mockVideo,
-        customRepetitions: 3,
-        customPauseSeconds: 30,
-        customLoopDurationSeconds: 120
-    )
     
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
