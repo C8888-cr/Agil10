@@ -29,12 +29,12 @@ struct AppointmentView: View {
                return []
            }
            
-           let cutoffDate = Date().addingTimeInterval(-86400) // 24h zurück
            
            return allAppointments.filter { appointment in
-               appointment.userId == currentUserId &&  // ✅ USER-FILTER!
-               appointment.date > cutoffDate
+               appointment.userId == currentUserId
            }
+                   .sorted { $0.date < $1.date }
+           
        }
        
        // ✅ Init mit User-Filter
@@ -171,11 +171,13 @@ struct AppointmentView: View {
 #Preview {
     let container = PreviewHelper.createModelContainer()
     let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
+    let authService = AuthService(authServiceProtocol: MockAuthService())
    
     
     AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())
         .modelContainer(container)
-        .environmentObject(settingsVM)  // ← DEFINIERT!
+        .environmentObject(settingsVM)
+        .environmentObject(authService)
    
 }
 

@@ -307,13 +307,29 @@ struct ManualAppointmentEntryView: View {
     @State private var locationAddress = ""
     @State private var notes = ""
     @State private var showingAlert = false
-    @State private var showingError = false  // ← NEU!
+    @State private var showingError = false
     @State private var errorMessage = ""
+    @State private var selectedTherapistId: UUID? = nil
+    @State private var isManualTherapist = false
     
+    // ❌ selectedPraxisId entfernt — Praxis kommt fest aus dem Profil
+    
+    private var userPraxis: Praxis? {
+        guard let praxisId = authService.currentUser?.praxisId else { return nil }
+        return PraxisDataManager.shared.praxen.first { $0.id == praxisId }
+    }
+    
+    // Therapeuten der Praxis aus dem Profil
+    private var availableTherapists: [Therapeut] {
+        guard let praxisId = authService.currentUser?.praxisId else { return [] }
+        return TherapeutDataManager.shared.getTherapeutenForPraxis(praxisId)
+    }
     
     var body: some View {
         NavigationStack {
             Form {
+                
+                // MARK: - Termin-Details
                 Section("Termin-Details") {
                     DatePicker(
                         "Datum",
@@ -330,22 +346,95 @@ struct ManualAppointmentEntryView: View {
                     .datePickerStyle(.compact)
                 }
                 
+                // MARK: - Praxis (fest aus Profil)
+                Section {
+                    if let praxis = userPraxis {
+                        // Praxis-Name wie in PraxisCard
+                        Text(praxis.name)
+                            .font(.title3.bold())
+                            .foregroundStyle(Color.accentColor)
+                    } else {
+                        Text("Keine Praxis im Profil hinterlegt")
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Praxis")
+                } footer: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle")
+                            .font(.caption)
+                        Text("Du kannst deine Praxis in deinem Profil ändern.")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                
+                // MARK: - Therapeut Picker
                 Section("Therapeut") {
-                    TextField("Name des Therapeuten", text: $therapistName)
-                        .textContentType(.name)
+                    Picker("Therapeut auswählen", selection: $selectedTherapistId) {
+                        Text("Kein Therapeut ausgewählt")
+                            .tag(nil as UUID?)
+                        
+                        if !availableTherapists.isEmpty {
+                            ForEach(availableTherapists) { therapeut in
+                                Text(therapeut.fullName)
+                                    .tag(therapeut.id as UUID?)
+                            }
+                        }
+                        
+                        Text("Manuell eintragen")
+                            .tag(UUID(uuidString: "00000000-0000-0000-0000-000000000001") as UUID?)
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedTherapistId) { _, newId in
+                        let manualId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")
+                        
+                        if newId == manualId {
+                            isManualTherapist = true
+                            therapistName = ""
+                        } else if let id = newId,
+                                  let therapeut = availableTherapists.first(where: { $0.id == id }) {
+                            isManualTherapist = false
+                            therapistName = therapeut.fullName
+                        } else {
+                            isManualTherapist = false
+                            therapistName = ""
+                        }
+                    }
+                    
+                    // Manuelles Textfeld
+                    if isManualTherapist {
+                        HStack(spacing: 12) {
+                            Image(systemName: "pencil")
+                                .foregroundColor(.accent)
+                                .font(.caption)
+                            TextField("Name des Therapeuten", text: $therapistName)
+                                .textContentType(.name)
+                        }
+                    }
+                    
+                    // Gewählter Therapeut als Info
+                    if !therapistName.isEmpty && !isManualTherapist {
+                        HStack(spacing: 6) {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text(therapistName)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
                 
-                Section("Ort (optional)") {
-                    TextField("Praxisname", text: $locationName)
-                    TextField("Adresse", text: $locationAddress)
-                        .textContentType(.fullStreetAddress)
-                }
+              
                 
+                // MARK: - Notizen
                 Section("Notizen (optional)") {
                     TextEditor(text: $notes)
                         .frame(minHeight: 80)
                 }
                 
+                // MARK: - Speichern
                 Section {
                     Button(action: saveAppointment) {
                         HStack {
@@ -355,7 +444,6 @@ struct ManualAppointmentEntryView: View {
                             Spacer()
                         }
                     }
-                    .disabled(therapistName.isEmpty)
                 }
             }
             .navigationTitle("Neuer Termin")
@@ -374,12 +462,26 @@ struct ManualAppointmentEntryView: View {
             } message: {
                 Text("Dein Termin wurde erfolgreich hinzugefügt.")
             }
+            .onAppear {
+                if let praxis = userPraxis {
+                    fillPraxisData(praxis)
+                }
+            }
+        }
+    }
+    
+    private func fillPraxisData(_ praxis: Praxis) {
+        locationName = praxis.name
+        let street = praxis.addresse ?? ""
+        let zip = praxis.postalCode ?? ""
+        let city = praxis.city ?? ""
+        if !street.isEmpty {
+            locationAddress = "\(street), \(zip) \(city)"
+                .trimmingCharacters(in: .whitespaces)
         }
     }
     
     private func saveAppointment() {
-        
-        // ✅ RICHTIG
         guard authService.currentUser != nil else {
             print("❌ Kein User eingeloggt")
             errorMessage = "Nicht eingeloggt"
@@ -403,19 +505,19 @@ struct ManualAppointmentEntryView: View {
             return
         }
         
-        
+        let latitude = userPraxis?.latitude
+        let longitude = userPraxis?.longitude
         
         Task {
             print("💾 Speichere Manual Appointment: \(therapistName) am \(finalDate)")
             
-            // ✅ RICHTIGE Funktion verwenden!
             await viewModel.addAppointmentManual(
                 date: finalDate,
                 therapist: therapistName,
                 locationName: locationName.isEmpty ? nil : locationName,
                 locationAddress: locationAddress.isEmpty ? nil : locationAddress,
-                latitude: nil,
-                longitude: nil,
+                latitude: latitude,
+                longitude: longitude,
                 notes: notes.isEmpty ? nil : notes
             )
             
@@ -426,7 +528,6 @@ struct ManualAppointmentEntryView: View {
         }
     }
 }
-    
 
 #Preview("Appointment Detail") {
     let viewModel = PreviewHelper.createAppointmentViewModel()
@@ -447,4 +548,13 @@ struct ManualAppointmentEntryView: View {
         viewModel: viewModel
     )
     .modelContainer(PreviewHelper.createModelContainer())
+}
+#Preview {
+    let container = PreviewHelper.createModelContainer()
+    let authService = PreviewHelper.createMockAuthService()
+    let viewModel = PreviewHelper.createAppointmentViewModel
+    
+    ManualAppointmentEntryView(viewModel: viewModel())
+        .environmentObject(authService)
+        .modelContainer(container)
 }
