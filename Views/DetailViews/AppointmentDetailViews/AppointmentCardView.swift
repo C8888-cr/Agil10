@@ -118,24 +118,34 @@ struct AppointmentCardView: View {
 */
 import SwiftUI
 import SwiftData
-
 // MARK: - AppointmentCardView mit Maps-Integration
 struct AppointmentCardView: View {
-   
+    
     let appointment: Appointment
     let isNext: Bool
     let onDelete: (() -> Void)?
+    let onCancel: ((String?) -> Void)?
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.modelContext) var modelContext
+    
     
     @State private var showingDeleteAlert = false
+    @State private var showingCancelSheet = false      // ← NEU
+    
+    @State private var isCancelling = false            // ← NEU
+    @State private var showingCancelError = false      // ← NEU
+    @State private var cancelErrorMessage = ""         // ← NEU
     
     init(
         appointment: Appointment,
         isNext: Bool,
-        onDelete: (() -> Void)? = nil
+        onDelete: (() -> Void)? = nil,
+        onCancel: ((String?) -> Void)? = nil
     ) {
         self.appointment = appointment
         self.isNext = isNext
         self.onDelete = onDelete
+        self.onCancel = onCancel
     }
     
     var body: some View {
@@ -183,10 +193,10 @@ struct AppointmentCardView: View {
             
             Spacer()
             
-            // ✅ Navigation Button (nutzt appointment.openInMaps())
+            // Maps Button
             if appointment.coordinate != nil {
                 Button(action: {
-                    appointment.openInMaps()  // ✅ Direkt die Extension nutzen!
+                    appointment.openInMaps()
                 }) {
                     Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
                         .font(.title2)
@@ -195,13 +205,25 @@ struct AppointmentCardView: View {
                 .buttonStyle(.plain)
             }
             
-            // Actions Menu
+            // MARK: - Actions Menu
             Menu {
+                // ✅ Absagen (nur wenn noch nicht abgesagt)
+                if appointment.status != .cancelled {
+                    Button(action: {
+                        showingCancelSheet = true
+                    }) {
+                        Label("Termin absagen", systemImage: "xmark.circle")
+                    }
+                }
+                
+                Divider()
+                
                 Button(role: .destructive, action: {
                     showingDeleteAlert = true
                 }) {
                     Label("Löschen", systemImage: "trash")
                 }
+                
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .foregroundColor(.secondary)
@@ -211,6 +233,8 @@ struct AppointmentCardView: View {
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+        
+        // MARK: - Delete Alert
         .alert("Termin löschen?", isPresented: $showingDeleteAlert) {
             Button("Abbrechen", role: .cancel) { }
             Button("Löschen", role: .destructive) {
@@ -219,8 +243,37 @@ struct AppointmentCardView: View {
         } message: {
             Text("Möchtest du diesen Termin wirklich löschen?")
         }
-    }
-}
+        
+        // MARK: - Cancel Error Alert
+        .alert("Fehler", isPresented: $showingCancelError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(cancelErrorMessage)
+        }
+        
+        // MARK: - Cancel Sheet
+        .sheet(isPresented: $showingCancelSheet) {
+                   if let user = authService.currentUser {
+                       CancelAppointmentSheet(
+                           appointment: appointment,
+                           user: user,                         // ✅ User übergeben
+                           isCancelling: $isCancelling,
+                           onCancel: { reason in
+                               isCancelling = true
+                               onCancel?(reason)
+                               isCancelling = false
+                               showingCancelSheet = false
+                           },
+                           onDismiss: {
+                               showingCancelSheet = false
+                           }
+                       )
+                   }
+               }
+           }
+       }
+
+
 // MARK: - Preview
 #Preview {
     VStack(spacing: 16) {
