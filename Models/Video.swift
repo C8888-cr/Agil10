@@ -276,12 +276,23 @@ final class VideoSchedule {
     var rating: Int?                    // 1-5 nach Abschluss
     var notes: String?                  // Notizen nach Training
     
+    
+    // Wiederholungsregel
+       var recurrenceRuleRaw: String = RecurrenceRule.single.rawValue
+       
+       var recurrenceRule: RecurrenceRule {
+           get { RecurrenceRule(rawValue: recurrenceRuleRaw) ?? .single }
+           set { recurrenceRuleRaw = newValue.rawValue }
+       }
+    // ✅ NEU: Für Wiederholungsserien - alle verknüpften Schedules
+        // haben dieselbe recurrenceGroupID
+        var recurrenceGroupID: UUID?
+    
+    
     // Relationships
     // ✅ Relationships - CASCADE DELETE funktioniert!
     @Relationship(inverse: \Video.schedules)
        var video: Video?
-       
-     
        var user: User?
     
     // MARK: - Computed Properties
@@ -334,7 +345,7 @@ final class VideoSchedule {
     
     init(
         scheduledDate: Date,
-        startTime: Date? = nil,   // ✅ NEU
+        startTime: Date? = nil,
         orderIndex: Int,
         video: Video,
         customRepetitions: Int? = nil,
@@ -343,8 +354,10 @@ final class VideoSchedule {
         isCompleted: Bool = false,
         completedAt: Date? = nil,
         user: User? = nil,
-        sets: Int? = nil,  // ✅ NEU
-        reps: Int? = nil  // ✅ NEU
+        sets: Int? = nil,
+        reps: Int? = nil,
+        recurrenceRule: RecurrenceRule = .single,
+        recurrenceGroupID: UUID? = nil
      
     ) {
         self.id = UUID()
@@ -360,5 +373,7 @@ final class VideoSchedule {
         self.user = user
         self.sets = sets
         self.reps = reps
+        self.recurrenceRuleRaw = recurrenceRule.rawValue  
+        self.recurrenceGroupID = recurrenceGroupID
     }
 }

@@ -108,11 +108,20 @@ final class DayGoal {
           second: 0,
           of: Date()
       ) ?? Date()
+    
+    // ✅ NEU: Wiederholungsregel
+      var recurrenceRuleRaw: String = RecurrenceRule.single.rawValue
+      
+      var recurrenceRule: RecurrenceRule {
+          get { RecurrenceRule(rawValue: recurrenceRuleRaw) ?? .single }
+          set { recurrenceRuleRaw = newValue.rawValue }
+      }
       
     init(dayOfWeek: Int, targetMinutes: Int, interVideoPauseSeconds: Int = 30) {
           self.dayOfWeek = dayOfWeek
           self.targetMinutes = targetMinutes
           self.interVideoPauseSeconds = interVideoPauseSeconds
           self.isActive = targetMinutes > 0
+          self.recurrenceRuleRaw = RecurrenceRule.single.rawValue
       }
   }
