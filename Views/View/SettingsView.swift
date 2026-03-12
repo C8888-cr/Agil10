@@ -12,6 +12,8 @@ struct SettingsView: View {
     @State private var showResetAlert = false
     @State private var selectedDay: Int = 0
     // ✅ Computed property - holt automatisch das richtige Goal
+    
+    
     private var currentDayGoal: DayGoal? {
         settingsVM.preferences.weeklyGoals.first { $0.dayOfWeek == selectedDay }
     }
@@ -21,19 +23,14 @@ struct SettingsView: View {
             daySelectionSection
             if currentDayGoal != nil {
                 trainingSection
+                recurrenceSection 
                 notificationsSection
             }
             appInfoSection
             dangerZoneSection
         }
         .navigationTitle("Einstellungen")
-        // ❌ DIESE BEIDEN ZEILEN LÖSCHEN:
-        // .onChange(of: selectedDay) { _, newValue in
-        //     loadDayGoal(newValue)
-        // }
-        // .onAppear {
-        //     loadDayGoal(selectedDay)
-        // }
+
         .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
             Button("Abbrechen", role: .cancel) { }
             Button("Löschen", role: .destructive) {
@@ -55,9 +52,9 @@ struct SettingsView: View {
             }
             .padding(.vertical, 8)
             
-            Button("🔍 Debug Ziele") {
-                settingsVM.debugDayGoals()
-            }
+      //      Button("") {
+      //          settingsVM.debugDayGoals()
+      //      }
             .font(.caption)
             .foregroundColor(.accent)
         } header: {
@@ -66,7 +63,9 @@ struct SettingsView: View {
     }
     
     private func dayButton(_ day: WeekDay) -> some View {
-        Button(action: {
+        
+        let goal = dayGoal(for: day)
+        return Button(action: {
             selectedDay = day.dayNumber
             print("📅 Tag gewählt: \(day.fullName) - Ziel: \(currentDayGoal?.targetMinutes ?? 0) Min")
         }) {
@@ -78,6 +77,11 @@ struct SettingsView: View {
                 Circle()
                     .fill(selectedDay == day.dayNumber ? Color.accent : Color.gray.opacity(0.3))
                     .frame(width: 8, height: 8)
+                
+                Text("\(goal?.targetMinutes ?? 0) Min")
+                    .font(.subheadline)
+                    .foregroundColor(.accent)
+                    .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
@@ -127,7 +131,7 @@ struct SettingsView: View {
                 }
                 .padding(.vertical, 8)
                 
-                Divider()
+   
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -162,6 +166,133 @@ struct SettingsView: View {
         } header: {
             Label("Training für \(WeekDay.allCases[selectedDay].fullName)", systemImage: "figure.strengthtraining.traditional")
         }
+    }
+    
+    
+    private var recurrenceSection: some View {
+        Section {
+            if let dayGoal = currentDayGoal {
+                VStack(alignment: .leading, spacing: 12) {
+                    
+                    // ✅ Aktuell gewählte Regel anzeigen
+                    HStack {
+                        Label(dayGoal.recurrenceRule.rawValue,
+                              systemImage: dayGoal.recurrenceRule.icon)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.accent)
+                        Spacer()
+                    }
+                    .padding(.bottom, 4)
+                    
+                    // ✅ Alle Optionen als Buttons
+                    ForEach(RecurrenceRule.allCases, id: \.self) { rule in
+                        recurrenceButton(rule: rule, currentRule: dayGoal.recurrenceRule) {
+                            // ✅ NEU: Über ViewModel mit Schedule-Update
+                            if let user = authService.currentUser {
+                                settingsVM.updateRecurrenceRule(
+                                    rule,
+                                    forDayIndex: selectedDay,
+                                    user: user
+                                )
+                            } else {
+                                // Fallback ohne User
+                                dayGoal.recurrenceRule = rule
+                                saveDayGoal()
+                            }
+                            print("🔄 Wiederholung für Tag \(selectedDay): \(rule.rawValue)")
+                        }
+                    }
+                    
+                    // ✅ Beschreibung der gewählten Regel
+                    Text(dayGoal.recurrenceRule.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+                }
+                .padding(.vertical, 8)
+            }
+        } header: {
+            Label(
+                "Wiederholung für \(WeekDay.allCases[selectedDay].fullName)",
+                systemImage: "repeat"
+            )
+        } footer: {
+            recurrenceFooterText
+        }
+    }
+    private func recurrenceButton(
+        rule: RecurrenceRule,
+        currentRule: RecurrenceRule,
+        action: @escaping () -> Void
+    ) -> some View {
+        let isSelected = rule == currentRule
+        
+        return Button(action: action) {
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: rule.icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(isSelected ? .white : .accent)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isSelected ? Color.accent : Color.accent.opacity(0.15))
+                    )
+                
+                // Text
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(rule.rawValue)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    Text(rule.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Checkmark
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.accent)
+                        .font(.system(size: 20))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(isSelected ? Color.accent.opacity(0.08) : Color.gray.opacity(0.05))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? Color.accent : Color.clear, lineWidth: 1.5)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    // ✅ Footer Text je nach gewählter Regel
+    private var recurrenceFooterText: some View {
+        Group {
+            if let dayGoal = currentDayGoal {
+                switch dayGoal.recurrenceRule {
+                case .single:
+                    Text("Videos werden nur für den ausgewählten Tag geplant.")
+                case .daily:
+                    Text("Videos werden täglich automatisch in deinen Plan aufgenommen.")
+                case .weekly:
+                    Text("Videos wiederholen sich jeden \(WeekDay.allCases[selectedDay].fullName) automatisch.")
+                case .monthly:
+                    Text("Videos wiederholen sich jeden \(WeekDay.allCases[selectedDay].fullName) im Monat automatisch.")
+                }
+            } else {
+                Text("")
+            }
+        }
+        .font(.caption)
     }
     
     private var notificationsSection: some View {
@@ -215,13 +346,10 @@ struct SettingsView: View {
     }
     
     // MARK: - Helper Functions
-    
-    // ❌ DIESE FUNKTION KOMPLETT LÖSCHEN:
-    // private func loadDayGoal(_ dayNumber: Int) {
-    //     currentDayGoal = settingsVM.preferences.getGoalFor(dayOfWeek: dayNumber)
-    //     print("📅 Loaded goal for day \(dayNumber): \(currentDayGoal?.targetMinutes ?? 0) Min")
-    // }
-    
+    // ✅ Goal für einen bestimmten Tag holen
+    private func dayGoal(for day: WeekDay) -> DayGoal? {
+        settingsVM.preferences.weeklyGoals.first { $0.dayOfWeek == day.dayNumber }
+    }
     private func saveDayGoal() {
         print("💾 Speichere Tag \(selectedDay): \(currentDayGoal?.targetMinutes ?? 0) Min")
         settingsVM.saveGoal(forDayIndex: selectedDay)
