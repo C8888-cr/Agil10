@@ -7,6 +7,7 @@ struct ExercisesForDateView: View {
     let onAddExercise: () -> Void
     let onConfig: (VideoSchedule) -> Void    // ← NEU!
     let onPlay: (VideoSchedule, Video) -> Void // ← NEU!
+    var onDelete: ((VideoSchedule) -> Void)? = nil
 
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var progressVM: ProgressViewModel
@@ -22,9 +23,12 @@ struct ExercisesForDateView: View {
                 Text("Training \(selectedDate, format: .dateTime.day().month())")
                     .font(.headline)
                 Spacer()
-                Text(remainingMinutes > 0 ? "Noch \(remainingMinutes) Min." : "Fertig!")
-                    .font(.subheadline)
-                    .foregroundStyle(remainingMinutes > 0 ? .secondary : Color.green)
+                // ✅ "Fertig!" bleibt, aber kein "Noch X Min" mehr hier
+                if remainingSeconds == 0 && !schedulesForDate.isEmpty {
+                    Text("Fertig!")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.green)
+                }
             }
             
             if !schedulesForDate.isEmpty {
@@ -36,10 +40,12 @@ struct ExercisesForDateView: View {
                         video: video,
                         onToggleCompletion: {  },  // ← AUS!
                         onDelete: {
-                            if let user = authService.currentUser {
-                                progressVM.removeSchedule(schedule, for: user)
-                            }
-                        },
+                            if let onDelete = onDelete {
+                                     onDelete(schedule)
+                                 } else if let user = authService.currentUser {
+                                     progressVM.removeSchedule(schedule, for: user)
+                                 }
+                             },
                         onConfig: {
                             onConfig(schedule)
                             print("Config tapped")
@@ -68,6 +74,10 @@ struct ExercisesForDateView: View {
                         .cornerRadius(8)
                 }
             }
+                // ✅ Wie in HomeView — direkt unter Button
+                        if remainingSeconds > 0 {
+                            RemainingTimeCard(remainingSeconds: remainingSeconds)
+                        }
         }
         .padding()
  
@@ -84,11 +94,19 @@ struct ExercisesForDateView: View {
             progressVM.getTodaysTargetMinutes(from: settingsVM, for: selectedDate)
         }
         
-        private var remainingMinutes: Int {
-            let target = trainingMinutesForDate
-            let totalScheduled = schedulesForDate.reduce(0) { $0 + ($1.totalDurationSeconds / 60) }
-            return max(0, target - totalScheduled)
-        }
+    private var remainingSeconds: Int {
+        let targetSeconds = trainingMinutesForDate * 60
+        let totalScheduled = schedulesForDate.reduce(0) { $0 + $1.totalDurationSeconds }
+        return max(0, targetSeconds - totalScheduled)
+    }
+
+    private var formattedRemaining: String {
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
+        if minutes == 0 { return "\(seconds) Sek" }
+        if seconds == 0 { return "\(minutes) Min" }
+        return "\(minutes):\(String(format: "%02d", seconds)) Min"
+    }
 
   
 }
