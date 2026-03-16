@@ -33,3 +33,7 @@ enum RecurrenceRule: String, Codable, CaseIterable {
         }
     }
 }
+// In RecurrenceRule enum ergänzen:
+extension RecurrenceRule: Identifiable {
+    var id: String { rawValue }
+}
