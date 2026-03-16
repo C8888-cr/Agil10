@@ -10,6 +10,10 @@ class ProgressViewModel: ObservableObject {
     @Published var todaysSchedules: [VideoSchedule] = []
     @Published var isLoading = false
     @Published var error: Error?
+    
+    @Published var remainingSeconds: Int = 0
+    @Published var completedSeconds: Int = 0
+    @Published var totalScheduledSeconds: Int = 0
 
     
     // Progress
@@ -593,7 +597,12 @@ class ProgressViewModel: ObservableObject {
         }
         
         completedMinutes = completedSeconds / 60
+        self.completedSeconds = completedSeconds  // ✅ Sekunden speichern
+        self.totalScheduledSeconds = totalSeconds  // ✅ Sekunden speichern
         remainingMinutes = max(0, targetMinutes - totalScheduledMinutes)
+        remainingSeconds = max(0, (targetMinutes * 60) - completedSeconds)  // ✅ NEU
+        
+        
         progressPercentage = targetMinutes > 0 ?
             Double(totalScheduledMinutes) / Double(targetMinutes) : 0.0
         
