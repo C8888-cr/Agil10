@@ -14,6 +14,7 @@ struct SelectedDateInfoView: View {
     let appointments: [Appointment]
     let onAddAppointment: () -> Void
     
+    
     // MARK: - Body
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
