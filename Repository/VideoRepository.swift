@@ -144,7 +144,7 @@ final class VideoRepository: VideoRepositoryProtocol {
             fileSizeBytes: fileSize,
          //   defaultRepetitions: defaultRepetitions,
         //    defaultPauseSeconds: defaultPauseSeconds,
-        //    loopDurationSeconds: loopDurationSeconds,
+            loopDurationSeconds: Int(duration),
             user: validUser,  // ✅ User aus Context!
             uploadedByTherapist: nil,
             isWatched: false,
