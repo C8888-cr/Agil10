@@ -159,8 +159,8 @@ struct VideoCard: View {
             equipment: .noEquipment,
             durationSeconds: 45,
             fileSizeBytes: 15_000_000,
-      
-            rating: 5
+            loopDurationSeconds: 60,
+            rating: 5,
         ),
         onTap: { print("Tapped") },
         onFavorite: { print("Favorite toggled") },
@@ -180,8 +180,8 @@ struct VideoCard: View {
                 equipment: .theraband,
                 durationSeconds: 120,
                 fileSizeBytes: 45_000_000,
-         
-                rating: 4
+                loopDurationSeconds: 60,
+                rating: 4,
             )
             video.isFavorite = true
             return video
@@ -209,8 +209,8 @@ struct VideoCard: View {
                         equipment: .noEquipment,
                         durationSeconds: 60,
                         fileSizeBytes: 20_000_000,
-                      
-                        rating: 1
+                        loopDurationSeconds: 60,
+                        rating: 1, 
                     ),
                     onTap: {},
                     onFavorite: {},
