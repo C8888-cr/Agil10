@@ -117,7 +117,7 @@ struct VideoListRow: View {
             durationSeconds: 45,
             fileSizeBytes: 15_000_000, 
         
-            rating: 5
+            loopDurationSeconds: 60, rating: 5
         ),
       
         onTap: { video in print("Tapped \(video.title)") },  // ←
@@ -138,7 +138,8 @@ struct VideoListRow: View {
                         equipment: .theraband,
                         durationSeconds: 60,
                         fileSizeBytes: 20_000_000,
-                        rating: 4
+                        loopDurationSeconds: 60,
+                        rating: 4,
                     ),
                   
                     onTap: { video in print("Tapped \(video.title)") },  // ← 
