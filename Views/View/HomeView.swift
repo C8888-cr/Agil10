@@ -272,7 +272,9 @@ struct HomeView: View {
             titleVisibility: .visible
         ) {
             Button("Nur für diesen Tag") {
+      
                 if let video = pendingVideo {
+                    print("🎯 Scope: onlyToday, date: \(pendingDate), video: \(video.title)")
                     settingsVM.addVideoWithScope(
                         video,
                         to: pendingDate,
@@ -336,8 +338,9 @@ struct HomeView: View {
                           print("⚠️ HomeView: Kein User eingeloggt")
                           return
                       }
+                      progressVM.selectedDate = Date()
                       print("🏠 HomeView onAppear - currentUser.email: '\(user.email)'")
-                      progressVM.loadToday(for: user)
+                      progressVM.loadHome(for: user)
                   }
 
             

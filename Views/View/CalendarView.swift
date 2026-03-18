@@ -192,7 +192,7 @@ struct CalendarView: View {
                                            .getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRule ?? .single
                                        activeSheet = nil
                                        
-                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                                            if rule == .single {
                                                progressVM.addVideo(
                                                    video,
