@@ -70,8 +70,8 @@ struct CalendarView: View {
                 $0.date > Date().addingTimeInterval(-86400)
             }
         }
+
     
-    // Diese privaten Funktionen in CalendarView ergänzen:
 
     private func handleDelete(_ schedule: VideoSchedule) {
         let rule = settingsVM.preferences
@@ -133,7 +133,9 @@ struct CalendarView: View {
                                 onAddAppointment: {
                                     activeSheet = .appointments
                                     print("Add Appointment tapped") })
-                            //TODO: Funktion für onAddExercise
+                     
+                            
+                            
                             .padding(.horizontal, 16)
                             
                             ExercisesForDateView(
@@ -156,7 +158,7 @@ struct CalendarView: View {
 
                             
                         }
-                  //      .padding()
+        
                     }
                 }
                 .navigationTitle("Kalender")
@@ -186,11 +188,15 @@ struct CalendarView: View {
                                LibraryView(
                                    onVideoSelected: { video in
                                        let date = calendarViewModel.selectedDate
+                                       let weekdayComponent = Calendar.current.component(.weekday, from: date)
                                        let dayOfWeek = (Calendar.current.component(
                                            .weekday, from: date) + 5) % 7
+                                       print("📅 Datum: \(date), weekday raw: \(weekdayComponent), dayOfWeek: \(dayOfWeek), Wochentag: \(Calendar.current.weekdaySymbols[weekdayComponent-1])")
+                                                      
                                        let rule = settingsVM.preferences
                                            .getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRule ?? .single
                                        activeSheet = nil
+                                       print("🗓️ dayOfWeek: \(dayOfWeek), recurrenceRuleRaw: \(settingsVM.preferences.getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRuleRaw ?? "NIL"), rule: \(rule)")
                                        
                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                            if rule == .single {
