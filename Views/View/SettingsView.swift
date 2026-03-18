@@ -43,9 +43,12 @@ struct SettingsView: View {
                 rule: rule,  // ← kommt direkt aus dem item, kein State-Timing-Problem
                 onSave: { startDate, plan, strategy in
                     if let user = authService.currentUser {
-                        if let goal = settingsVM.preferences.getGoalFor(dayOfWeek: selectedDay) {
-                            goal.recurrenceRule = rule
+                        
+                        // ✅ FIX: Alle 7 Tage auf die gewählte Rule setzen
+                        for i in 0..<7 {
+                            settingsVM.preferences.getGoalFor(dayOfWeek: i)?.recurrenceRule = rule
                         }
+                        
                         settingsVM.saveGoal(forDayIndex: selectedDay)
                         settingsVM.applyWeekPlan(
                             startDate: startDate,
@@ -56,6 +59,7 @@ struct SettingsView: View {
                         )
                     }
                     weekPlannerRuleToShow = nil
+                
                 },
                 onCancel: {
                     weekPlannerRuleToShow = nil
