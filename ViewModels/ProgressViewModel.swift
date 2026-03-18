@@ -14,6 +14,8 @@ class ProgressViewModel: ObservableObject {
     @Published var remainingSeconds: Int = 0
     @Published var completedSeconds: Int = 0
     @Published var totalScheduledSeconds: Int = 0
+    
+    @Published var calendarDate: Date = Date()
 
     
     // Progress
@@ -94,7 +96,7 @@ class ProgressViewModel: ObservableObject {
                 }
                 
                 print("🔔 [DEBOUNCED] Preferences changed - reloading TODAY...")
-                self.loadToday(for: user)  // ✅ Das ist der Fix!
+                self.loadHome(for: user)  // ✅ Das ist der Fix!
             }
             .store(in: &cancellables)
         
@@ -104,6 +106,11 @@ class ProgressViewModel: ObservableObject {
                 self?.debounceSubject.send()
             }
             .store(in: &cancellables)
+    }
+    
+    func loadHome(for user: User) {
+        selectedDate = Date()  // ← immer heute, nie überschreibbar
+        loadToday(for: user, date: Date())
     }
     
     /// Videos für beliebiges Datum holen
@@ -128,9 +135,8 @@ class ProgressViewModel: ObservableObject {
       }
     
     func loadToday(for user: User, date: Date? = nil) {
-        if let date = date {
-               selectedDate = date  // ✅ Setze ausgewähltes Datum
-           }
+        let targetDate = date ?? Date()
+            selectedDate = targetDate
         isLoading = true
         
         do {

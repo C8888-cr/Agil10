@@ -198,7 +198,7 @@ struct CalendarView: View {
                                        activeSheet = nil
                                        print("🗓️ dayOfWeek: \(dayOfWeek), recurrenceRuleRaw: \(settingsVM.preferences.getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRuleRaw ?? "NIL"), rule: \(rule)")
                                        
-                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                                            if rule == .single {
                                                progressVM.addVideo(
                                                    video,
