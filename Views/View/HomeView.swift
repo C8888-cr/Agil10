@@ -38,7 +38,12 @@ struct HomeView: View {
     @State private var ratingScheduleId: UUID?
     @State private var ratingVideoTitle: String = ""
     
-
+    private func weekdayName(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.dateFormat = "EEEE"  // ← "Montag", "Dienstag" etc.
+        return formatter.string(from: date)
+    }
 
     enum SheetType: Identifiable {
         case
@@ -285,7 +290,7 @@ struct HomeView: View {
                 }
                 pendingVideo = nil
             }
-            Button("Für alle \(pendingRecurrenceRule.rawValue) Termine") {
+            Button("Für alle zukünftigen \(pendingRecurrenceRule == .weekly ? weekdayName(for: pendingDate) + "e" : "Tage")") {
                 if let video = pendingVideo {
                     settingsVM.addVideoWithScope(
                         video,
