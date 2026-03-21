@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import SwiftData
 
 struct VideoQuickConfigSheet: View {
     let video: Video
@@ -170,4 +171,33 @@ struct VideoQuickConfigSheet: View {
         let s = seconds % 60
         return s > 0 ? "\(m):\(String(format: "%02d", s)) Min" : "\(m) Min"
     }
+}
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: Video.self, VideoSchedule.self,
+        configurations: config
+    )
+    
+    let video = Video(
+        title: "Ganzkörper",
+        videoFileName: "test.mp4",
+        category: .mobility,
+        bodyRegion: .fullBody,
+        equipment: .noEquipment,
+        durationSeconds: 120,
+        loopDurationSeconds: 120,
+        rating: 3
+    )
+
+    VideoQuickConfigSheet(
+        video: video,
+        onAdd: { reps, loop, pause in
+            print("✅ reps: \(reps), loop: \(loop), pause: \(pause)")
+        },
+        onCancel: {
+            print("❌ Abgebrochen")
+        }
+    )
+    .modelContainer(container)
 }

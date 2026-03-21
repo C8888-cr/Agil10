@@ -889,6 +889,7 @@ class SettingsViewModel: ObservableObject {
         repetitions: Int,
         loopDurationSeconds: Int,
         pauseSeconds: Int,
+        dayIndex: Int = 0,
         user: User
     ) {
         let template = VideoSchedule(
@@ -902,15 +903,18 @@ class SettingsViewModel: ObservableObject {
         )
         template.isTemplate = true
         template.templateUserId = user.id
+        template.dayOfWeek = dayIndex 
         
         modelContext.insert(template)
         try? modelContext.save()
+        objectWillChange.send()
         print("📋 Template hinzugefügt: \(video.title)")
     }
 
     func removeDailyTemplate(_ schedule: VideoSchedule, user: User) {
         modelContext.delete(schedule)
         try? modelContext.save()
+        objectWillChange.send()
         print("🗑️ Template entfernt")
     }
 

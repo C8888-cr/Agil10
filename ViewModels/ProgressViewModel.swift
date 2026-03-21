@@ -154,7 +154,8 @@ class ProgressViewModel: ObservableObject {
             let descriptor = FetchDescriptor<VideoSchedule>(
                 predicate: #Predicate<VideoSchedule> { schedule in
                     schedule.scheduledDate >= today &&
-                    schedule.scheduledDate < tomorrow
+                    schedule.scheduledDate < tomorrow &&
+                    schedule.isTemplate == false  // ← NEU
                 },
                 sortBy: [SortDescriptor(\.orderIndex)]
             )

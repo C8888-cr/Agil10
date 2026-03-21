@@ -11,6 +11,7 @@ struct SettingsView: View {
     
     @State private var showDailyTemplate = false
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
+    @EnvironmentObject var progressVM: ProgressViewModel 
     
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var settingsVM: SettingsViewModel
@@ -65,12 +66,13 @@ struct SettingsView: View {
             .environmentObject(videoLibraryVM)
             .environmentObject(authService)
         }
-          .sheet(isPresented: $showDailyTemplate) {
-              DailyTemplateView()
-                  .environmentObject(settingsVM)
-                  .environmentObject(videoLibraryVM)
-                  .environmentObject(authService)
-          }
+        .sheet(isPresented: $showDailyTemplate) {
+            DailyTemplateView(rule: currentDayGoal?.recurrenceRule ?? .daily)
+                .environmentObject(settingsVM)
+                .environmentObject(videoLibraryVM)
+                .environmentObject(authService)
+                .environmentObject(progressVM)
+        }
           .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
               Button("Abbrechen", role: .cancel) { }
               Button("Löschen", role: .destructive) { resetAllData() }
@@ -231,13 +233,13 @@ struct SettingsView: View {
                         }
                     }
                     // Daily-Vorlage Button — nur bei .daily sichtbar
-                    if dayGoal.recurrenceRule == .daily {
+                    if dayGoal.recurrenceRule == .daily || dayGoal.recurrenceRule == .weekly {
                         Button {
                             showDailyTemplate = true
                         } label: {
                             HStack {
                                 Label(
-                                    "Tages-Vorlage bearbeiten",
+                                    dayGoal.recurrenceRule == .daily ? "Tages-Vorlage bearbeiten" : "Wochen-Vorlage bearbeiten",
                                     systemImage: "doc.text.fill"
                                 )
                                 .foregroundColor(.accent)
