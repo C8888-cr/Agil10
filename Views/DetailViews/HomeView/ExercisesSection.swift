@@ -10,6 +10,7 @@ import SwiftData
 
 struct ExercisesSection: View {
     @EnvironmentObject var progressVM: ProgressViewModel
+    @EnvironmentObject var settingsVM: SettingsViewModel
     
     // NUR CALLBACKS nach oben!
     let onToggleCompletion: (VideoSchedule) -> Void
@@ -17,6 +18,12 @@ struct ExercisesSection: View {
     let onConfig: (VideoSchedule) -> Void
     let onPlay: (VideoSchedule, Video) -> Void
     let onAddVideo: () -> Void
+    
+    private var remainingSeconds: Int {
+           let targetSeconds = progressVM.getTodaysTargetMinutes(from: settingsVM, for: Date()) * 60
+           let totalScheduled = progressVM.todaysSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+           return max(0, targetSeconds - totalScheduled)
+       }
     
     var body: some View {
         VStack(spacing: 8) {
@@ -55,6 +62,9 @@ struct ExercisesSection: View {
                 }
                 .padding(.top, 8)
             }
+            if remainingSeconds > 0 {
+                           RemainingTimeCard(remainingSeconds: remainingSeconds)
+                       }
         }
    //     .padding(.horizontal, 8)
     }
@@ -82,14 +92,16 @@ struct ExercisesSection: View {
         video: .previewStrength
     )
     
-    context.insert(schedule1)
-    context.insert(schedule2)
+
+    
+    
+    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
     
     // ViewModel mit Kontext initialisieren
     let progressVM = ProgressViewModel(modelContext: context)
-    progressVM.todaysSchedules = [schedule1, schedule2]
+  
     
-    return ExercisesSection(
+     ExercisesSection(
         onToggleCompletion: { _ in },
         onDelete: { _ in },
         onConfig: { _ in },
@@ -97,5 +109,6 @@ struct ExercisesSection: View {
         onAddVideo: { }
     )
     .environmentObject(progressVM)
+    .environmentObject(settingsVM)
     .modelContainer(container)
 }

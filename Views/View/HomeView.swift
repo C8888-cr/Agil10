@@ -99,10 +99,7 @@ struct HomeView: View {
                 )
                 
                 
-                // Restzeit
-                    if progressVM.remainingSeconds > 0 {
-                        RemainingTimeCard(remainingSeconds: progressVM.remainingSeconds)
-                    }
+               
             }
         }
                 .padding()
@@ -185,34 +182,22 @@ struct HomeView: View {
         }
         
             .sheet(item: $selectedVideoForConfig) { video in
-                VideoScheduleConfigSheet(
+                VideoQuickConfigSheet(
                     video: video,
-                    loopDuration: $playbackSettings.loopDurationSeconds, repetitions: $playbackSettings.repetitions,
-                    pauseSeconds: $playbackSettings.pauseSeconds,
-                    onAdd: {
-                        print("🔍 Speichern...")
-                        
+                    onAdd: { reps, loopDuration, pause in
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
-                            
-                            // ✅ WICHTIG: Werte SETZEN vor updateSchedule!
-                            schedule.customRepetitions = playbackSettings.repetitions
-                            schedule.customPauseSeconds = playbackSettings.pauseSeconds
-                            schedule.customLoopDurationSeconds = playbackSettings.loopDurationSeconds
-                            
-                            print("📝 Werte gesetzt: \(playbackSettings.repetitions)×")
+                            schedule.customRepetitions = reps
+                            schedule.customPauseSeconds = pause
+                            schedule.customLoopDurationSeconds = loopDuration
                             progressVM.updateSchedule(schedule, for: authService.currentUser!)
-
                         }
-           
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
                     },
                     onCancel: {
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
-    
-
                     }
                 )
             }
