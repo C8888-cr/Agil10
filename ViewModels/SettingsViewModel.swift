@@ -1119,4 +1119,12 @@ class SettingsViewModel: ObservableObject {
         NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
         print("✅ WeekPlan angewendet: \(addedCount) Schedules ab \(start) | Strategie: \(strategy)")
     }
+    // In SettingsViewModel ergänzen:
+
+    func recurrenceRule(for date: Date) -> RecurrenceRule {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)  // lokale Zeit!
+        let dayIndex = (weekday + 5) % 7  // 0=Mo, 6=So
+        return preferences.getGoalFor(dayOfWeek: dayIndex)?.recurrenceRule ?? .single
+    }
 }

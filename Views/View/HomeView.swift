@@ -155,22 +155,20 @@ struct HomeView: View {
                     NavigationStack {
                         LibraryView(
                             onVideoSelected: { video in
-                                let dayOfWeek = (Calendar.current.component(
-                                    .weekday, from: Date()) + 5) % 7
-                                let rule = settingsVM.preferences
-                                    .getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRule ?? .single
+                                let date = Date()
+                                let rule = settingsVM.recurrenceRule(for: date)  // ← zentral & korrekt
                                 activeSheet = nil
                                 
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                     if rule == .single {
                                         progressVM.addVideo(
                                             video,
-                                            to: Date(),
+                                            to: date,
                                             for: authService.currentUser!
                                         )
                                     } else {
                                         pendingVideo = video
-                                        pendingDate = Date()
+                                        pendingDate = date
                                         pendingRecurrenceRule = rule
                                         showScopeDialog = true
                                     }
@@ -180,6 +178,7 @@ struct HomeView: View {
                         .environmentObject(authService)
                         .environmentObject(videoLibraryVM)
                         .environmentObject(settingsVM)
+                    
                     }
         
                 }
