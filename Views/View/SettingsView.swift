@@ -219,16 +219,17 @@ struct SettingsView: View {
                                 }
                             } else {
                                 if let user = authService.currentUser {
-                                    settingsVM.updateRecurrenceRule(
-                                        rule,
-                                        forDayIndex: selectedDay,
-                                        user: user
-                                    )
+                                    for i in 0..<7 {
+                                        settingsVM.updateRecurrenceRule(
+                                            rule,
+                                            forDayIndex: i,
+                                            user: user
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                    
                     // Daily-Vorlage Button — nur bei .daily sichtbar
                     if dayGoal.recurrenceRule == .daily {
                         Button {

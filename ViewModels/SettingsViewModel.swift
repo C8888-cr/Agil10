@@ -1114,7 +1114,10 @@ class SettingsViewModel: ObservableObject {
         default:
             break
         }
-        
+
+        for i in 0..<7 {
+            preferences.getGoalFor(dayOfWeek: i)?.recurrenceRule = rule
+        }
         try? modelContext.save()
         NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
         print("✅ WeekPlan angewendet: \(addedCount) Schedules ab \(start) | Strategie: \(strategy)")
