@@ -180,11 +180,12 @@ struct WeeklyProgressCard: View {
             return 0.0
         }
         
-        let completedMinutes = completedSchedules.reduce(0) { $0 + $1.totalDurationMinutes }
-        let targetMinutes = goal.targetMinutes
-        
-        return targetMinutes > 0 ? min(1.0, Double(completedMinutes) / Double(targetMinutes)) : 0.0
-    }
+        // ✅ Sekunden statt Minuten
+           let completedSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+           let targetSeconds = goal.targetMinutes * 60
+           
+           return targetSeconds > 0 ? min(1.0, Double(completedSeconds) / Double(targetSeconds)) : 0.0
+       }
     
     private func isToday(_ index: Int) -> Bool {
         let calendar = Calendar.current
@@ -462,7 +463,9 @@ struct DailyBreakdownCard: View {
         let schedules = progressVM.schedulesFor(date: targetDate)
         let completedSchedules = schedules.filter { $0.isCompleted }
         
-        return completedSchedules.reduce(0) { $0 + $1.totalDurationMinutes }
+        // ✅ Sekunden sammeln, dann in Minuten umrechnen (aufgerundet)
+           let completedSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+           return (completedSeconds + 59) / 60  // ← aufrunden
     }
     
     private func targetMinutes(for dayIndex: Int) -> Int {
