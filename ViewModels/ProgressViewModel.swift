@@ -656,27 +656,27 @@ class ProgressViewModel: ObservableObject {
         let userSchedules = allSchedules.filter { $0.user?.id == userId }
         let completedSchedules = userSchedules.filter { $0.isCompleted }
         
-        let completedMinutes = completedSchedules.reduce(0) { $0 + $1.totalDurationMinutes }
+        let completedSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
         
         guard let preferences = user.preferences else {
             print("⚠️ No preferences for weekly calculation")
             return
         }
         
-        var weeklyTarget = 0
-        for dayOfWeek in 0..<7 {
-            if let goal = preferences.getGoalFor(dayOfWeek: dayOfWeek) {
-                weeklyTarget += goal.targetMinutes
+        var weeklyTargetSeconds = 0
+            for dayOfWeek in 0..<7 {
+                if let goal = preferences.getGoalFor(dayOfWeek: dayOfWeek) {
+                    weeklyTargetSeconds += goal.targetMinutes * 60
+                }
             }
-        }
         
         self.weeklyCompletedMinutes = completedMinutes
-        self.weeklyTargetMinutes = weeklyTarget
-        self.weeklyProgress = weeklyTarget > 0 ?
-            Double(completedMinutes) / Double(weeklyTarget) : 0.0
-        
-        print("📊 Weekly: \(completedMinutes)/\(weeklyTarget) Min (\(Int(weeklyProgress * 100))%)")
-    }
+        self.weeklyTargetMinutes = weeklyTargetSeconds / 60
+            self.weeklyProgress = weeklyTargetSeconds > 0 ?
+                Double(completedSeconds) / Double(weeklyTargetSeconds) : 0.0
+            
+            print("📊 Weekly: \(completedSeconds / 60)/\(weeklyTargetSeconds / 60) Min (\(Int(weeklyProgress * 100))%)")
+        }
     
     // 🌍 3. LIFETIME PROGRESS - alle Zeit
     func calculateLifetimeProgress(for user: User) {
@@ -696,7 +696,8 @@ class ProgressViewModel: ObservableObject {
         let userSchedules = allSchedules.filter { $0.user?.id == userId }
         let completedSchedules = userSchedules.filter { $0.isCompleted }
         
-        let totalMinutes = completedSchedules.reduce(0) { $0 + $1.totalDurationMinutes }
+        let totalSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+        let totalMinutes = (totalSeconds + 59) / 60  // aufrunden
         let totalWorkouts = completedSchedules.count
         let streak = calculateStreak(from: userSchedules)
         
@@ -825,7 +826,7 @@ extension ProgressViewModel {
         return summary.sorted { $0.duration > $1.duration }
     }
 }
-
+/*
 extension ProgressViewModel {
     
     /// ⭐️ Rating speichern
@@ -843,4 +844,6 @@ extension ProgressViewModel {
             print("❌ Fehler beim Speichern des Ratings: \(error)")
         }
     }
+ 
 }
+*/
