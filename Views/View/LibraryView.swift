@@ -312,7 +312,7 @@ struct LibraryView: View {
             
             Text("\(viewModel.filteredVideos.count) Videos")
                 .font(.headline)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.accent)
         }
         .padding()
         .background(Color(.systemBackground))
@@ -343,7 +343,7 @@ struct LibraryView: View {
                           "line.3.horizontal.decrease.circle.fill" :
                           "line.3.horizontal.decrease.circle")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(viewModel.hasActiveFilters ? .blue : .primary)
+                    .foregroundStyle(viewModel.hasActiveFilters ? .accent : .primary)
                 }
             }
         }
@@ -408,8 +408,8 @@ struct FilterChip: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color.blue.opacity(0.1))
-        .foregroundStyle(.blue)
+        .background(Color.accent.opacity(0.1))
+        .foregroundStyle(.accent)
         .clipShape(Capsule())
     }
 }

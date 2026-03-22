@@ -46,7 +46,7 @@ struct VideoListRow: View {
                 HStack(spacing: 12) {
                     Text(video.formattedDuration)
                         .font(.caption2)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.accent)
                     
                     if video.equipment != .noEquipment {
                         Label(video.equipment.rawValue, systemImage: video.equipment.icon)
