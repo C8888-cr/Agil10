@@ -4,29 +4,22 @@ import SwiftData
 
 @main
 struct AgilApp: App {
-    let dependencies = AppDependencies.shared
+    @StateObject private var dependencies = AppDependencies.shared
     
     var body: some Scene {
         WindowGroup {
-            RootView()  // ✅ Root View
+            AppRouter()
+                .environmentObject(dependencies.authService)
+                .environmentObject(dependencies.appointmentViewModel)
+                .environmentObject(dependencies.calendarViewModel)
+                .environmentObject(dependencies.progressViewModel)
+                .environmentObject(dependencies.settingsViewModel)
+                .environmentObject(dependencies.profileViewModel)
+                .environmentObject(dependencies.videoLibraryVM)
                 .environment(\.modelContext, dependencies.modelContext)
-            
-               
+                .task {
+                    await dependencies.authService.loadSavedSession()
+                }
         }
-    }
-}
-
-
-struct RootView: View {
-    @EnvironmentObject var authService: AuthService
-    
-    
-    var body: some View {
-        AppRouter()  // ← AppRouter muss existieren!
-            .environmentObject(AppDependencies.shared.authService)
-            .environment(\.modelContext, AppDependencies.shared.modelContext)
-            .task {
-                await AppDependencies.shared.authService.loadSavedSession()
-            }
     }
 }
