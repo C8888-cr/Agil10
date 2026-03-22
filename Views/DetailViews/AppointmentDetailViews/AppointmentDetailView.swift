@@ -444,6 +444,7 @@ struct ManualAppointmentEntryView: View {
                             Spacer()
                         }
                     }
+                    .disabled(therapistName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
             .navigationTitle("Neuer Termin")
@@ -462,6 +463,11 @@ struct ManualAppointmentEntryView: View {
             } message: {
                 Text("Dein Termin wurde erfolgreich hinzugefügt.")
             }
+            .alert("Fehler", isPresented: $showingError) {  // ← NEU
+                  Button("OK", role: .cancel) { }
+              } message: {
+                  Text(errorMessage)
+              }
             .onAppear {
                 if let praxis = userPraxis {
                     fillPraxisData(praxis)
@@ -488,6 +494,11 @@ struct ManualAppointmentEntryView: View {
             showingError = true
             return
         }
+        guard !therapistName.trimmingCharacters(in: .whitespaces).isEmpty else {
+              errorMessage = "Bitte einen Therapeuten auswählen oder eintragen"
+              showingError = true
+              return
+          }
         
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
