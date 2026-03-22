@@ -618,8 +618,9 @@ final class VideoPlayerViewModel: ObservableObject {
                schedule.rating = rating
                
                // ✅ Als completed markieren
-               progressVM.markCompletedSchedule(schedule, for: user)
-               
+          //     progressVM.markCompletedSchedule(schedule, for: user)
+               //dopplung mit completeTraining
+               progressVM.updateSchedule(schedule, for: user)
                print("✅ Schedule '\(schedule.video?.title ?? "Unknown")' completed mit Rating \(rating)")
            }
            
