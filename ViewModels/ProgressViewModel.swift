@@ -603,20 +603,28 @@ class ProgressViewModel: ObservableObject {
             }
         }
         
-        completedMinutes = completedSeconds / 60
+        completedMinutes = (completedSeconds + 59) / 60
         self.completedSeconds = completedSeconds  // ✅ Sekunden speichern
         self.totalScheduledSeconds = totalSeconds  // ✅ Sekunden speichern
         remainingMinutes = max(0, targetMinutes - totalScheduledMinutes)
         remainingSeconds = max(0, (targetMinutes * 60) - completedSeconds)  // ✅ NEU
         
         
-        progressPercentage = targetMinutes > 0 ?
+        let targetSeconds = targetMinutes * 60
+        progressPercentage = targetSeconds > 0 ?
+            Double(totalSeconds) / Double(targetSeconds) : 0.0
+      /*  progressPercentage = targetMinutes > 0 ?
             Double(totalScheduledMinutes) / Double(targetMinutes) : 0.0
+        */
         
-        dailyProgress = completedMinutes > 0 && targetMinutes > 0 ?
-            Double(completedMinutes) / Double(targetMinutes) : 0.0
+ 
+        dailyProgress = completedSeconds > 0 && targetSeconds > 0 ?
+            Double(completedSeconds) / Double(targetSeconds) : 0.0
+
         
         print("🎯 dailyProgress: \(Int(dailyProgress * 100))%")
+        print("   completedSeconds: \(completedSeconds)")
+        print("   targetSeconds: \(targetSeconds)")
         
         canAddMoreVideos = remainingMinutes > 0
     }

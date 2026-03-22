@@ -39,7 +39,7 @@ struct DailyProgressCard: View {
 
     private var dailyProgressValue: Double {
         guard todaysTargetMinutes > 0 else { return 0 }
-        return Double(completedMinutes) / Double(todaysTargetMinutes)
+        return Double(progressVM.completedSeconds) / Double(todaysTargetMinutes * 60)
     }
 
     private var motivationText: String {
