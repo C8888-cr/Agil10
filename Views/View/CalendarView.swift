@@ -135,7 +135,7 @@ struct CalendarView: View {
                                 onAddAppointment: {
                                     activeSheet = .appointments
                                     print("Add Appointment tapped") })
-                            //TODO: Funktion für onAddExercise
+                       
                             .padding(.horizontal, 16)
                             
                             ExercisesForDateView(

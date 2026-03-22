@@ -139,6 +139,20 @@ struct VideoPlayerView: View {
             
             Spacer()
             
+            
+            Button {
+                       viewModel.toggleMute()
+                   } label: {
+                       Image(systemName: viewModel.settings.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                           .font(.title3)
+                           .foregroundStyle(.white)
+                           .frame(width: 44, height: 44)
+                           .background(Color.black.opacity(0.3))
+                           .clipShape(Circle())
+                   }
+               
+        
+        
             // ✅ Speed Menu (rechts)
        //     speedMenu
         }
@@ -152,53 +166,38 @@ struct VideoPlayerView: View {
     // MARK: - BOTTOM CONTROLS (Blauer Balken + Timeline + Mute)
     private var bottomControls: some View {
         VStack(spacing: 16) {
-            // ✅ BLAUER BALKEN (mittig - nur Training Mode, OBEN)
+            // ✅ Nur Pause-Anzeige, kein blauer Balken mehr
             if let progress = viewModel.trainingProgress,
-               viewModel.settings.mode == .training {
+               viewModel.settings.mode == .training,
+               progress.isInPause {
                 
-                // ✅ PAUSE Anzeige ODER Wiederholung Counter
-                if progress.isInPause {
-                    VStack(spacing: 8) {
-                        Text("PAUSE")
-                            .font(.headline)
-                            .foregroundStyle(.white.opacity(0.8))
-                        
-                        Text("\(progress.remainingPauseSeconds)s")
-                            .font(.system(size: 48, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.white)
-                            .monospacedDigit()
-                    }
-                    .padding(24)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.black.opacity(0.6))
-                    )
-                } else {
-                    // Aktiv - Blauer Balken
-                    HStack(spacing: 8) {
-                        Image(systemName: "figure.run")
-                            .font(.body)
-                        
-                        Text("Wiederholung \(progress.currentRepetition)/\(progress.totalRepetitions)")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(
-                        Capsule()
-                            .fill(Color.blue.opacity(0.85))
-                    )
-                    .frame(maxWidth: .infinity)
+                VStack(spacing: 8) {
+                    Text("PAUSE")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.8))
+                    
+                    Text("\(progress.remainingPauseSeconds)s")
+                        .font(.system(size: 96, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                    
+                    Text("Nächste Runde \(progress.currentRepetition + 1)/\(progress.totalRepetitions)")
+                        .font(.headline)
+                        .foregroundStyle(.white.opacity(0.7))
                 }
+                .frame(maxWidth: .infinity)
+                .padding(24)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.black.opacity(0.6))
+                )
             }
             
             // ✅ Timeline (UNTEN)
             progressBar
             
             // ✅ Mute Button (unten links, klein)
-            HStack {
+        /*    HStack {
                 Button {
                     viewModel.toggleMute()
                 } label: {
@@ -211,7 +210,7 @@ struct VideoPlayerView: View {
                 }
                 
                 Spacer()
-            }
+            }*/
         }
         .padding(.bottom, 8)
     }
