@@ -15,7 +15,10 @@ struct DailyProgressCard: View {
     @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
 
     private var appointments: [Appointment] {
-        allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
+        allAppointments.filter {
+            $0.date > Date().addingTimeInterval(-86400) &&
+            $0.status != .cancelled  // ← NEU
+        }
     }
 
     private var todaysTargetMinutes: Int {
