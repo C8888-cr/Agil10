@@ -17,7 +17,7 @@ struct AppointmentDetailView: View {
     
     @Environment(\.dismiss) private var dismiss
     let appointment: Appointment
-    let viewModel: AppointmentViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
     
     @State private var showingCancelSheet = false
     @State private var cancelReason = ""
@@ -193,7 +193,7 @@ struct AppointmentDetailView: View {
                                         .sheet(isPresented: $showingCancelSheet) {
                                             CancelAppointmentView(
                                                 appointment: appointment,
-                                                viewModel: viewModel,
+                                       
                                                 isPresented: $showingCancelSheet
                                             )
                                             .environmentObject(authService) 
@@ -202,103 +202,6 @@ struct AppointmentDetailView: View {
                                 }
                             }
 
-/*
-                            // MARK: - Cancel Appointment View
-                            struct CancelAppointmentView: View {
-                                
-                                @EnvironmentObject var authService: AuthService
-                                @Environment(\.dismiss) private var dismiss
-                                
-                                private var userEmail: String {
-                                    authService.currentUser?.email ?? ""
-                                }
-                                
-                                let appointment: Appointment
-                                let viewModel: AppointmentViewModel
-                                
-                                
-                                @Binding var isPresented: Bool
-                           
-                                
-                                @State private var cancelReason = ""
-                                @State private var isProcessing = false
-                                
-                                var body: some View {
-                                    NavigationStack {
-                                        Form {
-                                            Section("Grund der Absage") {
-                                                TextEditor(text: $cancelReason)
-                                                    .frame(minHeight: 100)
-                                            }
-                                            
-                                            Section {
-                                                Button(action: cancelAppointment) {
-                                                    if isProcessing {
-                                                        HStack {
-                                                            Spacer()
-                                                            ProgressView()
-                                                                .progressViewStyle(.circular)
-                                                            Text("Absage wird gesendet...")
-                                                                .foregroundColor(.secondary)
-                                                            Spacer()
-                                                        }
-                                                    } else {
-                                                        HStack {
-                                                            Spacer()
-                                                            Text("Termin absagen")
-                                                                .fontWeight(.semibold)
-                                                            Spacer()
-                                                        }
-                                                    }
-                                                }
-                                                .disabled(cancelReason.isEmpty || isProcessing)
-                                                .foregroundColor(.red)
-                                            }
-                                            
-                                            Section {
-                                                VStack(alignment: .leading, spacing: 8) {
-                                                    HStack {
-                                                        Image(systemName: "info.circle.fill")
-                                                            .foregroundColor(.blue)
-                                                        Text("Hinweis")
-                                                            .font(.headline)
-                                                    }
-                                                    
-                                                    Text("Eine Absage-Email wird automatisch an die Praxis gesendet.")
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
-                                                }
-                                            }
-                                        }
-                                        .navigationTitle("Termin absagen")
-                                        .navigationBarTitleDisplayMode(.inline)
-                                        .toolbar {
-                                            ToolbarItem(placement: .navigationBarLeading) {
-                                                Button("Abbrechen") {
-                                                    dismiss()
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
- private func cancelAppointment() {
-     isProcessing = true
-     
-     Task {
-        await viewModel.cancelAppointment(appointment, reason: cancelReason, userEmail: userEmail)
-         
-         await MainActor.run {
-             isProcessing = false
-             isPresented = false
-             dismiss()
-         }
-     }
- }
-}
-                               */
-
-
-
 
 
 struct CancelAppointmentView: View {
@@ -306,7 +209,7 @@ struct CancelAppointmentView: View {
     @Environment(\.dismiss) private var dismiss
     
     let appointment: Appointment
-    let viewModel: AppointmentViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
     @Binding var isPresented: Bool
     
     @State private var cancelReason = ""
@@ -545,7 +448,7 @@ struct ManualAppointmentEntryView: View {
     @EnvironmentObject var authService: AuthService
     
     @Environment(\.dismiss) private var dismiss
-    let viewModel: AppointmentViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
     
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
@@ -788,31 +691,25 @@ struct ManualAppointmentEntryView: View {
 }
 
 #Preview("Appointment Detail") {
-    let viewModel = PreviewHelper.createAppointmentViewModel()
     let appointment = PreviewHelper.createSampleAppointments()[0]
     
-    AppointmentDetailView(
-        appointment: appointment,
-        viewModel: viewModel
-    )
-    .modelContainer(PreviewHelper.createModelContainer())
+    AppointmentDetailView(appointment: appointment)
+        .environmentObject(PreviewHelper.createAppointmentViewModel())
+        .modelContainer(PreviewHelper.createModelContainer())
 }
+
+#Preview {
+    ManualAppointmentEntryView()
+        .environmentObject(PreviewHelper.createMockAuthService())
+        .environmentObject(PreviewHelper.createAppointmentViewModel())
+        .modelContainer(PreviewHelper.createModelContainer())
+}
+
+
 #Preview("Cancelled Appointment") {
-    let viewModel = PreviewHelper.createAppointmentViewModel()
     let appointment = PreviewHelper.createSampleAppointments()[2] // Der abgesagte Termin
     
-    return AppointmentDetailView(
-        appointment: appointment,
-        viewModel: viewModel
-    )
+    AppointmentDetailView(appointment: appointment)
     .modelContainer(PreviewHelper.createModelContainer())
-}
-#Preview {
-    let container = PreviewHelper.createModelContainer()
-    let authService = PreviewHelper.createMockAuthService()
-    let viewModel = PreviewHelper.createAppointmentViewModel
-    
-    ManualAppointmentEntryView(viewModel: viewModel())
-        .environmentObject(authService)
-        .modelContainer(container)
+    .environmentObject(PreviewHelper.createAppointmentViewModel())
 }

@@ -25,8 +25,7 @@ struct AppointmentsList: View {
                                          Task {
                                              await viewModel.deleteAppointment(next)
                                          }
-                                     },
-                                     viewModel: viewModel
+                                     }
                                  )
                              }
                 
@@ -40,8 +39,7 @@ struct AppointmentsList: View {
                                             await viewModel.deleteAppointment(appointment)
                                         }
                                        
-                                    },
-                                    viewModel: viewModel
+                                    }
                                 )
                             }
                 
@@ -54,8 +52,7 @@ struct AppointmentsList: View {
                                          Task {
                                              await viewModel.deleteAppointment(appointment)
                                          }
-                                     },
-                                     viewModel: viewModel
+                                     }
                                  )
                              }
                              

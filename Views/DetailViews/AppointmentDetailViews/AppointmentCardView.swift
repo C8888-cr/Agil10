@@ -135,19 +135,19 @@ struct AppointmentCardView: View {
     @State private var isCancelling = false            // ← NEU
     @State private var showingCancelError = false      // ← NEU
     @State private var cancelErrorMessage = ""         // ← NEU
-    let viewModel: AppointmentViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
     
     
     init(
         appointment: Appointment,
         isNext: Bool,
-        viewModel: AppointmentViewModel,  // ← NEU
+       // ← NEU
         onDelete: (() -> Void)? = nil,
         onCancel: ((String?) -> Void)? = nil
     ) {
         self.appointment = appointment
         self.isNext = isNext
-        self.viewModel = viewModel
+
         self.onDelete = onDelete
         self.onCancel = onCancel
     }
@@ -275,7 +275,7 @@ struct AppointmentCardView: View {
         .sheet(isPresented: $showingCancelSheet) {
             CancelAppointmentView(
                 appointment: appointment,
-                viewModel: viewModel,
+         
                 isPresented: $showingCancelSheet
             )
             .environmentObject(authService)
@@ -300,7 +300,6 @@ struct AppointmentCardView: View {
                 praxisId: UUID()
             ),
             isNext: true,
-            viewModel: AppDependencies.shared.appointmentViewModel,
             onDelete: { print("Termin gelöscht") }
         )
         
@@ -314,7 +313,6 @@ struct AppointmentCardView: View {
                 praxisId: UUID()
             ),
             isNext: false,
-            viewModel: AppDependencies.shared.appointmentViewModel, 
             onDelete: { print("Termin gelöscht") }
         )
     }

@@ -11,7 +11,7 @@ import SwiftUI
 struct NextAppointmentSection: View {
     let appointment: Appointment
     let onDelete: () -> Void
-    let viewModel: AppointmentViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -26,7 +26,6 @@ struct NextAppointmentSection: View {
             AppointmentCardView(
                 appointment: appointment,
                 isNext: true,
-                viewModel: viewModel,  // ← NEU
                 onDelete: onDelete
             )
             .onTapGesture {
@@ -63,7 +62,7 @@ struct NextAppointmentSection: View {
     
     NextAppointmentSection(
         appointment: appointment,
-        onDelete: { print("Delete tapped") },
-        viewModel: AppDependencies.shared.appointmentViewModel
+        onDelete: { print("Delete tapped") }
     )
+    .environmentObject(AppDependencies.shared.appointmentViewModel)
 }
