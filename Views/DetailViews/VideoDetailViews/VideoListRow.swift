@@ -74,10 +74,15 @@ struct VideoListRow: View {
             }
             .font(.title3)
         }
-        .padding(.horizontal, 16)        // ✅ Padding HIER
-        .padding(.vertical, 12)          // ✅ Padding HIER
-        .background(Color(.systemBackground))  // ✅ Background HIER
-        .contentShape(Rectangle())       // ✅ Für Tap Gesture
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)                                          // ← NEU
+        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)    // ← NEU
+        .padding(.horizontal, 16)                                  // ← NEU äußeres padding
+        .padding(.vertical, 4)                                     // ← NEU äußeres padding
+        .contentShape(Rectangle())
+       
         .onTapGesture {
             print("🎬 VideoListRow tapped: \(video.title)")
                   onTap(video)  // ← VIDEO ÜBERGEBEN! NEU!
