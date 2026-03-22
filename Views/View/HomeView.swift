@@ -33,11 +33,7 @@ struct HomeView: View {
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
     
-    // ⭐️ NEU: Rating State
-    @State private var showRatingSheet = false
-    @State private var ratingScheduleId: UUID?
-    @State private var ratingVideoTitle: String = ""
-    
+   
 
 
     enum SheetType: Identifiable {
@@ -97,7 +93,7 @@ struct HomeView: View {
                     onPlay: { schedule, video in
                         selectedScheduleId = schedule.id
                         selectedVideoForPlayer = video
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 showVideoPlayer = true
                             }
                     },
@@ -229,14 +225,7 @@ struct HomeView: View {
         // ⭐️ VIDEO PLAYER SHEET
         // ✅ RICHTIG
         .sheet(isPresented: $showVideoPlayer, onDismiss: {
-            if let video = selectedVideoForPlayer,
-               let scheduleId = selectedScheduleId {
-                ratingScheduleId = scheduleId
-                ratingVideoTitle = video.title
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showRatingSheet = true
-                }
-            }
+    
         }) {
             if let video = selectedVideoForPlayer,
                let scheduleId = selectedScheduleId {
@@ -247,27 +236,7 @@ struct HomeView: View {
                 )
             }
         }
-             // ⭐️ RATING SHEET (kommt NACH VideoPlayer)
-             .sheet(isPresented: $showRatingSheet) {
-                 if let scheduleId = ratingScheduleId {
-                     VideoRatingSheet(
-                         videoTitle: ratingVideoTitle,
-                         onRate: { rating in
-                             print("⭐️ Rating \(rating) für Schedule \(scheduleId)")
-                             
-                             // ✅ Rating speichern
-                             if let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
-                                 progressVM.saveRating(rating, for: schedule, user: authService.currentUser!)
-                             }
-                             
-                             // State zurücksetzen
-                             ratingScheduleId = nil
-                             ratingVideoTitle = ""
-                         }
-                     )
-                 }
-             }
-        
+
         
         // In HomeView nach dem letzten .sheet
         .confirmationDialog(
