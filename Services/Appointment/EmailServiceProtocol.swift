@@ -27,7 +27,9 @@ class EmailService: EmailServiceProtocol {
         let urlString = "mailto:\(to)?subject=\(encodedSubject)&body=\(encodedBody)"
         
         if let url = URL(string: urlString) {
-            UIApplication.shared.open(url)
+            DispatchQueue.main.async {  // ← NEU
+                UIApplication.shared.open(url)
+            }
         }
     }
 }

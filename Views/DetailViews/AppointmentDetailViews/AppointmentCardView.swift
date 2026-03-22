@@ -135,15 +135,19 @@ struct AppointmentCardView: View {
     @State private var isCancelling = false            // ← NEU
     @State private var showingCancelError = false      // ← NEU
     @State private var cancelErrorMessage = ""         // ← NEU
+    let viewModel: AppointmentViewModel
+    
     
     init(
         appointment: Appointment,
         isNext: Bool,
+        viewModel: AppointmentViewModel,  // ← NEU
         onDelete: (() -> Void)? = nil,
         onCancel: ((String?) -> Void)? = nil
     ) {
         self.appointment = appointment
         self.isNext = isNext
+        self.viewModel = viewModel
         self.onDelete = onDelete
         self.onCancel = onCancel
     }
@@ -151,7 +155,7 @@ struct AppointmentCardView: View {
     var body: some View {
         HStack(spacing: 16) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(isNext ? Color.accent : Color.secondary.opacity(0.5))
+                .fill(appointment.status == .cancelled ? Color.red.opacity(0.5) : isNext ? Color.accent : Color.secondary.opacity(0.5))
                 .frame(width: 4, height: 70)
             
             // Date Badge
@@ -189,7 +193,10 @@ struct AppointmentCardView: View {
                     }
                     .foregroundColor(.accent)
                 }
-            }
+            
+            
+  
+                  }
             
             Spacer()
             
@@ -208,7 +215,7 @@ struct AppointmentCardView: View {
             // MARK: - Actions Menu
             Menu {
                 // ✅ Absagen (nur wenn noch nicht abgesagt)
-                if appointment.status != .cancelled {
+                if appointment.status != .cancelled && !appointment.isPast {
                     Button(action: {
                         showingCancelSheet = true
                     }) {
@@ -233,6 +240,19 @@ struct AppointmentCardView: View {
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+        .overlay(alignment: .bottomTrailing) {  // ← NEU
+            if appointment.status == .cancelled {
+                Text("Abgesagt")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.red)
+                    .cornerRadius(6)
+                    .padding(8)
+            }
+        }
         
         // MARK: - Delete Alert
         .alert("Termin löschen?", isPresented: $showingDeleteAlert) {
@@ -253,23 +273,13 @@ struct AppointmentCardView: View {
         
         // MARK: - Cancel Sheet
         .sheet(isPresented: $showingCancelSheet) {
-                   if let user = authService.currentUser {
-                       CancelAppointmentSheet(
-                           appointment: appointment,
-                           user: user,                         // ✅ User übergeben
-                           isCancelling: $isCancelling,
-                           onCancel: { reason in
-                               isCancelling = true
-                               onCancel?(reason)
-                               isCancelling = false
-                               showingCancelSheet = false
-                           },
-                           onDismiss: {
-                               showingCancelSheet = false
-                           }
-                       )
-                   }
-               }
+            CancelAppointmentView(
+                appointment: appointment,
+                viewModel: viewModel,
+                isPresented: $showingCancelSheet
+            )
+            .environmentObject(authService)
+        }
            }
        }
 
@@ -290,6 +300,7 @@ struct AppointmentCardView: View {
                 praxisId: UUID()
             ),
             isNext: true,
+            viewModel: AppDependencies.shared.appointmentViewModel,
             onDelete: { print("Termin gelöscht") }
         )
         
@@ -300,9 +311,10 @@ struct AppointmentCardView: View {
                 therapist: "Dr. Schmidt",
                 locationName: nil,
                 userId: UUID(),        // ✅ Mock UUID
-                praxisId: UUID() 
+                praxisId: UUID()
             ),
             isNext: false,
+            viewModel: AppDependencies.shared.appointmentViewModel, 
             onDelete: { print("Termin gelöscht") }
         )
     }

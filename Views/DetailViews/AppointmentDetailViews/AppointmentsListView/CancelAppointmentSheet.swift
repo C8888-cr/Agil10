@@ -41,16 +41,13 @@ struct CancelAppointmentSheet: View {
          
          
          }*/
-        private var availableMailApps: [(name: String, scheme: String)] {
-            return [
-                ("Apple Mail",  "mailto:"),
-                ("Gmail",       "googlegmail://"),
-                ("Outlook",     "ms-outlook://"),
-                ("Yahoo Mail",  "ymail://"),
-                ("Web.de Mail", "webdemail://"),
-                ("GMX Mail",    "gmxmail://")
-            ]
-        }
+    private var availableMailApps: [(name: String, scheme: String)] {
+        return [
+            ("Mail", "mailto:"),
+            ("Gmail", "googlegmail://"),
+            ("Outlook", "ms-outlook://")
+        ]
+    }
     /*
     private func openWith(scheme: String) {
           let encodedSubject = mailSubject

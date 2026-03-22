@@ -11,6 +11,7 @@ import SwiftUI
 struct UpcomingAppointmentsSection: View {
     let appointments: [Appointment]
     let onDelete: (Appointment) -> Void
+    let viewModel: AppointmentViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -33,6 +34,7 @@ struct UpcomingAppointmentsSection: View {
                 AppointmentCardView(
                     appointment: appointment,
                     isNext: false,
+                    viewModel: viewModel,
                     onDelete: {
                         onDelete(appointment)
                     }
@@ -49,7 +51,7 @@ struct UpcomingAppointmentsSection: View {
 // MARK: - Preview
 #Preview {
     let praxen = PraxisDataManager.shared.praxen
-    
+
     let appointments = [
         Appointment(
             id: UUID(),
@@ -85,6 +87,7 @@ struct UpcomingAppointmentsSection: View {
     
     UpcomingAppointmentsSection(
         appointments: appointments,
-        onDelete: { _ in print("Delete tapped") }
+        onDelete: { _ in print("Delete tapped") },
+        viewModel: AppDependencies.shared.appointmentViewModel
     )
 }

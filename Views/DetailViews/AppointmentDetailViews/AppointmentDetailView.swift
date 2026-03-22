@@ -21,6 +21,8 @@ struct AppointmentDetailView: View {
     
     @State private var showingCancelSheet = false
     @State private var cancelReason = ""
+    
+    @State private var showEmailSentConfirmation = false
 
     
     private var userEmail: String {
@@ -199,6 +201,8 @@ struct AppointmentDetailView: View {
                                     }
                                 }
                             }
+
+/*
                             // MARK: - Cancel Appointment View
                             struct CancelAppointmentView: View {
                                 
@@ -277,21 +281,264 @@ struct AppointmentDetailView: View {
                                         }
                                     }
                                 }
-                                
-                                private func cancelAppointment() {
-                                    isProcessing = true
-                                    
-                                    Task {
-                                       await viewModel.cancelAppointment(appointment, reason: cancelReason, userEmail: userEmail)
-                                        
-                                        await MainActor.run {
-                                            isProcessing = false
-                                            isPresented = false
-                                            dismiss()
-                                        }
-                                    }
-                                }
+ private func cancelAppointment() {
+     isProcessing = true
+     
+     Task {
+        await viewModel.cancelAppointment(appointment, reason: cancelReason, userEmail: userEmail)
+         
+         await MainActor.run {
+             isProcessing = false
+             isPresented = false
+             dismiss()
+         }
+     }
+ }
+}
+                               */
+
+
+
+
+
+struct CancelAppointmentView: View {
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) private var dismiss
+    
+    let appointment: Appointment
+    let viewModel: AppointmentViewModel
+    @Binding var isPresented: Bool
+    
+    @State private var cancelReason = ""
+    @State private var isProcessing = false
+    @State private var showLateWarning = false
+    @State private var selectedEmailApp: EmailApp = .default
+    
+    // ✅ Prüfen ob weniger als 24h bis zum Termin
+    private var isLessThan24Hours: Bool {
+        appointment.date.timeIntervalSinceNow < 86400
+    }
+    
+    @State private var showEmailSentConfirmation = false
+    
+    enum EmailApp: String, CaseIterable, Identifiable {
+        case `default` = "Mail"
+        case gmail = "Gmail"
+        case outlook = "Outlook"
+        
+        var id: String { rawValue }
+        
+        var urlScheme: String {
+            switch self {
+            case .default: return "mailto"
+            case .gmail: return "googlegmail"
+            case .outlook: return "ms-outlook"
+            }
+        }
+        
+        var isAvailable: Bool {
+            guard let url = URL(string: "\(urlScheme)://") else { return false }
+            return UIApplication.shared.canOpenURL(url)
+        }
+    }
+    
+    private var availableEmailApps: [EmailApp] {
+        EmailApp.allCases.filter { $0.isAvailable }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                // ✅ 24h Warnung
+                if isLessThan24Hours {
+                    Section {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Kurzfristige Absage")
+                                    .font(.headline)
+                                    .foregroundColor(.orange)
+                                Text("Der Termin ist in weniger als 24 Stunden. Eine Absagegebühr kann anfallen.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                
+                Section("Grund der Absage") {
+                    TextEditor(text: $cancelReason)
+                        .frame(minHeight: 100)
+                }
+                
+                // ✅ Email-App Auswahl
+                if availableEmailApps.count > 1 {
+                    Section("Email senden mit") {
+                        Picker("Email-App", selection: $selectedEmailApp) {
+                            ForEach(availableEmailApps) { app in
+                                Text(app.rawValue).tag(app)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+                
+                Section {
+                    Button(action: handleCancel) {
+                        if isProcessing {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Text("Absage wird gesendet...")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                            }
+                        } else {
+                            HStack {
+                                Spacer()
+                                Text("Termin absagen")
+                                    .fontWeight(.semibold)
+                                Spacer()
+                            }
+                        }
+                    }
+                    .disabled(isProcessing)
+                    .foregroundColor(.red)
+                }
+                
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.blue)
+                        Text("Eine Absage-Email wird an die Praxis gesendet.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Termin absagen")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Abbrechen") { dismiss() }
+                }
+            }
+            // ✅ 24h Bestätigungs-Alert
+            .confirmationDialog(
+                "Kurzfristige Absage",
+                isPresented: $showLateWarning,
+                titleVisibility: .visible
+            ) {
+                Button("Trotzdem absagen", role: .destructive) {
+                    performCancel()
+                }
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Der Termin ist in weniger als 24 Stunden. Eine Absagegebühr kann anfallen. Möchtest du trotzdem absagen?")
+            }
+            
+            .confirmationDialog(
+                "Email abgeschickt?",
+                isPresented: $showEmailSentConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Ja, Email wurde gesendet") {
+                    Task {
+                        await viewModel.cancelAppointment(
+                            appointment,
+                            reason: cancelReason,
+                            userEmail: authService.currentUser?.email ?? ""
+                        )
+                        await MainActor.run {
+                            isPresented = false
+                            dismiss()
+                        }
+                    }
+                }
+                Button("Nein, nicht gesendet", role: .cancel) {
+                    // Status wird NICHT gesetzt
+                }
+            } message: {
+                Text("Wurde die Absage-Email an die Praxis gesendet?")
+            }
+        }
+    }
+    
+    private func handleCancel() {
+        if isLessThan24Hours {
+            showLateWarning = true
+        } else {
+            performCancel()
+        }
+    }
+    
+    private func performCancel() {
+        isProcessing = true
+        
+        let userEmail = authService.currentUser?.email ?? ""
+        
+        sendEmailWithSelectedApp(userEmail: userEmail) { success in
+            isProcessing = false
+            if success {
+                // ✅ Mail-App geöffnet → User fragen ob gesendet
+                showEmailSentConfirmation = true
+            }
+        }
+    }
+    
+    private func sendEmailWithSelectedApp(userEmail: String, completion: @escaping (Bool) -> Void) {
+        let practiceEmail: String
+        if let praxisId = authService.currentUser?.praxisId,
+           let praxis = PraxisDataManager.shared.getPraxis(by: praxisId),
+           let email = praxis.email {
+            practiceEmail = email
+        } else {
+            practiceEmail = "praxis@physio-agil.de"
+        }
+        
+        let subject = "Terminabsage - \(appointment.dateString)"
+        var body = """
+        Sehr geehrte Damen und Herren,
+        
+        hiermit möchte ich meinen Termin absagen:
+        
+        Datum: \(appointment.dateString)
+        Uhrzeit: \(appointment.timeString)
+        Therapeut: \(appointment.therapist)
+        """
+        if !cancelReason.isEmpty {
+            body += "\n\nGrund: \(cancelReason)"
+        }
+        body += "\n\nMit freundlichen Grüßen\n\(userEmail)"
+        
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        
+        let urlString: String
+        switch selectedEmailApp {
+        case .default:
+            urlString = "mailto:\(practiceEmail)?subject=\(encodedSubject)&body=\(encodedBody)"
+        case .gmail:
+            urlString = "googlegmail://co?to=\(practiceEmail)&subject=\(encodedSubject)&body=\(encodedBody)"
+        case .outlook:
+            urlString = "ms-outlook://compose?to=\(practiceEmail)&subject=\(encodedSubject)&body=\(encodedBody)"
+        }
+        
+        guard let url = URL(string: urlString) else {
+            completion(false)
+            return
+        }
+        
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url) { success in
+                completion(success)
+            }
+        }
+    }
+}
                             // MARK: - Manual Appointment Entry
 struct ManualAppointmentEntryView: View {
     

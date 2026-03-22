@@ -33,6 +33,7 @@ struct CancelAppointmentUseCase {
         reason: String?,
         userEmail: String
     ) async throws {
+        print("🚫 Setze Status auf cancelled für: \(appointment.therapist)")
         // ✅ User Praxis laden
         let practiceEmail = "praxis@physio-agil.de"
         
@@ -40,19 +41,9 @@ struct CancelAppointmentUseCase {
         // Status ändern
         appointment.status = .cancelled
         try await repository.save(appointment)
+        print("✅ Status gesetzt: \(appointment.status)")
         
-        // Email senden
-        let emailContent = buildCancellationEmail(
-            appointment: appointment,
-            reason: reason,
-            userEmail: userEmail
-        )
-        
-        emailService.sendEmail(
-            to: practiceEmail,
-            subject: emailContent.subject,
-            body: emailContent.body
-        )
+
     }
 
 
