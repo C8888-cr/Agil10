@@ -261,7 +261,7 @@ struct PasswordField: View {
                     .foregroundColor(.accent)
                     .font(.system(size: 14))
                 
-                SecureField("Min. 6 Zeichen", text: $password)
+                SecureField("Min. 8 Zeichen", text: $password)
                     .textContentType(.newPassword)
                     .accentColor(.accent)
             }
