@@ -6,7 +6,7 @@ import SwiftData
 
 
 @MainActor
-class AppDependencies {
+class AppDependencies: ObservableObject {
     static let shared = AppDependencies()
     
     // MARK: - Core
@@ -30,13 +30,12 @@ class AppDependencies {
     
     
     // ✅ NACHHER (computed property = immer gleicher Context!):
-    var videoRepository: VideoRepository {
-        VideoRepository(
+    lazy var videoRepository = VideoRepository (
             modelContext: modelContext,  // ← IMMER der gleiche!
             storageService: .shared,
             thumbnailService: .shared
         )
-    }
+    
     var videoLibraryVM: VideoLibraryViewModel {
         VideoLibraryViewModel(
             repository: videoRepository,
