@@ -140,7 +140,7 @@ struct VideoPlayerView: View {
             Spacer()
             
             // ✅ Speed Menu (rechts)
-            speedMenu
+       //     speedMenu
         }
         .padding(.top, 8)
     }
