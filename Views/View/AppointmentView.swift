@@ -54,9 +54,7 @@ struct AppointmentView: View {
     
     var body: some View {
         
-        ZStack {
-            Color(.systemGroupedBackground)
-                .ignoresSafeArea()
+        Group {
             if appointments.isEmpty {
                 EmptyStateView(
                     showingManualEntry: { showingManualEntry = true },
@@ -66,12 +64,11 @@ struct AppointmentView: View {
                 AppointmentsList(
                     appointments: appointments,
                     viewModel: viewModel
-                               )
+                )
             }
         }
+        .background(Color(.systemGroupedBackground))  // ← statt ZStack
         .navigationTitle("Termine")
-        
-        
         .toolbar {
                AppointmentToolbar(
                    showingManualEntry: { showingManualEntry = true },
