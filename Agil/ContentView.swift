@@ -13,55 +13,26 @@ struct ContentView: View {
             TabView {
                 NavigationStack {
                     HomeView()
-                        .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.progressViewModel)
-                        .environmentObject(AppDependencies.shared.videoLibraryVM)
-                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                        .environmentObject(AppDependencies.shared.profileViewModel)
-                        .environmentObject(WeeklySettings())
-                        
                 }
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 
                 NavigationStack {
-                    AppointmentView(viewModel: AppDependencies.shared.appointmentViewModel)
-                        .environmentObject(AppDependencies.shared.appointmentViewModel)  // ← HINZUFÜGEN!
-                        .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                        .environmentObject(AppDependencies.shared.profileViewModel)
+                    AppointmentView()
                 }
                 .tabItem { Label("Appointments", systemImage: "person.fill") }
                 
                 NavigationStack {
-                    CalendarView(repository: AppDependencies.shared.videoRepository)
-                        .environmentObject(AppDependencies.shared.calendarViewModel)
-                        .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.progressViewModel)
-                        .environmentObject(AppDependencies.shared.videoLibraryVM)
-                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                        .environmentObject(WeeklySettings())
-                        .environmentObject(AppDependencies.shared.profileViewModel)
-                        .environmentObject(AppDependencies.shared.appointmentViewModel)
-                
+                    CalendarView()
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
                 
                 NavigationStack {
                     ProgressTabView()
-                        .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.progressViewModel)
-                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                        .environmentObject(AppDependencies.shared.profileViewModel)
                 }
                 .tabItem { Label("Progress", systemImage: "chart.bar.xaxis") }
                 
                 NavigationStack {
                     LibraryView()
-                        .environmentObject(AppDependencies.shared.authService)
-                        .environmentObject(AppDependencies.shared.videoLibraryVM)
-                        .environmentObject(AppDependencies.shared.settingsViewModel)
-                        .environmentObject(AppDependencies.shared.profileViewModel)
-                 
                 }
                 .tabItem { Label("Library", systemImage: "book.fill") }
                 
