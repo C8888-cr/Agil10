@@ -159,24 +159,19 @@ struct HomeView: View {
                 case .library:
                     NavigationStack {
                         LibraryView(
+                            // ✅ NEU
                             onVideoSelected: { video in
-                                let date = Date()
-                                let rule = settingsVM.recurrenceRule(for: date)  // ← zentral & korrekt
                                 activeSheet = nil
                                 
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    if rule == .single {
-                                        progressVM.addVideo(
-                                            video,
-                                            to: date,
-                                            for: authService.currentUser!
-                                        )
-                                    } else {
-                                        pendingVideo = video
-                                        pendingDate = date
-                                        pendingRecurrenceRule = rule
-                                        showScopeDialog = true
-                                    }
+                                    pendingDate = Date()
+                                    editingScheduleId = nil
+                                    playbackSettings = PlaybackSettings(
+                                        repetitions: video.defaultRepetitions,
+                                        pauseSeconds: video.defaultPauseSeconds,
+                                        loopDurationSeconds: video.loopDurationSeconds
+                                    )
+                                    selectedVideoForConfig = video  // ← öffnet Config-Sheet
                                 }
                             }
                         )
@@ -198,13 +193,32 @@ struct HomeView: View {
                     onAdd: { reps, loopDuration, pause in
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                            // Bestehendes Schedule bearbeiten
                             schedule.customRepetitions = reps
                             schedule.customPauseSeconds = pause
                             schedule.customLoopDurationSeconds = loopDuration
                             progressVM.updateSchedule(schedule, for: authService.currentUser!)
+                        } else {
+                            // ✅ Neues Video hinzufügen
+                            let rule = settingsVM.recurrenceRule(for: pendingDate)
+                            if rule == .single {
+                                progressVM.addVideo(
+                                    video,
+                                    to: pendingDate,
+                                    for: authService.currentUser!,
+                                    customRepetitions: reps,
+                                    customPauseSeconds: pause,
+                                    customLoopDuration: loopDuration
+                                )
+                            } else {
+                                pendingVideo = video
+                                pendingRecurrenceRule = rule
+                                showScopeDialog = true
+                            }
                         }
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
+                    
                     },
                     onCancel: {
                         selectedVideoForConfig = nil
