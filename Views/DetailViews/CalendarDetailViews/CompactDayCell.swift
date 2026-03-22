@@ -19,24 +19,24 @@ struct CompactDayCell: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             Text(Date.shortDayFormatter.string(from: date).prefix(2).uppercased())
                 .font(.caption2)
                 .fontWeight(.medium)
                 .foregroundColor(textColor)
             
             Text("\(calendar.component(.day, from: date))")
-                .font(.system(size: 18, weight: isSelected ? .bold : .medium))
+                .font(.system(size: 16, weight: isSelected ? .bold : .medium))
                 .foregroundColor(textColor)
             
             indicatorView
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 70)
+        .frame(height: 56)
         .background(backgroundColor)
-        .cornerRadius(12)
+        .cornerRadius(8)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 8)
                 .stroke(borderColor, lineWidth: isToday && !isSelected ? 2 : 0)
         )
     }
