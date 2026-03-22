@@ -67,7 +67,7 @@ struct AppointmentView: View {
            }
         
         .sheet(isPresented: $showingManualEntry) {
-            ManualAppointmentEntryView(viewModel: viewModel)
+            ManualAppointmentEntryView()
         }
  /*       .sheet(isPresented: $showingEmailImport) {
             EmailImportView(
@@ -138,15 +138,9 @@ struct AppointmentView: View {
         }
         .sheet(isPresented: $showProfile) {
             ProfileView()
-                .environmentObject(authService)
-                .environment(\.modelContext, profileVM.modelContext)
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
-                .environmentObject(settingsVM)  // falls SettingsView das braucht
-                .environment(\.modelContext, modelContext)
-            
-            
         }
     }
 
