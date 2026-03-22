@@ -20,6 +20,8 @@ struct CalendarView: View {
       private var appointments: [Appointment] {
           allAppointments.filter { $0.date > Date().addingTimeInterval(-86400) }
       }
+ 
+    @State private var videoPlayerItem: VideoPlayerItem?
     
     @State private var pendingVideo: Video?
     @State private var pendingDate: Date = Date()
@@ -37,9 +39,9 @@ struct CalendarView: View {
     @Environment(\.modelContext) var modelContext
     @State private var currentWeekOffset = 0
     
-    @State private var selectedScheduleId: UUID?  // ← NEU!
-    @State private var showVideoPlayer = false  // ← NEU!
-    @State private var selectedVideoForPlayer: Video?  // ← NEU!
+  
+
+  
     @State private var editingScheduleId: UUID?  // ← Für EDIT!
     @State private var isEditingMode = false
     @State private var activeSheet: SheetType?
@@ -92,12 +94,10 @@ struct CalendarView: View {
     }
 
     private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
-        selectedScheduleId = schedule.id
-        selectedVideoForPlayer = video
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                showVideoPlayer = true
-            }
+        videoPlayerItem = VideoPlayerItem(video: video, scheduleId: schedule.id)
     }
+    
+    
     enum SheetType: Identifiable {
         case
         library,
@@ -196,12 +196,8 @@ struct CalendarView: View {
                        case .profile:
                            ProfileView()
                                
-
-                               
-                           
-                           
                        case .appointments:
-                           ManualAppointmentEntryView(viewModel: appointmentViewModel)  // ← HIER!
+                           ManualAppointmentEntryView()  
                                    
                        }
                    }
@@ -246,15 +242,12 @@ struct CalendarView: View {
                            }
                        )
                    }
-                   .sheet(isPresented: $showVideoPlayer) {
-                       if let video = selectedVideoForPlayer,
-                          let scheduleId = selectedScheduleId {
-                           VideoPlayerView(
-                               video: video,
-                               scheduleId: scheduleId,  // ✅ DEINE STATE VARIABLE!
-                               progressViewModel: progressVM
-                           )
-                       }
+                   .sheet(item: $videoPlayerItem) { item in
+                       VideoPlayerView(
+                           video: item.video,
+                           scheduleId: item.scheduleId,
+                           progressViewModel: progressVM
+                       )
                    }
     
                 .confirmationDialog(

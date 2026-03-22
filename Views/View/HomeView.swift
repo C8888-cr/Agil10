@@ -22,11 +22,11 @@ struct HomeView: View {
     
     
     
+    @State private var videoPlayerItem: VideoPlayerItem?
     
-    
-    @State private var selectedScheduleId: UUID?  // ← NEU!
-    @State private var showVideoPlayer = false  // ← NEU!
-    @State private var selectedVideoForPlayer: Video?  // ← NEU!
+
+
+
     @State private var editingScheduleId: UUID?  // ← Für EDIT!
     @State private var isEditingMode = false
     @State private var activeSheet: SheetType?
@@ -91,11 +91,10 @@ struct HomeView: View {
                     
                     
                     onPlay: { schedule, video in
-                        selectedScheduleId = schedule.id
-                        selectedVideoForPlayer = video
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                showVideoPlayer = true
-                            }
+                        videoPlayerItem = VideoPlayerItem(
+                            video: video,
+                            scheduleId: schedule.id
+                        )
                     },
                     onAddVideo: {
                         activeSheet = .library  // ← Sheet öffnet sich!
@@ -224,18 +223,13 @@ struct HomeView: View {
                 )
             }
         // ⭐️ VIDEO PLAYER SHEET
-        // ✅ RICHTIG
-        .sheet(isPresented: $showVideoPlayer, onDismiss: {
-    
-        }) {
-            if let video = selectedVideoForPlayer,
-               let scheduleId = selectedScheduleId {
-                VideoPlayerView(
-                    video: video,
-                    scheduleId: scheduleId,
-                    progressViewModel: progressVM
-                )
-            }
+        // ✅ Neu
+        .sheet(item: $videoPlayerItem) { item in
+            VideoPlayerView(
+                video: item.video,
+                scheduleId: item.scheduleId,
+                progressViewModel: progressVM
+            )
         }
 
         
