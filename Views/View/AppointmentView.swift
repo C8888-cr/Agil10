@@ -6,12 +6,14 @@ struct AppointmentView: View {
     
     
     @EnvironmentObject var profileVM: ProfileViewModel
+    @EnvironmentObject var viewModel: AppointmentViewModel
+    @EnvironmentObject private var settingsVM: SettingsViewModel
+    
     
     @EnvironmentObject var authService: AuthService
     @Environment(\.modelContext) private var modelContext
-    @EnvironmentObject private var settingsVM: SettingsViewModel
     
-    @StateObject private var viewModel: AppointmentViewModel
+  
     @State private var showingManualEntry = false
     @State private var showingEmailImport = false
     @State private var emailText = ""
@@ -35,21 +37,6 @@ struct AppointmentView: View {
            }
                    .sorted { $0.date < $1.date }
            
-       }
-       
-       // ✅ Init mit User-Filter
-       init(viewModel: AppointmentViewModel) {
-           _viewModel = StateObject(wrappedValue: viewModel)
-           
-           // ✅ Query mit User-Filter (wird bei jedem View-Init neu erstellt)
-           let userId = viewModel.authService.currentUser?.id ?? UUID()
-           
-           _allAppointments = Query(
-               filter: #Predicate<Appointment> { appointment in
-                   appointment.userId == userId
-               },
-               sort: \Appointment.date
-           )
        }
     
     var body: some View {
@@ -167,15 +154,15 @@ struct AppointmentView: View {
 // MARK: - Preview
 #Preview {
     let container = PreviewHelper.createModelContainer()
-    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
     let authService = AuthService(authServiceProtocol: MockAuthService())
-   
+    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: authService)
     
-    AppointmentView(viewModel: PreviewHelper.createAppointmentViewModel())
+    AppointmentView()  // ← kein Parameter mehr
         .modelContainer(container)
-        .environmentObject(settingsVM)
         .environmentObject(authService)
-   
+        .environmentObject(settingsVM)
+        .environmentObject(PreviewHelper.createAppointmentViewModel())
+        .environmentObject(ProfileViewModel(modelContext: container.mainContext, authService: authService))
 }
 
 

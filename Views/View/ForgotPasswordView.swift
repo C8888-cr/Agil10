@@ -1,17 +1,4 @@
-//
-//  ForgotPasswordView.swift
-//  Agil
-//
-//  Created by Christiane Roth on 30.11.25.
-//
 
-
-//
-//  ForgotPasswortView.swift (TELEKOM MAGENTA VERSION - IDENTICAL TO LOGIN)
-//  Agil9.0
-//
-//  Created by Christiane Roth on 11.11.25.
-//
 import SwiftUI
 
 struct ForgotPasswordView: View {

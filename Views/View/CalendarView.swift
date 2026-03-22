@@ -49,13 +49,6 @@ struct CalendarView: View {
     
     var onVideoSelected: ((Video) -> Void)? = nil
     
-    init(repository: VideoRepositoryProtocol,
-         onVideoSelected: ((Video) -> Void)? = nil) {
-        self.onVideoSelected = onVideoSelected
-        // ✅ Variante 1: Query OHNE Filter, Filter in computed property
-            _allAppointments = Query(sort: \Appointment.date)
-        }
-        
         private var currentUser: User? {
             authService.currentUser
         }
@@ -198,22 +191,18 @@ struct CalendarView: View {
                                     }
                                 }
                                )
-                               .environmentObject(authService)
-                               .environmentObject(videoLibraryVM)
-                               .environmentObject(settingsVM)
+                          
                            }
                        case .profile:
                            ProfileView()
-                               .environmentObject(authService)
-                               .environment(\.modelContext, profileVM.modelContext)
+                               
 
                                
                            
                            
                        case .appointments:
                            ManualAppointmentEntryView(viewModel: appointmentViewModel)  // ← HIER!
-                                     .environmentObject(authService)
-                                     .environmentObject(appointmentViewModel)
+                                   
                        }
                    }
 
@@ -393,31 +382,6 @@ struct CalendarView: View {
         configurations: config
     )
     
-    let context = ModelContext(container)
-    
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
-    let progressVM = ProgressViewModel(modelContext: context)
-    let appointmentVM = AppDependencies.shared.appointmentViewModel
-    
-    // ✅ CalendarViewModel MIT modelContext
-    let calendarVM = CalendarViewModel(modelContext: context)
-    
-    let videoLibraryVM = VideoLibraryViewModel(
-        repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
-        modelContext: context,
-        storageService: .shared
-    )
-    
-    let previewRepo = VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared)
-    
-    CalendarView(repository: previewRepo)
-        .environmentObject(authService)
-        .environmentObject(progressVM)
-        .environmentObject(appointmentVM)
-        .environmentObject(calendarVM)
-        .environmentObject(settingsVM)
-        .environmentObject(videoLibraryVM)
+    CalendarView()
         .modelContainer(container)
-        .frame(height: 900)
 }
