@@ -100,7 +100,9 @@ struct CalendarView: View {
     private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
         selectedScheduleId = schedule.id
         selectedVideoForPlayer = video
-        showVideoPlayer = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showVideoPlayer = true
+            }
     }
     enum SheetType: Identifiable {
         case
@@ -230,6 +232,9 @@ struct CalendarView: View {
                    .sheet(item: $selectedVideoForConfig) { video in
                        VideoQuickConfigSheet(
                            video: video,
+                           initialRepetitions: playbackSettings.repetitions,
+                           initialLoopDuration: playbackSettings.loopDurationSeconds,
+                           initialPause: playbackSettings.pauseSeconds,
                            onAdd: { reps, loopDuration, pause in
                                if let scheduleId = editingScheduleId,
                                   let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {

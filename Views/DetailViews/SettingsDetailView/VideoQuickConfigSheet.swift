@@ -19,13 +19,20 @@ struct VideoQuickConfigSheet: View {
     let onAdd: (Int, Int, Int) -> Void // reps, loopDuration, pause
     let onCancel: () -> Void
     
-    init(video: Video, onAdd: @escaping (Int, Int, Int) -> Void, onCancel: @escaping () -> Void) {
+    init(
+        video: Video,
+        initialRepetitions: Int? = nil,
+        initialLoopDuration: Int? = nil,
+        initialPause: Int? = nil,
+        onAdd: @escaping (Int, Int, Int) -> Void,
+        onCancel: @escaping () -> Void
+    ) {
         self.video = video
         self.onAdd = onAdd
         self.onCancel = onCancel
-        _repetitions = State(initialValue: video.defaultRepetitions)
-        _loopDurationSeconds = State(initialValue: video.loopDurationSeconds)
-        _pauseSeconds = State(initialValue: video.defaultPauseSeconds)
+        _repetitions = State(initialValue: initialRepetitions ?? video.defaultRepetitions)
+        _loopDurationSeconds = State(initialValue: initialLoopDuration ?? video.loopDurationSeconds)
+        _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds)
     }
     
     var totalSeconds: Int {

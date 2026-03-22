@@ -83,7 +83,13 @@ struct HomeView: View {
                     onConfig: { schedule in
                         editingScheduleId = schedule.id
                         selectedVideoForConfig = schedule.video ?? Video.previewMobility
-                        playbackSettings = PlaybackSettings(/* ... */)
+                        playbackSettings = PlaybackSettings(
+                            repetitions: schedule.customRepetitions ?? 3,
+                            pauseSeconds: schedule.customPauseSeconds ?? 30,
+                            loopDurationSeconds: schedule.customLoopDurationSeconds
+                                ?? schedule.video?.loopDurationSeconds
+                                ?? 120
+                        )
                     },
                     
                     
@@ -91,7 +97,9 @@ struct HomeView: View {
                     onPlay: { schedule, video in
                         selectedScheduleId = schedule.id
                         selectedVideoForPlayer = video
-                        showVideoPlayer = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                showVideoPlayer = true
+                            }
                     },
                     onAddVideo: {
                         activeSheet = .library  // ← Sheet öffnet sich!
@@ -184,6 +192,9 @@ struct HomeView: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
+                    initialRepetitions: playbackSettings.repetitions,
+                    initialLoopDuration: playbackSettings.loopDurationSeconds,
+                    initialPause: playbackSettings.pauseSeconds,
                     onAdd: { reps, loopDuration, pause in
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
@@ -202,31 +213,26 @@ struct HomeView: View {
                 )
             }
         // ⭐️ VIDEO PLAYER SHEET
-             .sheet(isPresented: $showVideoPlayer) {
-                 // ✅ onDismiss: Wird aufgerufen wenn VideoPlayer geschlossen wird
-                 if let video = selectedVideoForPlayer,
-                    let scheduleId = selectedScheduleId {
-                     
-                     // ⭐️ Rating vorbereiten
-                     ratingScheduleId = scheduleId
-                     ratingVideoTitle = video.title
-                     
-                     // ⭐️ Rating Sheet öffnen
-                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                         showRatingSheet = true
-                     }
-                 }
-             } content: {
-                 if let video = selectedVideoForPlayer,
-                    let scheduleId = selectedScheduleId {
-                     VideoPlayerView(
-                         video: video,
-                         scheduleId: scheduleId,
-                         progressViewModel: progressVM
-                     )
-                 }
-             }
-             
+        // ✅ RICHTIG
+        .sheet(isPresented: $showVideoPlayer, onDismiss: {
+            if let video = selectedVideoForPlayer,
+               let scheduleId = selectedScheduleId {
+                ratingScheduleId = scheduleId
+                ratingVideoTitle = video.title
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showRatingSheet = true
+                }
+            }
+        }) {
+            if let video = selectedVideoForPlayer,
+               let scheduleId = selectedScheduleId {
+                VideoPlayerView(
+                    video: video,
+                    scheduleId: scheduleId,
+                    progressViewModel: progressVM
+                )
+            }
+        }
              // ⭐️ RATING SHEET (kommt NACH VideoPlayer)
              .sheet(isPresented: $showRatingSheet) {
                  if let scheduleId = ratingScheduleId {
