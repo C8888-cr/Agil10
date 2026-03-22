@@ -67,7 +67,8 @@ struct CalendarView: View {
             }
             return allAppointments.filter {
                 $0.userId == userId &&
-                $0.date > Date().addingTimeInterval(-86400)
+                $0.date > Date().addingTimeInterval(-86400) &&
+                $0.status != .cancelled  
             }
         }
     
