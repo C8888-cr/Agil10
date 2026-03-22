@@ -15,18 +15,12 @@ struct AppRouter: View {
         Group {
             if authService.isLoading {
                 LoadingView()
-            } else if authService.isAuthenticated {  // ✅ Klarer!
+            } else if authService.isAuthenticated {
                 ContentView()
-                    .environmentObject(AppDependencies.shared.appointmentViewModel)
-                                       .environmentObject(AppDependencies.shared.calendarViewModel)
-                                  //     .environmentObject(AppDependencies.shared.trainingViewModel)
-                                       .environmentObject(AppDependencies.shared.settingsViewModel)
-                                     //  .environmentObject(AppDependencies.shared.trainingData)
-                                       .environmentObject(AppDependencies.shared.progressViewModel)
             } else {
                 LoginView()
             }
         }
-        .animation(.easeInOut, value: authService.isAuthenticated)  // ✅ Smooth Transition
+        .animation(.easeInOut, value: authService.isAuthenticated)
     }
 }
