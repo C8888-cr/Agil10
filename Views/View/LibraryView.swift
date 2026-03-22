@@ -172,7 +172,7 @@ struct LibraryView: View {
     
     
     var videoListView: some View {
-        LazyVStack(spacing: 0) {
+        LazyVStack(spacing: 4) {
             ForEach(viewModel.filteredVideos) { video in
                 VideoListRow(
                     video: video,
@@ -206,8 +206,7 @@ struct LibraryView: View {
                     }
                     )
                 if video.id != viewModel.filteredVideos.last?.id {
-                    Divider()
-                        .padding(.leading, 116)
+                   
                 }
             }
         }
