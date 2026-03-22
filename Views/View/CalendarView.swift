@@ -186,30 +186,20 @@ struct CalendarView: View {
                        case .library:
                            NavigationStack {
                                LibraryView(
-                                   onVideoSelected: { video in
-                                       let date = calendarViewModel.selectedDate
-                                       let dayOfWeek = (Calendar.current.component(
-                                           .weekday, from: date) + 5) % 7
-                                       let rule = settingsVM.preferences
-                                           .getGoalFor(dayOfWeek: dayOfWeek)?.recurrenceRule ?? .single
-                                       activeSheet = nil
-                                       
-                                       DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                           if rule == .single {
-                                               progressVM.addVideo(
-                                                   video,
-                                                   to: date,
-                                                   for: authService.currentUser!
-                                               )
-                                           } else {
-                                               pendingVideo = video
-                                               pendingDate = date
-                                               pendingRecurrenceRule = rule
-                                               showScopeDialog = true
-                                           }
-                                       }
-                                       selectedVideoForConfig = video 
-                                   }
+                                onVideoSelected: { video in
+                                    activeSheet = nil
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        pendingDate = calendarViewModel.selectedDate
+                                        editingScheduleId = nil
+                                        playbackSettings = PlaybackSettings(
+                                            repetitions: video.defaultRepetitions,
+                                            pauseSeconds: video.defaultPauseSeconds,
+                                            loopDurationSeconds: video.loopDurationSeconds
+                                        )
+                                        selectedVideoForConfig = video
+                                    }
+                                }
                                )
                                .environmentObject(authService)
                                .environmentObject(videoLibraryVM)
@@ -243,6 +233,23 @@ struct CalendarView: View {
                                    schedule.customPauseSeconds = pause
                                    schedule.customLoopDurationSeconds = loopDuration
                                    progressVM.updateSchedule(schedule, for: authService.currentUser!)
+                               } else {
+                                   // ✅ Neues Video hinzufügen
+                                   let rule = settingsVM.recurrenceRule(for: pendingDate)
+                                   if rule == .single {
+                                       progressVM.addVideo(
+                                           video,
+                                           to: pendingDate,
+                                           for: authService.currentUser!,
+                                           customRepetitions: reps,
+                                           customPauseSeconds: pause,
+                                           customLoopDuration: loopDuration
+                                       )
+                                   } else {
+                                       pendingVideo = video
+                                       pendingRecurrenceRule = rule
+                                       showScopeDialog = true
+                                   }
                                }
                                selectedVideoForConfig = nil
                                editingScheduleId = nil
