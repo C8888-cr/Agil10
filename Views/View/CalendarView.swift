@@ -117,18 +117,11 @@ struct CalendarView: View {
     
     var body: some View {
 
-            ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
-                
-                
-                VStack {
+                VStack(spacing: 0) {
                     CompactWeekView()
-                    
-                    Divider()
-                        .padding(.vertical,8)
-                    
+
                     ScrollView {
-                        VStack(spacing: 20) {
+                        VStack(spacing: 16) {
                             SelectedDateInfoView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 appointments: userAppointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
@@ -137,6 +130,8 @@ struct CalendarView: View {
                                     print("Add Appointment tapped") })
                        
                             .padding(.horizontal, 16)
+                            .padding(.top, 12)
+                            
                             
                             ExercisesForDateView(
                                 selectedDate: calendarViewModel.selectedDate,
@@ -151,16 +146,17 @@ struct CalendarView: View {
                                 },
                                 onDelete: { schedule in
                                     handleDelete(schedule)
-                                },
+                                }
                            
                             )
 
 
                             
                         }
-                  //      .padding()
+                        .padding(.bottom, 20)
                     }
-                }
+                
+                .background(Color(.systemGroupedBackground))
                 .navigationTitle("Kalender")
                 .toolbar {
                     toolbarContent
