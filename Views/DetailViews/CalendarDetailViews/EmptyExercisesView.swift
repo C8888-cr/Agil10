@@ -22,14 +22,14 @@ struct EmptyExercisesView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            Button(action: onAddExercise) {
+        /*    Button(action: onAddExercise) {
                 HStack {
                     Image(systemName: "plus.circle")
                     Text("Übungen hinzufügen")
                 }
                 .font(.subheadline)
                 .foregroundColor(.accent)
-            }
+            }*/
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
