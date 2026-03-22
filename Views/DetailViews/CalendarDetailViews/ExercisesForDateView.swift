@@ -55,7 +55,7 @@ struct ExercisesForDateView: View {
                         }
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Divider()
+             //       Divider()
                  //       .padding(.horizontal, 16)
                 }
             } else {
