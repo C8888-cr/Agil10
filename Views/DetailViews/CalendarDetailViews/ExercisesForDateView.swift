@@ -51,7 +51,7 @@ struct ExercisesForDateView: View {
                             print("Config tapped")
                         },
                         onPlay: { video in
-                            print("Play: \(video.title)")
+                            onPlay(schedule, video)
                         }
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
