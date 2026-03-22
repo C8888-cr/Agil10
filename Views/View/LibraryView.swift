@@ -252,7 +252,8 @@ struct LibraryView: View {
                     FilterChip(
                         title: category.rawValue,
                         icon: category.icon,
-                        onRemove: { viewModel.selectedCategory = nil }
+                        onRemove: { viewModel.selectedCategory = nil
+                            viewModel.applyFilters()}
                     )
                 }
                 
@@ -260,7 +261,8 @@ struct LibraryView: View {
                     FilterChip(
                         title: region.rawValue,
                         icon: region.icon,
-                        onRemove: { viewModel.selectedBodyRegion = nil }
+                        onRemove: { viewModel.selectedBodyRegion = nil
+                            viewModel.applyFilters()}
                     )
                 }
                 
@@ -268,7 +270,8 @@ struct LibraryView: View {
                     FilterChip(
                         title: equipment.rawValue,
                         icon: equipment.icon,
-                        onRemove: { viewModel.selectedEquipment = nil }
+                        onRemove: { viewModel.selectedEquipment = nil
+                            viewModel.applyFilters()}
                     )
                 }
                 
@@ -276,7 +279,8 @@ struct LibraryView: View {
                     FilterChip(
                         title: "Favoriten",
                         icon: "star.fill",
-                        onRemove: { viewModel.showFavoritesOnly = false }
+                        onRemove: { viewModel.showFavoritesOnly = false
+                            viewModel.applyFilters()}
                     )
                 }
                 
