@@ -41,6 +41,7 @@ struct ContentView: View {
                         .environmentObject(AppDependencies.shared.settingsViewModel)
                         .environmentObject(WeeklySettings())
                         .environmentObject(AppDependencies.shared.profileViewModel)
+                        .environmentObject(AppDependencies.shared.appointmentViewModel)
                 
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
