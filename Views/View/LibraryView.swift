@@ -38,6 +38,7 @@ struct LibraryView: View {
         
         
         contentView
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Video-Bibliothek")
             .toolbar {
                 toolbarContent

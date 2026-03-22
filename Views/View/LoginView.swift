@@ -187,17 +187,7 @@ struct LoginView: View {
                     .font(.caption)
                 }
                 .padding(20)
-                .background(
-                    // Hintergrund-Gradient an Telekom Magenta angepasst
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.accent.opacity(0.1), // Leichtere Telekom Magenta-Töne
-                            Color.accent.opacity(0.05)
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .background(Color(.systemGroupedBackground))
             }
         }
     }

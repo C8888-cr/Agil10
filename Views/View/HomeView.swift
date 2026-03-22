@@ -108,6 +108,7 @@ struct HomeView: View {
         }
                 .padding()
             }
+        .background(Color(.systemGroupedBackground))
             .navigationTitle("Heute")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
