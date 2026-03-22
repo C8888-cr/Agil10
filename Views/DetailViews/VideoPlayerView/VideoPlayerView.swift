@@ -275,7 +275,7 @@ struct VideoPlayerView: View {
                     // ✅ Loop-Indikator (nur im Training Mode)
                     if viewModel.settings.mode == .training,
                        let progress = viewModel.trainingProgress {
-                        Text("Runde \(viewModel.currentLoopIndex)")
+                        Text("Wiederholung \(progress.currentRepetition)/\(progress.totalRepetitions)")
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.6))
                     }
