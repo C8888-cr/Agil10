@@ -32,7 +32,7 @@ struct CompactWeekView: View {
                     
                     Spacer()
                     
-                Text(calendarViewModel.currentWeekStart.monthYearString())
+                Text(calendarViewModel.selectedDate.monthYearString())
                     .font(.headline)
                     .fontWeight(.semibold)
                 
@@ -44,9 +44,11 @@ struct CompactWeekView: View {
                         .frame(width: 44, height: 44)
                 }
             }
-            .padding(.horizontal)
-            
-            HStack(spacing: 8) {
+            .padding(.vertical, 8)
+   
+                     
+                     
+            HStack {
                 ForEach(Array(calendarViewModel.currentWeekDays.enumerated()), id: \.offset) { index, date in
                                  CompactDayCell(
                                      date: date,
@@ -66,7 +68,7 @@ struct CompactWeekView: View {
             }
             .padding(.horizontal)
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 8)
         .background(Color(.systemBackground))
     }
 }
