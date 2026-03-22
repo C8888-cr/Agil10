@@ -43,6 +43,8 @@ final class VideoPlayerViewModel: ObservableObject {
     private var pauseTimer: Timer?
     private var dismissAction: (() -> Void)?
     private var lastLoggedTime: Int = -1
+    
+    private var trainingCompleted = false
 
     // MARK: - Computed Properties
     var formattedCurrentTime: String {
@@ -375,6 +377,7 @@ final class VideoPlayerViewModel: ObservableObject {
 
     // ✅ NEUE METHODE: Training abschließen
       private func completeTraining() {
+          trainingCompleted = true
           print("✅ Training beendet - alle \(settings.repetitions) Wiederholungen")
           
           // Schedule als completed markieren
@@ -387,8 +390,8 @@ final class VideoPlayerViewModel: ObservableObject {
               print("✅ Markiere Schedule '\(videoTitle)' als completed")
               progressVM.markCompletedSchedule(schedule, for: user)
           }
-          
-          dismissAction?()
+          showRatingSheet = true
+    
       }
     
     private func startPauseTimer() {
@@ -588,6 +591,7 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Cleanup
     
     func cleanup() {
+        trainingCompleted = false
         controlsTimer?.invalidate()
         pauseTimer?.invalidate()
         cancellables.removeAll()
@@ -625,6 +629,7 @@ final class VideoPlayerViewModel: ObservableObject {
            }
            
            // View schließen
+           showRatingSheet = false
            dismissAction?()
        }
     
