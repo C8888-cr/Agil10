@@ -1,3 +1,11 @@
+//
+//  VideoScheduleRepository.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 23.03.26.
+//
+
+
 // Features/Schedule/Data/VideoScheduleRepository.swift
 import Foundation
 import SwiftData
@@ -69,5 +77,32 @@ class VideoScheduleRepository: VideoScheduleRepositoryProtocol {
 
     func saveChanges() throws {
         try modelContext.save()
+    }
+    
+    func fetchVideo(by id: UUID) throws -> Video? {
+        let descriptor = FetchDescriptor<Video>(
+            predicate: #Predicate<Video> { v in
+                v.id == id
+            }
+        )
+        return try modelContext.fetch(descriptor).first
+    }
+
+    func fetchUser(by id: UUID) throws -> User? {
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate<User> { u in
+                u.id == id
+            }
+        )
+        return try modelContext.fetch(descriptor).first
+    }
+
+    func fetchUserPreferences(for userId: UUID) throws -> UserPreferences? {
+        let descriptor = FetchDescriptor<UserPreferences>(
+            predicate: #Predicate<UserPreferences> { prefs in
+                prefs.userId == userId
+            }
+        )
+        return try modelContext.fetch(descriptor).first
     }
 }

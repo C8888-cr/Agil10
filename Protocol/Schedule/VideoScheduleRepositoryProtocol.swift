@@ -1,3 +1,11 @@
+//
+//  VideoScheduleRepositoryProtocol.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 23.03.26.
+//
+
+
 // Features/Schedule/Data/VideoScheduleRepositoryProtocol.swift
 import Foundation
 
@@ -9,4 +17,8 @@ protocol VideoScheduleRepositoryProtocol {
     func save(_ schedule: VideoSchedule) throws
     func delete(_ schedule: VideoSchedule) throws
     func saveChanges() throws
+    
+    func fetchVideo(by id: UUID) throws -> Video?
+    func fetchUser(by id: UUID) throws -> User?
+    func fetchUserPreferences(for userId: UUID) throws -> UserPreferences?
 }
