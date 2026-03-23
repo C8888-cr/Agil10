@@ -341,7 +341,8 @@ struct HomeView: View {
     
     let context = ModelContext(container)
     let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
-    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
     let appointmentVM = PreviewHelper.createAppointmentViewModel()
     
     let videoLibraryVM = VideoLibraryViewModel(
