@@ -31,7 +31,10 @@ class AppDependencies: ObservableObject {
             storageService: .shared,
             thumbnailService: .shared
         )
-    
+    // MARK: - Repositories
+    lazy var videoScheduleRepository = VideoScheduleRepository(
+        modelContext: modelContext
+    )
  
     
     // MARK: - AppointmentUseCases
@@ -68,8 +71,8 @@ class AppDependencies: ObservableObject {
     
     // MARK: - ViewModels (LAZY)
     lazy var progressViewModel = ProgressViewModel(
-           modelContext: modelContext,
-           authService: authService
+           authService: authService,
+           repository: videoScheduleRepository
        )
 
     lazy var appointmentViewModel = AppointmentViewModel(
