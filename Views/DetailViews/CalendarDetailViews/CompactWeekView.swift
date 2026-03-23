@@ -80,7 +80,8 @@ struct CompactWeekView: View {
     
     let context = previewContainer.mainContext
        let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
-       let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
        let calVM = CalendarViewModel(progressViewModel: progressVM, authService: authService)
        let apptVM = PreviewHelper.createAppointmentViewModel()
     
