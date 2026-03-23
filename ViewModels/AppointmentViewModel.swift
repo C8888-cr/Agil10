@@ -262,11 +262,24 @@ class AppointmentViewModel: ObservableObject {
            reason: String?,
            userEmail: String
        ) async {
+           
+           // ✅ practiceEmail hier im ViewModel auflösen
+              let practiceEmail: String
+              if let praxisId = currentUser?.praxisId,
+                 let praxis = PraxisDataManager.shared.getPraxis(by: praxisId),
+                 let email = praxis.email {
+                  practiceEmail = email
+              } else {
+                  practiceEmail = "praxis@physio-agil.de"
+              }
+           
+           
            do {
                try await cancelAppointmentUseCase.execute(
                    appointment: appointment,
                    reason: reason,
-                   userEmail: userEmail
+                   userEmail: userEmail,
+                   practiceEmail: practiceEmail
                )
              
                clearErrors()
