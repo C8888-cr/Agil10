@@ -397,7 +397,8 @@ struct DailyTemplateView: View {
     let context = ModelContext(container)
     
     let authService = AuthService(authServiceProtocol: MockAuthService())
-    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
