@@ -12,7 +12,7 @@ class AppDependencies: ObservableObject {
     // MARK: - Core
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    let authService: AuthService//Protocol
+    let authService: AuthService
  
 
     // MARK: - Services
@@ -20,42 +20,41 @@ class AppDependencies: ObservableObject {
     let emailService: EmailService
     
     
-    
     // MARK: - Repositories (LAZY)
-    // ✅ NEU (Fix 1)
     lazy var appointmentRepository = AppointmentRepository(
         modelContext: modelContext,
-        authService: authService  // ← AuthService statt userId!        return AppointmentRepository(modelContext: modelContext, userId: userId)
+        authService: authService
     )
     
-    
-    // ✅ NACHHER (computed property = immer gleicher Context!):
     lazy var videoRepository = VideoRepository (
-            modelContext: modelContext,  // ← IMMER der gleiche!
+            modelContext: modelContext,
             storageService: .shared,
             thumbnailService: .shared
         )
     
-    var videoLibraryVM: VideoLibraryViewModel {
-        VideoLibraryViewModel(
-            repository: videoRepository,
-            modelContext: modelContext,  // ← IMMER der gleiche!
-            storageService: .shared
-        )
-    }
+ 
     
-
-    
-    // MARK: - AppointmentUseCases (LAZY)
-    lazy var addAppointmentUseCase = AddAppointmentUseCase(repository: appointmentRepository, authService: authService)
-    lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(repository: appointmentRepository)
+    // MARK: - AppointmentUseCases
+    lazy var addAppointmentUseCase = AddAppointmentUseCase(
+        repository: appointmentRepository,
+        authService: authService
+    )
+    lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(
+        repository: appointmentRepository
+    )
     lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
         repository: appointmentRepository,
-        emailService: emailService)
- //   lazy var parseEmailUseCase = ParseEmailUseCase(parser: emailParser)
-    lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(repository: appointmentRepository)
-    lazy var markAsNotifiedUseCase = MarkAsNotifiedUseCase(repository: appointmentRepository)
-    lazy var loadAppointmentsUseCase = LoadAppointmentsUseCase(repository: appointmentRepository)
+        emailService: emailService
+    )
+    lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(
+        repository: appointmentRepository
+    )
+    lazy var markAsNotifiedUseCase = MarkAsNotifiedUseCase(
+        repository: appointmentRepository
+    )
+    lazy var loadAppointmentsUseCase = LoadAppointmentsUseCase(
+        repository: appointmentRepository
+    )
     lazy var parseAppointmentsFromEmailUseCase = ParseAppointmentsFromEmailUseCase(
         repository: appointmentRepository,
         emailParser: emailParser,
@@ -68,8 +67,11 @@ class AppDependencies: ObservableObject {
     
     
     // MARK: - ViewModels (LAZY)
+    lazy var progressViewModel = ProgressViewModel(
+           modelContext: modelContext,
+           authService: authService
+       )
 
-    
     lazy var appointmentViewModel = AppointmentViewModel(
         modelContext: modelContext,
         repository: appointmentRepository,
@@ -80,34 +82,35 @@ class AppDependencies: ObservableObject {
         emailService: emailService,
         markAsNotifiedUseCase: markAsNotifiedUseCase,
         loadAppointmentsUseCase: loadAppointmentsUseCase,
-    //    parseEmailUseCase: parseEmailUseCase,
         deleteAppointmentUseCase: deleteAppointmentUseCase,
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
     
-    lazy var calendarViewModel = CalendarViewModel(modelContext: modelContext)
+    lazy var calendarViewModel = CalendarViewModel(
+           progressViewModel: progressViewModel,
+           authService: authService
+       )
     
-    lazy var progressViewModel = ProgressViewModel(modelContext: modelContext)
-    
-    lazy var settingsViewModel = SettingsViewModel(modelContext: modelContext,
-    authService:authService)
-    
-    lazy var profileViewModel = ProfileViewModel(modelContext: modelContext, authService: authService)
-    
- //   lazy var trainingViewModel = TrainingViewModel()
-    
-
-
-
-
-
-  
-
-
+    lazy var videoLibraryVM =
+        VideoLibraryViewModel(
+            repository: videoRepository,
+            modelContext: modelContext,
+            authService: authService
+        )
     
 
+    lazy var settingsViewModel = SettingsViewModel(
+        modelContext: modelContext,
+        authService: authService
+    )
     
-    // Core/DI/AppDependencies.swift
+    lazy var profileViewModel = ProfileViewModel(
+        modelContext: modelContext,
+        authService: authService
+    )
+    
+
+    // MARK: - Init
     private init() {
         // 1. SwiftData ZUERST
         self.modelContainer = PersistenceController.shared.container
@@ -121,12 +124,12 @@ class AppDependencies: ObservableObject {
         let mockService = MockAuthService(modelContext: modelContext)
           self.authService = AuthService(
               authServiceProtocol: mockService,
-              modelContext: modelContext  // ✅ Context übergeben!
+              modelContext: modelContext
           )
           #else
           self.authService = AuthService(
               authServiceProtocol: RealAuthService(),
-              modelContext: modelContext  // ✅ Auch hier!
+              modelContext: modelContext
           )
         print("✅ RealAuthService erstellt")
         #endif

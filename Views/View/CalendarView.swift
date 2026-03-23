@@ -246,7 +246,8 @@ struct CalendarView: View {
                        VideoPlayerView(
                            video: item.video,
                            scheduleId: item.scheduleId,
-                           progressViewModel: progressVM
+                           progressViewModel: progressVM,
+                           authService: authService
                        )
                    }
     

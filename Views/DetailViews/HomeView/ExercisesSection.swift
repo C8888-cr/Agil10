@@ -92,13 +92,12 @@ struct ExercisesSection: View {
         video: .previewStrength
     )
     
-
-    
+    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
     
     let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
     
     // ViewModel mit Kontext initialisieren
-    let progressVM = ProgressViewModel(modelContext: context)
+    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
   
     
      ExercisesSection(

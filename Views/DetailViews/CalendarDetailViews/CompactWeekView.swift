@@ -79,8 +79,10 @@ struct CompactWeekView: View {
     )
     
     let context = previewContainer.mainContext
-    let calVM = CalendarViewModel(modelContext: context)
-    let apptVM = PreviewHelper.createAppointmentViewModel()
+       let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+       let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+       let calVM = CalendarViewModel(progressViewModel: progressVM, authService: authService)
+       let apptVM = PreviewHelper.createAppointmentViewModel()
     
 
     

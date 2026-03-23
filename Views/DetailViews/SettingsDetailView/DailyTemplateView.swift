@@ -395,13 +395,14 @@ struct DailyTemplateView: View {
         configurations: config
     )
     let context = ModelContext(container)
-    let progressVM = ProgressViewModel(modelContext: context)
     
     let authService = AuthService(authServiceProtocol: MockAuthService())
+    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
+        authService: authService,
         storageService: .shared
     )
     

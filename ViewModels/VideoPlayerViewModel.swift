@@ -45,6 +45,8 @@ final class VideoPlayerViewModel: ObservableObject {
     private var lastLoggedTime: Int = -1
     
     private var trainingCompleted = false
+    
+    private let authService: AuthService
 
     // MARK: - Computed Properties
     var formattedCurrentTime: String {
@@ -81,8 +83,12 @@ final class VideoPlayerViewModel: ObservableObject {
        }
     
     // MARK: - Initialization
-    init(video: Video, scheduleId: UUID? = nil, progressViewModel: ProgressViewModel? = nil) {
-        
+    init(video: Video,
+         scheduleId: UUID? = nil,
+         progressViewModel: ProgressViewModel? = nil,
+         authService: AuthService
+    ) {
+        self.authService = authService
         self.scheduleId = scheduleId
         self.progressViewModel = progressViewModel
         self.video = video
@@ -384,7 +390,7 @@ final class VideoPlayerViewModel: ObservableObject {
           if let scheduleId = scheduleId,
              let progressVM = progressViewModel,
              let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
-             let user = AppDependencies.shared.authService.currentUser {
+             let user = authService.currentUser {
               
               let videoTitle = schedule.video?.title ?? "Unbekannt"
               print("✅ Markiere Schedule '\(videoTitle)' als completed")
@@ -616,7 +622,7 @@ final class VideoPlayerViewModel: ObservableObject {
            if let scheduleId = scheduleId,
               let progressVM = progressViewModel,
               let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
-              let user = AppDependencies.shared.authService.currentUser {
+              let user = authService.currentUser {
                
                // ✅ Rating setzen
                schedule.rating = rating

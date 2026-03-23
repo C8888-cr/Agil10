@@ -228,7 +228,8 @@ struct HomeView: View {
             VideoPlayerView(
                 video: item.video,
                 scheduleId: item.scheduleId,
-                progressViewModel: progressVM
+                progressViewModel: progressVM,
+                authService: authService
             )
         }
 
@@ -332,9 +333,6 @@ struct HomeView: View {
 */
 }
 #Preview {
-
-    
-    
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: VideoSchedule.self, Appointment.self,
@@ -342,23 +340,22 @@ struct HomeView: View {
     )
     
     let context = ModelContext(container)
-    
-    let authService = AuthService(authServiceProtocol: MockAuthService())
- 
-    let appointmentVM = AppDependencies.shared.appointmentViewModel
-    let progressVM = ProgressViewModel(modelContext: context)
+    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    let appointmentVM = PreviewHelper.createAppointmentViewModel()
     
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
-        storageService: .shared
+        authService: authService
     )
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
-    
-   HomeView()
+
+    HomeView()
         .environmentObject(authService)
         .environmentObject(progressVM)
         .environmentObject(videoLibraryVM)
         .environmentObject(settingsVM)
         .environmentObject(appointmentVM)
+        .modelContainer(container)
 }
