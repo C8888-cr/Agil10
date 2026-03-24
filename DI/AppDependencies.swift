@@ -71,8 +71,8 @@ class AppDependencies: ObservableObject {
     
     // MARK: - ViewModels (LAZY)
     lazy var progressViewModel = ProgressViewModel(
-           authService: authService,
-           repository: videoScheduleRepository
+        modelContext: modelContext, authService: authService,
+          // repository: videoScheduleRepository
        )
 
     lazy var appointmentViewModel = AppointmentViewModel(
