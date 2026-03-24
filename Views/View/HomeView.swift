@@ -194,6 +194,7 @@ struct HomeView: View {
                             schedule.customPauseSeconds = pause
                             schedule.customLoopDurationSeconds = loopDuration
                             progressVM.updateSchedule(schedule, for: authService.currentUser!)
+                            progressVM.loadToday(for: authService.currentUser!)
                         } else {
                             // ✅ Neues Video hinzufügen
                             let rule = settingsVM.recurrenceRule(for: pendingDate)
@@ -206,6 +207,7 @@ struct HomeView: View {
                                     customPauseSeconds: pause,
                                     customLoopDuration: loopDuration
                                 )
+                                progressVM.loadToday(for: authService.currentUser!)
                             } else {
                                 pendingVideo = video
                                 pendingRecurrenceRule = rule
@@ -332,6 +334,8 @@ struct HomeView: View {
 
 */
 }
+
+/*
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
@@ -360,3 +364,4 @@ struct HomeView: View {
         .environmentObject(appointmentVM)
         .modelContainer(container)
 }
+*/
