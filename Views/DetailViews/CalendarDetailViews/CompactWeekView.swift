@@ -72,6 +72,8 @@ struct CompactWeekView: View {
         .background(Color(.systemBackground))
     }
 }
+
+/*
 #Preview {
     let previewContainer = try! ModelContainer(
         for: VideoSchedule.self, Appointment.self,
@@ -92,3 +94,4 @@ struct CompactWeekView: View {
         .environmentObject(apptVM)
         .modelContainer(previewContainer)
 }
+*/

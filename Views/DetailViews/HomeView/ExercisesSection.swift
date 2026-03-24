@@ -69,6 +69,8 @@ struct ExercisesSection: View {
  
     }
 }
+
+/*
 #Preview {
     // In‑Memory Container nur für die Preview
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -87,7 +89,7 @@ struct ExercisesSection: View {
     
     // ViewModel mit Kontext initialisieren
     let repository = VideoScheduleRepository(modelContext: context)
-    let progressVM = ProgressViewModel(authService: authService, repository: repository)
+    let progressVM = ProgressViewModel(modelContext: modelContext, authService: authService, repository: repository)
   
     
      ExercisesSection(
@@ -101,3 +103,4 @@ struct ExercisesSection: View {
     .environmentObject(settingsVM)
     .modelContainer(container)
 }
+*/
