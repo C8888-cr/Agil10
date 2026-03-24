@@ -35,7 +35,7 @@ struct ProgressTabView: View {
                     ExerciseTypeStatsCard()
                     
                     // 📅 Tägliche Aufschlüsselung
-                    DailyBreakdownCard()
+           //         DailyBreakdownCard()
                     
                     // 📈 Gesamtstatistiken
                     OverallStatisticsCard()
@@ -391,6 +391,8 @@ struct ExerciseTypeStatItem: View {
         .cornerRadius(12)
     }
 }
+
+
 // MARK: - Daily Breakdown Card
 struct DailyBreakdownCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
