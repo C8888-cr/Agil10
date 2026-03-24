@@ -351,7 +351,7 @@ struct HomeView: View {
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
-        storageService: .shared
+       // storageService: .shared
     )
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     
