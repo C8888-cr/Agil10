@@ -275,6 +275,7 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Add Video
     /// Video zu bestimmtem Datum hinzufügen
     func addVideo(
+  
         _ video: Video,
         to date: Date,
         for user: User,
@@ -286,6 +287,7 @@ class ProgressViewModel: ObservableObject {
         reps: Int? = nil,
         notes: String? = nil
     ) {
+        print("🔍 addVideo START - CallStack:")
         print("🔍 addVideo START")
         print("   📹 Video: \(video.title) (ID: \(video.id))")
         print("   📅 Date: \(date)")
