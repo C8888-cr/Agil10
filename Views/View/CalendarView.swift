@@ -271,6 +271,9 @@ struct CalendarView: View {
                                 for: authService.currentUser!,
                                 scope: .onlyToday,
                                 progressVM: progressVM,
+                                customRepetitions: pendingReps,
+                                customPauseSeconds: pendingPause,
+                                customLoopDuration: pendingLoopDuration
                                
                             )
                         }
@@ -284,6 +287,9 @@ struct CalendarView: View {
                                 for: authService.currentUser!,
                                 scope: .allFuture,
                                 progressVM: progressVM,
+                                customRepetitions: pendingReps,
+                                customPauseSeconds: pendingPause,
+                                customLoopDuration: pendingLoopDuration
                                 
                             )
                         }
@@ -305,9 +311,7 @@ struct CalendarView: View {
                                 for: authService.currentUser!,
                                 scope: .onlyToday,
                                 progressVM: progressVM,
-                                pendingReps = reps,
-                                   pendingPause = pause,
-                                   pendingLoopDuration = loopDuration
+                               
                             )
                         }
                         pendingDeleteSchedule = nil
@@ -319,9 +323,7 @@ struct CalendarView: View {
                                 for: authService.currentUser!,
                                 scope: .allFuture,
                                 progressVM: progressVM,
-                                pendingReps = reps,
-                                   pendingPause = pause,
-                                   pendingLoopDuration = loopDuration
+                               
                             )
                         }
                         pendingDeleteSchedule = nil
