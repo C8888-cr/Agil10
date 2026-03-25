@@ -20,7 +20,10 @@ struct HomeView: View {
     @State private var pendingDeleteSchedule: VideoSchedule?
     @State private var showDeleteScopeDialog = false
     
-    
+    // ✅ NEU hinzufügen:
+    @State private var pendingReps: Int = 1
+    @State private var pendingPause: Int = 30
+    @State private var pendingLoopDuration: Int = 120
     
     @State private var videoPlayerItem: VideoPlayerItem?
     
@@ -211,6 +214,9 @@ struct HomeView: View {
                             } else {
                                 pendingVideo = video
                                 pendingRecurrenceRule = rule
+                                pendingReps = reps
+                                   pendingPause = pause
+                                   pendingLoopDuration = loopDuration
                                 showScopeDialog = true
                             }
                         }
@@ -251,7 +257,10 @@ struct HomeView: View {
                         to: pendingDate,
                         for: authService.currentUser!,
                         scope: .onlyToday,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+                        customRepetitions: pendingReps,      // ✅
+                                   customPauseSeconds: pendingPause,    // ✅
+                                   customLoopDuration: pendingLoopDuration // ✅
                     )
                 }
                 pendingVideo = nil
@@ -263,7 +272,10 @@ struct HomeView: View {
                         to: pendingDate,
                         for: authService.currentUser!,
                         scope: .allFuture,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+                        customRepetitions: pendingReps,      // ✅
+                                   customPauseSeconds: pendingPause,    // ✅
+                                   customLoopDuration: pendingLoopDuration // ✅
                     )
                 }
                 pendingVideo = nil
