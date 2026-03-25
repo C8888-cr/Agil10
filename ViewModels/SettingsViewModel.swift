@@ -746,13 +746,9 @@ class SettingsViewModel: ObservableObject {
 
             switch rule {
             case .daily:
-                // ✅ FIX: Täglich = jeden Tag DIESER Wochentag-Kategorie
-                // d.h. nur wenn weekday zum dayIndex passt
-                if weekday == targetWeekday {
-                    dates.append(current)
-                }
-                current = calendar.date(byAdding: .day, value: 1, to: current)!
-
+                dates.append(current)
+                   current = calendar.date(byAdding: .day, value: 1, to: current)!
+                
             case .weekly:
                 if weekday == targetWeekday {
                     dates.append(current)

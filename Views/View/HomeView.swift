@@ -20,7 +20,7 @@ struct HomeView: View {
     @State private var pendingDeleteSchedule: VideoSchedule?
     @State private var showDeleteScopeDialog = false
     
-    // ✅ NEU hinzufügen:
+
     @State private var pendingReps: Int = 1
     @State private var pendingPause: Int = 30
     @State private var pendingLoopDuration: Int = 120
@@ -295,7 +295,8 @@ struct HomeView: View {
                         schedule,
                         for: authService.currentUser!,
                         scope: .onlyToday,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+    
                     )
                 }
                 pendingDeleteSchedule = nil
@@ -306,7 +307,7 @@ struct HomeView: View {
                         schedule,
                         for: authService.currentUser!,
                         scope: .allFuture,
-                        progressVM: progressVM
+                        progressVM: progressVM,
                     )
                 }
                 pendingDeleteSchedule = nil
