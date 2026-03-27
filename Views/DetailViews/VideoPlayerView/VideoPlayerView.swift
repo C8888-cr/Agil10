@@ -20,14 +20,19 @@ struct VideoPlayerView: View {
     let scheduleId: UUID?
     let progressViewModel: ProgressViewModel?
     
-    init(video: Video, scheduleId: UUID? = nil, progressViewModel: ProgressViewModel? = nil) {
+    init(video: Video,
+         scheduleId: UUID? = nil,
+         progressViewModel: ProgressViewModel? = nil,
+         authService: AuthService
+    ) {
         self.video = video
         self.scheduleId = scheduleId
         self.progressViewModel = progressViewModel
         _viewModel = StateObject(wrappedValue: VideoPlayerViewModel(
             video: video,
             scheduleId: scheduleId,
-            progressViewModel: progressViewModel
+            progressViewModel: progressViewModel,
+            authService: authService
         ))
     }
     
@@ -402,6 +407,10 @@ struct VideoPlayerView: View {
         rating: 4
     )
     
-    VideoPlayerView(video: mockVideo, scheduleId: UUID())
-        .environmentObject(deps.progressViewModel)
-}
+    VideoPlayerView(
+           video: mockVideo,
+           scheduleId: UUID(),
+           authService: deps.authService  // ← neu
+       )
+       .environmentObject(deps.progressViewModel)
+   }

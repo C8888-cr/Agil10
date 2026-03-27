@@ -388,6 +388,8 @@ struct DailyTemplateView: View {
         )
     }
 }
+
+/*
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
@@ -395,13 +397,15 @@ struct DailyTemplateView: View {
         configurations: config
     )
     let context = ModelContext(container)
-    let progressVM = ProgressViewModel(modelContext: context)
     
     let authService = AuthService(authServiceProtocol: MockAuthService())
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
+        authService: authService,
         storageService: .shared
     )
     
@@ -414,3 +418,4 @@ struct DailyTemplateView: View {
     }
     .modelContainer(container)
 }
+*/

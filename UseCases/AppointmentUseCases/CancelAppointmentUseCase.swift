@@ -1,21 +1,7 @@
-//
-//  CancelAppointmentUseCase.swift
-//  Agil
-//
-//  Created by Christiane Roth on 25.11.25.
-//
 
-
-//
-//  CancelAppointmentUseCase.swift
-//  Agil7.0
-//
-//  Created by Christiane Roth on 05.10.25.
-//
-//TODO: popup mit 24 std case einbauen
-
-// Features/Appointments/UseCases/CancelAppointmentUseCase.swift
 import Foundation
+
+
 struct CancelAppointmentUseCase {
     private let repository: AppointmentRepository
     private let emailService: EmailService
@@ -31,12 +17,10 @@ struct CancelAppointmentUseCase {
     func execute(
         appointment: Appointment,
         reason: String?,
-        userEmail: String
+        userEmail: String,
+        practiceEmail: String
     ) async throws {
         print("🚫 Setze Status auf cancelled für: \(appointment.therapist)")
-        // ✅ User Praxis laden
-        let practiceEmail = "praxis@physio-agil.de"
-        
         
         // Status ändern
         appointment.status = .cancelled

@@ -66,9 +66,11 @@ struct ExercisesSection: View {
                            RemainingTimeCard(remainingSeconds: remainingSeconds)
                        }
         }
-   //     .padding(.horizontal, 8)
+ 
     }
 }
+
+/*
 #Preview {
     // In‑Memory Container nur für die Preview
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -79,26 +81,15 @@ struct ExercisesSection: View {
     
     // Kontext über den Container holen
     let context = ModelContext(container)
-    
-    // Beispiel‑Daten
-    let schedule1 = VideoSchedule(
-        scheduledDate: Date(),
-        orderIndex: 0,
-        video: .previewMobility
-    )
-    let schedule2 = VideoSchedule(
-        scheduledDate: Date(),
-        orderIndex: 1,
-        video: .previewStrength
-    )
-    
 
     
+    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
     
     let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
     
     // ViewModel mit Kontext initialisieren
-    let progressVM = ProgressViewModel(modelContext: context)
+    let repository = VideoScheduleRepository(modelContext: context)
+    let progressVM = ProgressViewModel(modelContext: modelContext, authService: authService, repository: repository)
   
     
      ExercisesSection(
@@ -112,3 +103,4 @@ struct ExercisesSection: View {
     .environmentObject(settingsVM)
     .modelContainer(container)
 }
+*/

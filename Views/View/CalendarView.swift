@@ -48,6 +48,10 @@ struct CalendarView: View {
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
 
+    @State private var pendingReps: Int = 1
+    @State private var pendingPause: Int = 30
+    @State private var pendingLoopDuration: Int = 120
+    
     
     var onVideoSelected: ((Video) -> Void)? = nil
     
@@ -230,6 +234,9 @@ struct CalendarView: View {
                                    } else {
                                        pendingVideo = video
                                        pendingRecurrenceRule = rule
+                                       pendingReps = reps
+                                          pendingPause = pause
+                                          pendingLoopDuration = loopDuration
                                        showScopeDialog = true
                                    }
                                }
@@ -246,7 +253,8 @@ struct CalendarView: View {
                        VideoPlayerView(
                            video: item.video,
                            scheduleId: item.scheduleId,
-                           progressViewModel: progressVM
+                           progressViewModel: progressVM,
+                           authService: authService
                        )
                    }
     
@@ -262,7 +270,11 @@ struct CalendarView: View {
                                 to: pendingDate,
                                 for: authService.currentUser!,
                                 scope: .onlyToday,
-                                progressVM: progressVM
+                                progressVM: progressVM,
+                                customRepetitions: pendingReps,
+                                customPauseSeconds: pendingPause,
+                                customLoopDuration: pendingLoopDuration
+                               
                             )
                         }
                         pendingVideo = nil
@@ -274,7 +286,11 @@ struct CalendarView: View {
                                 to: pendingDate,
                                 for: authService.currentUser!,
                                 scope: .allFuture,
-                                progressVM: progressVM
+                                progressVM: progressVM,
+                                customRepetitions: pendingReps,
+                                customPauseSeconds: pendingPause,
+                                customLoopDuration: pendingLoopDuration
+                                
                             )
                         }
                         pendingVideo = nil
@@ -294,7 +310,8 @@ struct CalendarView: View {
                                 schedule,
                                 for: authService.currentUser!,
                                 scope: .onlyToday,
-                                progressVM: progressVM
+                                progressVM: progressVM,
+                               
                             )
                         }
                         pendingDeleteSchedule = nil
@@ -305,7 +322,8 @@ struct CalendarView: View {
                                 schedule,
                                 for: authService.currentUser!,
                                 scope: .allFuture,
-                                progressVM: progressVM
+                                progressVM: progressVM,
+                               
                             )
                         }
                         pendingDeleteSchedule = nil

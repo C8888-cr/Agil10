@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5600F2DE2F772E8900BF72DE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5600F2DD2F772E8900BF72DE /* FirebaseAuth */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		56F4C5EF2ECDB52D00417181 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -123,6 +127,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5600F2DE2F772E8900BF72DE /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +217,7 @@
 			);
 			name = Agil10.0;
 			packageProductDependencies = (
+				5600F2DD2F772E8900BF72DE /* FirebaseAuth */,
 			);
 			productName = Agil;
 			productReference = 56F4C5E12ECDB52C00417181 /* Agil10.0.app */;
@@ -295,6 +301,9 @@
 			);
 			mainGroup = 56F4C5D82ECDB52C00417181;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5688B84E2F77177600641CB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 56F4C5E22ECDB52C00417181 /* Products */;
 			projectDirPath = "";
@@ -660,6 +669,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5688B84E2F77177600641CB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5600F2DD2F772E8900BF72DE /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5688B84E2F77177600641CB9 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 56F4C5D92ECDB52C00417181 /* Project object */;
 }

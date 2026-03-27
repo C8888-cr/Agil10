@@ -72,6 +72,8 @@ struct CompactWeekView: View {
         .background(Color(.systemBackground))
     }
 }
+
+/*
 #Preview {
     let previewContainer = try! ModelContainer(
         for: VideoSchedule.self, Appointment.self,
@@ -79,8 +81,11 @@ struct CompactWeekView: View {
     )
     
     let context = previewContainer.mainContext
-    let calVM = CalendarViewModel(modelContext: context)
-    let apptVM = PreviewHelper.createAppointmentViewModel()
+       let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
+       let calVM = CalendarViewModel(progressViewModel: progressVM, authService: authService)
+       let apptVM = PreviewHelper.createAppointmentViewModel()
     
 
     
@@ -89,3 +94,4 @@ struct CompactWeekView: View {
         .environmentObject(apptVM)
         .modelContainer(previewContainer)
 }
+*/

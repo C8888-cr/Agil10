@@ -37,7 +37,7 @@ final class VideoLibraryViewModel: ObservableObject {
     @Published var isUploading = false
     @Published var uploadProgress: Double = 0.0
     
-    // View Mode
+    // View Model
     @Published var viewMode: ViewMode = .grid
     
     // Storage Info
@@ -52,33 +52,23 @@ final class VideoLibraryViewModel: ObservableObject {
     let repository: VideoRepositoryProtocol
     private let storageService: VideoStorageService
     private let modelContext: ModelContext
+    private let authService: AuthService
+    
     
     // MARK: - Init
     init(
-           repository: VideoRepositoryProtocol,
-           modelContext: ModelContext,
-           storageService: VideoStorageService = .shared
-       ) {
-           self.repository = repository
-           self.modelContext = modelContext
-           self.storageService = storageService
-       }
+        repository: VideoRepositoryProtocol,
+        modelContext: ModelContext,
+        authService: AuthService,
+        storageService: VideoStorageService = .shared
+    ) {
+        self.repository = repository
+        self.modelContext = modelContext
+        self.authService = authService
+        self.storageService = storageService
+    }
     
-    
-    // ✅ AuthService aus AppDependencies holen
-       private var authService: AuthService {
-           AppDependencies.shared.authService
-       }
-       
-       // ✅ Dann currentUser daraus holen
-       private var currentUser: User? {
-           authService.currentUser
-       }
-    
-    
-    
-    
-    
+
     // MARK: - Setup
     func setup(for user: User) {
         print("🟢 START: Setup ViewModel")

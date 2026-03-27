@@ -20,7 +20,10 @@ struct HomeView: View {
     @State private var pendingDeleteSchedule: VideoSchedule?
     @State private var showDeleteScopeDialog = false
     
-    
+
+    @State private var pendingReps: Int = 1
+    @State private var pendingPause: Int = 30
+    @State private var pendingLoopDuration: Int = 120
     
     @State private var videoPlayerItem: VideoPlayerItem?
     
@@ -194,6 +197,7 @@ struct HomeView: View {
                             schedule.customPauseSeconds = pause
                             schedule.customLoopDurationSeconds = loopDuration
                             progressVM.updateSchedule(schedule, for: authService.currentUser!)
+                            progressVM.loadToday(for: authService.currentUser!)
                         } else {
                             // ✅ Neues Video hinzufügen
                             let rule = settingsVM.recurrenceRule(for: pendingDate)
@@ -206,9 +210,13 @@ struct HomeView: View {
                                     customPauseSeconds: pause,
                                     customLoopDuration: loopDuration
                                 )
+                                progressVM.loadToday(for: authService.currentUser!)
                             } else {
                                 pendingVideo = video
                                 pendingRecurrenceRule = rule
+                                pendingReps = reps
+                                   pendingPause = pause
+                                   pendingLoopDuration = loopDuration
                                 showScopeDialog = true
                             }
                         }
@@ -228,7 +236,8 @@ struct HomeView: View {
             VideoPlayerView(
                 video: item.video,
                 scheduleId: item.scheduleId,
-                progressViewModel: progressVM
+                progressViewModel: progressVM,
+                authService: authService
             )
         }
 
@@ -248,7 +257,10 @@ struct HomeView: View {
                         to: pendingDate,
                         for: authService.currentUser!,
                         scope: .onlyToday,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+                        customRepetitions: pendingReps,      // ✅
+                                   customPauseSeconds: pendingPause,    // ✅
+                                   customLoopDuration: pendingLoopDuration // ✅
                     )
                 }
                 pendingVideo = nil
@@ -260,7 +272,10 @@ struct HomeView: View {
                         to: pendingDate,
                         for: authService.currentUser!,
                         scope: .allFuture,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+                        customRepetitions: pendingReps,      // ✅
+                                   customPauseSeconds: pendingPause,    // ✅
+                                   customLoopDuration: pendingLoopDuration // ✅
                     )
                 }
                 pendingVideo = nil
@@ -280,7 +295,8 @@ struct HomeView: View {
                         schedule,
                         for: authService.currentUser!,
                         scope: .onlyToday,
-                        progressVM: progressVM
+                        progressVM: progressVM,
+    
                     )
                 }
                 pendingDeleteSchedule = nil
@@ -291,7 +307,7 @@ struct HomeView: View {
                         schedule,
                         for: authService.currentUser!,
                         scope: .allFuture,
-                        progressVM: progressVM
+                        progressVM: progressVM,
                     )
                 }
                 pendingDeleteSchedule = nil
@@ -331,10 +347,9 @@ struct HomeView: View {
 
 */
 }
-#Preview {
 
-    
-    
+/*
+#Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: VideoSchedule.self, Appointment.self,
@@ -342,23 +357,28 @@ struct HomeView: View {
     )
     
     let context = ModelContext(container)
-    
-    let authService = AuthService(authServiceProtocol: MockAuthService())
- 
-    let appointmentVM = AppDependencies.shared.appointmentViewModel
-    let progressVM = ProgressViewModel(modelContext: context)
+    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+    let repository = VideoScheduleRepository(modelContext: context)
+      let progressVM = ProgressViewModel(authService: authService, repository: repository)
+    let appointmentVM = PreviewHelper.createAppointmentViewModel()
     
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
         modelContext: context,
+<<<<<<< HEAD
        // storageService: .shared
+=======
+        authService: authService
+>>>>>>> CleanArchitecture
     )
     let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
-    
-   HomeView()
+
+    HomeView()
         .environmentObject(authService)
         .environmentObject(progressVM)
         .environmentObject(videoLibraryVM)
         .environmentObject(settingsVM)
         .environmentObject(appointmentVM)
+        .modelContainer(container)
 }
+*/

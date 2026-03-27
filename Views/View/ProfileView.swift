@@ -499,29 +499,3 @@ struct PraxisCard: View {
         }
     }
 }
-#Preview {
-    @MainActor in
-    
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(
-        for: VideoSchedule.self, Appointment.self,
-        configurations: config
-    )
-    let context = ModelContext(container)
-    
-    // Setup
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let mockUser = User.mockPatient()
-    context.insert(mockUser)
-    authService.currentUser = mockUser
-    
-    let progressVM = ProgressViewModel(modelContext: context)
-    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
-    
-    // ✅ Explizites return
-    return ProfileView()
-        .environmentObject(settingsVM)
-        .environmentObject(authService)
-        .environmentObject(progressVM)
-        .modelContainer(container)
-}

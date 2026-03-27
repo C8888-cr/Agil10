@@ -30,5 +30,5 @@ protocol AuthServiceProtocol {
           role: UserRole,
           praxisId: UUID?
     )
-                async throws -> (User, String)  // ✅ (User, Token)
+                async throws -> (user: User, sessionToken: String)
 }

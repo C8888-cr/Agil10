@@ -54,6 +54,7 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Dependencies
     
     private let modelContext: ModelContext
+    private let authService: AuthService
 
     private let calendar = Calendar.current
     
@@ -62,35 +63,24 @@ class ProgressViewModel: ObservableObject {
       private var debounceSubject = PassthroughSubject<Void, Never>()
 
     
-    // ✅ AuthService aus AppDependencies holen
-      var authService: AuthService {
-           AppDependencies.shared.authService
-       }
-       
-       // ✅ Dann currentUser daraus holen
-       var currentUser: User? {
-           authService.currentUser
-       }
-    
-
-    
     // MARK: - Init
     
-    init(modelContext: ModelContext) {
-           self.modelContext = modelContext
-      
-           loadTodaysSchedules()
-       
-        // ✅ Setup Notification Listener
+    init(modelContext: ModelContext, authService: AuthService) {
+        self.modelContext = modelContext
+        self.authService = authService
+        
+        loadTodaysSchedules()
         setupPreferencesObserver()
     }
+    
+    
     // ✅ Eigene Funktion (ist automatisch @MainActor weil class ist @MainActor)
     private func setupPreferencesObserver() {
         debounceSubject
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                guard let user = self.currentUser else {
+                guard let user = authService.currentUser else {
                     print("⚠️ [DEBOUNCED] Kein User - skip reload")
                     return
                 }
@@ -285,6 +275,7 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Add Video
     /// Video zu bestimmtem Datum hinzufügen
     func addVideo(
+  
         _ video: Video,
         to date: Date,
         for user: User,
@@ -296,6 +287,7 @@ class ProgressViewModel: ObservableObject {
         reps: Int? = nil,
         notes: String? = nil
     ) {
+        print("🔍 addVideo START - CallStack:")
         print("🔍 addVideo START")
         print("   📹 Video: \(video.title) (ID: \(video.id))")
         print("   📅 Date: \(date)")
