@@ -1,10 +1,16 @@
 import SwiftUI
 import SwiftData
+import Firebase
 
 
 @main
 struct AgilApp: App {
     @StateObject private var dependencies = AppDependencies.shared
+  
+    
+    init() {
+        FirebaseApp.configure()
+    }
     
     var body: some Scene {
         WindowGroup {

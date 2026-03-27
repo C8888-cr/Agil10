@@ -65,7 +65,7 @@ final class MockAuthService: AuthServiceProtocol, ObservableObject {
         lastName: String,
         role: UserRole,
         praxisId: UUID?
-    ) async throws -> (User, String) {
+    ) async throws -> (user: User, sessionToken: String) {
         
         print("🔧 MockAuthService.signUp() START")
           print("   email: \(email)")
@@ -137,7 +137,7 @@ final class MockAuthService: AuthServiceProtocol, ObservableObject {
           
           try await Task.sleep(nanoseconds: 1_500_000_000)
           
-          return (newUser, token)
+        return (user: newUser, sessionToken: token)
       }
     
     // ✅ LOGIN - FIXED

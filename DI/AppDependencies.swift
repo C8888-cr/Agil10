@@ -129,11 +129,11 @@ class AppDependencies: ObservableObject {
               authServiceProtocol: mockService,
               modelContext: modelContext
           )
-          #else
-          self.authService = AuthService(
-              authServiceProtocol: RealAuthService(),
-              modelContext: modelContext
-          )
+#else
+self.authService = AuthService(
+    authServiceProtocol: FirebaseAuthService(), // ← war RealAuthService()
+    modelContext: modelContext
+)
         print("✅ RealAuthService erstellt")
         #endif
         
