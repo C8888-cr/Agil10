@@ -136,7 +136,7 @@ struct AllDoneView: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            Text("🎉")
+            Text("")
                 .font(.system(size: 80))
             Text("Training abgeschlossen!")
                 .font(.title)
@@ -147,6 +147,11 @@ struct AllDoneView: View {
             Spacer()
             Button("Fertig") { onDismiss() }
                 .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.accent)
+                .foregroundColor(.white)
+                .cornerRadius(8)
         }
         .padding()
     }
@@ -156,5 +161,50 @@ struct AllDoneView: View {
 extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+#Preview("Play All – Playing State") {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: VideoSchedule.self, Video.self,
+        configurations: config
+    )
+    let context = ModelContext(container)
+    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+
+    let v1 = Video.previewWarmup
+    let v2 = Video.previewMobility
+    let v3 = Video.previewStrength
+
+    let schedules = [
+        VideoSchedule(scheduledDate: .now, orderIndex: 0, video: v1),
+        VideoSchedule(scheduledDate: .now, orderIndex: 1, video: v2),
+        VideoSchedule(scheduledDate: .now, orderIndex: 2, video: v3),
+    ]
+
+    return PlayAllSessionView(
+        schedules: schedules,
+        authService: authService,
+        progressVM: progressVM
+    )
+    .modelContainer(container)
+}
+
+#Preview("Countdown Between Videos") {
+    ZStack {
+        Color.black.ignoresSafeArea()
+        CountdownBetweenVideosView(
+            countdown: 42,
+            nextVideoTitle: Video.previewMobility.title
+        )
+    }
+}
+
+#Preview("All Done View") {
+    ZStack {
+        Color.black.ignoresSafeArea()
+        AllDoneView(onDismiss: {})
     }
 }
