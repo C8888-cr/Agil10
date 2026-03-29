@@ -47,6 +47,7 @@ final class VideoPlayerViewModel: ObservableObject {
     private var trainingCompleted = false
     
     private let authService: AuthService
+    var onVideoCompleted: (() -> Void)?
 
     // MARK: - Computed Properties
     var formattedCurrentTime: String {
@@ -86,7 +87,8 @@ final class VideoPlayerViewModel: ObservableObject {
     init(video: Video,
          scheduleId: UUID? = nil,
          progressViewModel: ProgressViewModel? = nil,
-         authService: AuthService
+         authService: AuthService,
+         onComplete: (() -> Void)? = nil
     ) {
         self.authService = authService
         self.scheduleId = scheduleId
@@ -94,6 +96,7 @@ final class VideoPlayerViewModel: ObservableObject {
         self.video = video
         self.playerService = AVPlayerService()
         self.fileService = VideoFileService()
+        self.onVideoCompleted = onComplete
         
         // Settings aus Schedule oder Video-Defaults
            if let scheduleId = scheduleId,
@@ -396,8 +399,12 @@ final class VideoPlayerViewModel: ObservableObject {
               print("✅ Markiere Schedule '\(videoTitle)' als completed")
               progressVM.markCompletedSchedule(schedule, for: user)
           }
-          showRatingSheet = true
-    
+          // ← PlayAll-Modus: kein RatingSheet, direkt weiter
+          if onVideoCompleted != nil {
+                 onVideoCompleted?()     // ← DANN goToNext (nach dismiss!)
+             } else {
+                 showRatingSheet = true
+             }
       }
     
     private func startPauseTimer() {

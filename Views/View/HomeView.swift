@@ -36,7 +36,7 @@ struct HomeView: View {
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
     
-
+    @State private var showPlayAllSession = false
 
     enum SheetType: Identifiable {
         case
@@ -104,7 +104,10 @@ struct HomeView: View {
                     onRate: { schedule, rating in  // ← NEU
                            schedule.rating = rating
                            progressVM.updateSchedule(schedule, for: authService.currentUser!)
-                       }
+                       },
+                    onPlayAll: {                    // ← NEU
+                        showPlayAllSession = true
+                    }
                 )
                 
                 
@@ -242,6 +245,15 @@ struct HomeView: View {
                 progressViewModel: progressVM,
                 authService: authService
             )
+        }
+        
+        .sheet(isPresented: $showPlayAllSession) {
+            PlayAllSessionView(
+                schedules: progressVM.todaysSchedules,
+                authService: authService,
+                progressVM: progressVM
+            )
+            .environmentObject(progressVM)
         }
 
         
