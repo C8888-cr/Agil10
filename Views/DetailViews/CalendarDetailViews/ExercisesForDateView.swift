@@ -52,7 +52,13 @@ struct ExercisesForDateView: View {
                         },
                         onPlay: { video in
                             onPlay(schedule, video)
-                        }
+                        },
+                        onRate: { rating in
+                                if let user = authService.currentUser {
+                                    schedule.rating = rating
+                                    progressVM.updateSchedule(schedule, for: user)
+                                }
+                            }
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
              //       Divider()

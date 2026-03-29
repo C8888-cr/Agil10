@@ -11,8 +11,10 @@ struct VideoScheduleRow: View {
     let onDelete: () -> Void
     let onConfig: () -> Void
     let onPlay: (Video) -> Void
+    let onRate: (Int) -> Void
     
     @State private var showDeleteAlert = false
+    @State private var showRatingSheet = false
     
     var body: some View {
         VStack(alignment: .trailing, spacing: 0) {
@@ -65,6 +67,7 @@ struct VideoScheduleRow: View {
                     Menu {
                         Button("Konfigurieren") { onConfig() }
                         Button("Löschen", role: .destructive) { showDeleteAlert = true }
+                        Button("Rating") { showRatingSheet = true }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.title3)
@@ -106,6 +109,12 @@ struct VideoScheduleRow: View {
             } message: {
                 Text("'\(video.title)' entfernen?")
             }
+            .sheet(isPresented: $showRatingSheet) {  // ← NEU
+                VideoRatingSheet(videoTitle: video.title) { rating in
+                    onRate(rating)
+                }
+                .presentationDetents([.medium])
+            }
         }
     }
     private var thumbnailView: some View {
@@ -135,7 +144,8 @@ struct VideoScheduleRow: View {
             onToggleCompletion: { print("✅ Toggle") },
             onDelete: { print("🗑️ Delete") },
             onConfig: { print("⚙️ Config") },
-            onPlay: { video in print("▶️ Play: \(video.title)") }
+            onPlay: { video in print("▶️ Play: \(video.title)") },
+            onRate: { rating in print("⭐️ Rating: \(rating)") }
         )
         
     //    Divider()
@@ -146,7 +156,9 @@ struct VideoScheduleRow: View {
             onToggleCompletion: { print("✅ Toggle") },
             onDelete: { print("🗑️ Delete") },
             onConfig: { print("⚙️ Config") },
-            onPlay: { video in print("▶️ Play: \(video.title)") }
+            onPlay: { video in print("▶️ Play: \(video.title)") },
+            onRate: { rating in print("⭐️ Rating: \(rating)") }
+            
         )
     }
     .padding()
