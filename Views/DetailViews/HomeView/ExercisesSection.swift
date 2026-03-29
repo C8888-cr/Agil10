@@ -20,6 +20,8 @@ struct ExercisesSection: View {
     let onAddVideo: () -> Void
     let onRate: (VideoSchedule, Int) -> Void
     
+    let onPlayAll: () -> Void
+    
     private var remainingSeconds: Int {
            let targetSeconds = progressVM.getTodaysTargetMinutes(from: settingsVM, for: Date()) * 60
            let totalScheduled = progressVM.todaysSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
@@ -28,6 +30,20 @@ struct ExercisesSection: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            
+            HStack {
+                      Spacer()
+                      if progressVM.todaysSchedules.count > 1 {
+                          Button {
+                              onPlayAll()
+                          } label: {
+                              Label("Alle abspielen", systemImage: "play.circle.fill")
+                                  .font(.subheadline)
+                                  .foregroundStyle(.accent)
+                          }
+                      }
+                  }
+            
             ForEach(progressVM.todaysSchedules, id: \.id) { schedule in
                 let video = schedule.video ?? Video.previewMobility
                 
@@ -71,6 +87,8 @@ struct ExercisesSection: View {
  
     }
 }
+
+
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
@@ -110,9 +128,13 @@ struct ExercisesSection: View {
         onConfig: { _ in },
         onPlay: { _, _ in },
         onAddVideo: { },
-        onRate: { _, _ in }
+        onRate: { _, _ in },
+ onPlayAll: { }
     )
     .environmentObject(progressVM)
     .environmentObject(settingsVM)
     .modelContainer(container)
 }
+
+
+
