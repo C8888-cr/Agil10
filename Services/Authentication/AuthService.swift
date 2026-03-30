@@ -30,7 +30,7 @@ class AuthService: ObservableObject {
         self.authServiceProtocol = authServiceProtocol
         self.modelContext = modelContext
         self.sessionToken = KeychainHelper.load(forKey: "sessionToken")
-        self.isAuthenticated = sessionToken != nil
+        self.isAuthenticated = false
         
         authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
             Task { @MainActor in
