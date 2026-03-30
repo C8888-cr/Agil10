@@ -91,6 +91,8 @@ final class UserPreferences {
         weeklyGoals.first(where: { $0.dayOfWeek == dayOfWeek })
     }
 }
+
+
 @Model
 
 //TODO: Dayplan? DayGoal = Same??
@@ -108,6 +110,8 @@ final class DayGoal {
           second: 0,
           of: Date()
       ) ?? Date()
+    
+    var hasIndividualReminderTime: Bool = false
     
     // ✅ NEU: Wiederholungsregel
       var recurrenceRuleRaw: String = RecurrenceRule.single.rawValue

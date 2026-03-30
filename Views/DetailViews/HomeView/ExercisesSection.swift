@@ -18,6 +18,9 @@ struct ExercisesSection: View {
     let onConfig: (VideoSchedule) -> Void
     let onPlay: (VideoSchedule, Video) -> Void
     let onAddVideo: () -> Void
+    let onRate: (VideoSchedule, Int) -> Void
+    
+    let onPlayAll: () -> Void
     
     private var remainingSeconds: Int {
            let targetSeconds = progressVM.getTodaysTargetMinutes(from: settingsVM, for: Date()) * 60
@@ -27,6 +30,20 @@ struct ExercisesSection: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            
+            HStack {
+                      Spacer()
+                      if progressVM.todaysSchedules.count > 1 {
+                          Button {
+                              onPlayAll()
+                          } label: {
+                              Label("Alle abspielen", systemImage: "play.circle.fill")
+                                  .font(.subheadline)
+                                  .foregroundStyle(.accent)
+                          }
+                      }
+                  }
+            
             ForEach(progressVM.todaysSchedules, id: \.id) { schedule in
                 let video = schedule.video ?? Video.previewMobility
                 
@@ -43,8 +60,9 @@ struct ExercisesSection: View {
                         onConfig(schedule)  // ← CALLBACK!
                     },
                     onPlay: { video in
-                        onPlay(schedule, video)  // ← CALLBACK!
-                    }
+                        onPlay(schedule, video)
+                    },
+                    onRate: { rating in onRate(schedule, rating) }
                 )
             //    Divider()
             }
@@ -70,37 +88,53 @@ struct ExercisesSection: View {
     }
 }
 
-/*
+
 #Preview {
-    // In‑Memory Container nur für die Preview
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: VideoSchedule.self, Video.self,
         configurations: config
     )
     
-    // Kontext über den Container holen
     let context = ModelContext(container)
 
+    // ✅ ERST Videos + Schedules einfügen
+    let video1 = Video.previewMobility
+    let video2 = Video.previewStrength
+    let video3 = Video.previewStretching
     
+    context.insert(video1)
+    context.insert(video2)
+    context.insert(video3)
+    
+    let schedule1 = VideoSchedule(scheduledDate: Date(), orderIndex: 0, video: video1)
+    let schedule2 = VideoSchedule(scheduledDate: Date(), orderIndex: 1, video: video2)
+    let schedule3 = VideoSchedule(scheduledDate: Date(), orderIndex: 2, video: video3)
+    
+    context.insert(schedule1)
+    context.insert(schedule2)
+    context.insert(schedule3)
+    
+    try? context.save()
+
+    // ✅ DANN ViewModels erstellen
     let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
-    
     let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
-    
-    // ViewModel mit Kontext initialisieren
-    let repository = VideoScheduleRepository(modelContext: context)
-    let progressVM = ProgressViewModel(modelContext: modelContext, authService: authService, repository: repository)
-  
-    
-     ExercisesSection(
+    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+
+    return ExercisesSection(
         onToggleCompletion: { _ in },
         onDelete: { _ in },
         onConfig: { _ in },
         onPlay: { _, _ in },
-        onAddVideo: { }
+        onAddVideo: { },
+        onRate: { _, _ in },
+ onPlayAll: { }
     )
     .environmentObject(progressVM)
     .environmentObject(settingsVM)
     .modelContainer(container)
 }
-*/
+
+
+

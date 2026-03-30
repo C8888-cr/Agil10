@@ -19,20 +19,24 @@ struct VideoPlayerView: View {
     let video: Video
     let scheduleId: UUID?
     let progressViewModel: ProgressViewModel?
+    let onComplete: (() -> Void)?
     
     init(video: Video,
          scheduleId: UUID? = nil,
          progressViewModel: ProgressViewModel? = nil,
-         authService: AuthService
+         authService: AuthService,
+         onComplete: (() -> Void)? = nil
     ) {
         self.video = video
         self.scheduleId = scheduleId
+        self.onComplete = onComplete
         self.progressViewModel = progressViewModel
         _viewModel = StateObject(wrappedValue: VideoPlayerViewModel(
             video: video,
             scheduleId: scheduleId,
             progressViewModel: progressViewModel,
-            authService: authService
+            authService: authService,
+            onComplete: onComplete
         ))
     }
     

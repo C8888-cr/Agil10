@@ -36,8 +36,7 @@ struct HomeView: View {
     @State private var selectedVideoForConfig: Video?
     @State private var playbackSettings = PlaybackSettings()
     
-   
-
+    @State private var showPlayAllSession = false
 
     enum SheetType: Identifiable {
         case
@@ -101,6 +100,13 @@ struct HomeView: View {
                     },
                     onAddVideo: {
                         activeSheet = .library  // ← Sheet öffnet sich!
+                    },
+                    onRate: { schedule, rating in  // ← NEU
+                           schedule.rating = rating
+                           progressVM.updateSchedule(schedule, for: authService.currentUser!)
+                       },
+                    onPlayAll: {                    // ← NEU
+                        showPlayAllSession = true
                     }
                 )
                 
@@ -240,6 +246,15 @@ struct HomeView: View {
                 authService: authService
             )
         }
+        
+        .sheet(isPresented: $showPlayAllSession) {
+            PlayAllSessionView(
+                schedules: progressVM.todaysSchedules,
+                authService: authService,
+                progressVM: progressVM
+            )
+            .environmentObject(progressVM)
+        }
 
         
         // In HomeView nach dem letzten .sheet
@@ -329,23 +344,6 @@ struct HomeView: View {
 
             
     }
-    
-/*
-    // ✅ SICHERE Dauer-Berechnung
-    private func calculateTotalDuration(schedule: any PersistentModel, video: Video) -> String {
-        // Annahme: schedule hat repetitions, pauseSeconds, loopDurationSeconds als Int
-        let loopDuration = 120  // Fallback
-        let repetitions = 3     // Fallback
-        let pauseSeconds = 30   // Fallback
-        
-        let totalSeconds = (loopDuration * repetitions) + max(0, (repetitions - 1) * pauseSeconds)
-        
-        let minutes = totalSeconds / 60
-        let secs = totalSeconds % 60
-        return secs > 0 ? "\(minutes):\(String(format: "%02d", secs)) Min" : "\(minutes) Min"
-    }
-
-*/
 }
 
 /*
