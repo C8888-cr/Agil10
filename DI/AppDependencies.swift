@@ -121,7 +121,7 @@ class AppDependencies: ObservableObject {
         
         print("✅ AppDependencies.init()")
         print("   ModelContext: \(modelContext)")
-        
+ /*
         // 2. AUTH SERVICE erstellen (Mock/Real Switch)
         #if DEBUG
         let mockService = MockAuthService(modelContext: modelContext)
@@ -129,6 +129,14 @@ class AppDependencies: ObservableObject {
               authServiceProtocol: mockService,
               modelContext: modelContext
           )
+  
+  */
+ //   firebase test
+#if DEBUG
+self.authService = AuthService(
+    authServiceProtocol: FirebaseAuthService(),
+    modelContext: modelContext
+)
 #else
 self.authService = AuthService(
     authServiceProtocol: FirebaseAuthService(), // ← war RealAuthService()

@@ -15,6 +15,7 @@ struct AgilApp: App {
     var body: some Scene {
         WindowGroup {
             AppRouter()
+                .preferredColorScheme(.light)
                 .environmentObject(dependencies.authService)
                 .environmentObject(dependencies.appointmentViewModel)
                 .environmentObject(dependencies.calendarViewModel)
