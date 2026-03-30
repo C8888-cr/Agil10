@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseAuth
 
 
 @MainActor
@@ -14,7 +15,7 @@ class AuthService: ObservableObject {
     
 
     private weak var modelContext: ModelContext?
-    
+    private var authStateListener: AuthStateDidChangeListenerHandle?
     
     @Published var currentUser: User? = nil
     @Published var isLoading = false
@@ -25,14 +26,25 @@ class AuthService: ObservableObject {
     
     
     init(authServiceProtocol: AuthServiceProtocol,
-            modelContext: ModelContext? = nil) {  // ✅ Optional
-           self.authServiceProtocol = authServiceProtocol
-           self.modelContext = modelContext  // ✅ Speichern
-           
-           self.sessionToken = KeychainHelper.load(forKey: "sessionToken")
-           self.isAuthenticated = sessionToken != nil
-       }
-    
+         modelContext: ModelContext? = nil) {
+        self.authServiceProtocol = authServiceProtocol
+        self.modelContext = modelContext
+        self.sessionToken = KeychainHelper.load(forKey: "sessionToken")
+        self.isAuthenticated = sessionToken != nil
+        
+        authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
+            Task { @MainActor in
+                if let firebaseUser = firebaseUser {
+                    self?.isAuthenticated = true
+                } else {
+                    self?.isAuthenticated = false
+                    self?.currentUser = nil
+                    self?.sessionToken = nil
+                    KeychainHelper.delete(forKey: "sessionToken")
+                }
+            }
+        }
+    }
     // 🔐 LOGIN mit Token
      func login(email: String, password: String) async throws {
          isLoading = true
