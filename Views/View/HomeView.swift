@@ -168,7 +168,7 @@ struct HomeView: View {
                             onVideoSelected: { video in
                                 activeSheet = nil
                                 
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     pendingDate = Date()
                                     editingScheduleId = nil
                                     playbackSettings = PlaybackSettings(

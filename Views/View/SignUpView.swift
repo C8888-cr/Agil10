@@ -1,4 +1,3 @@
-
 import SwiftUI
 import SwiftData
 
@@ -95,7 +94,7 @@ struct SignUpView: View {
                     password: password,
                     firstName: firstName,
                     lastName: lastName,
-                    role: userRole, 
+                    role: userRole,
                     praxisId: selectedPraxisId
                 )
                 
@@ -261,7 +260,7 @@ struct PasswordField: View {
                     .foregroundColor(.accent)
                     .font(.system(size: 14))
                 
-                SecureField("Min. 8 Zeichen", text: $password)
+                SecureField("8 Zeichen, 1 Großbuchstabe, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen", text: $password)
                     .textContentType(.newPassword)
                     .accentColor(.accent)
             }
@@ -277,6 +276,7 @@ struct PasswordField: View {
                         lineWidth: 2
                     )
             )
+            
         }
     }
 }

@@ -26,12 +26,13 @@ class FirebaseAuthService: AuthServiceProtocol {
             
             let user = User(
                 email: email,
-                passwordHash: "firebase", // ← Platzhalter, echtes PW ist bei Firebase
+                passwordHash: "firebase",
                 role: role,
                 praxisId: praxisId
             )
             user.firstName = firstName
             user.lastName = lastName
+            user.firebaseUID = result.user.uid  // ← NEU
             return (user, token)
         } catch {
             throw AuthError.invalidCredentials
@@ -39,9 +40,7 @@ class FirebaseAuthService: AuthServiceProtocol {
     }
     
     func fetchCurrentUser() async throws -> User? {
-        guard let firebaseUser = Auth.auth().currentUser else {
-            return nil
-        }
+        guard let firebaseUser = Auth.auth().currentUser else { return nil }
         return mapFirebaseUser(firebaseUser)
     }
     
@@ -59,13 +58,18 @@ class FirebaseAuthService: AuthServiceProtocol {
     }
     
     // MARK: - Helper
+    // ✅ firebaseUID wird jetzt gesetzt — das war der einzige fehlende Fix!
     private func mapFirebaseUser(_ firebaseUser: FirebaseAuth.User) -> User {
         let nameParts = (firebaseUser.displayName ?? "").split(separator: " ")
-        return User(
+        let user = User(
             email: firebaseUser.email ?? "",
-            passwordHash: "firebase", // ← Platzhalter
+            passwordHash: "firebase",
             role: .patient,
             praxisId: nil
         )
+        user.firstName = nameParts.first.map(String.init) ?? ""
+        user.lastName = nameParts.dropFirst().first.map(String.init) ?? ""
+        user.firebaseUID = firebaseUser.uid  // ← das ist der eigentliche Fix!
+        return user
     }
 }

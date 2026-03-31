@@ -121,6 +121,9 @@ class AppDependencies: ObservableObject {
         
         print("✅ AppDependencies.init()")
         print("   ModelContext: \(modelContext)")
+        
+     
+        
  /*
         // 2. AUTH SERVICE erstellen (Mock/Real Switch)
         #if DEBUG
@@ -148,5 +151,41 @@ self.authService = AuthService(
         // 3. Services (nicht lazy - leichtgewichtig)
         self.emailParser = EmailParserService()
         self.emailService = EmailService()
+        
+        // AppDependencies.init() - am Ende:
+        cleanupMockData()
+    }
+    
+    // AppDependencies.swift - in init() nach modelContext setup:
+    private func cleanupMockData() {
+        // ← Einmalig ausführen, danach nie wieder
+        let key = "mockDataCleaned_v1"
+        guard !UserDefaults.standard.bool(forKey: key) else {
+            return  // ← bereits bereinigt, überspringen
+        }
+        
+        let mockId = UUID(uuidString: "12345678-1234-5678-1234-123456789ABC")!
+        
+        let scheduleDescriptor = FetchDescriptor<VideoSchedule>(
+            predicate: #Predicate { $0.user?.id == mockId }
+        )
+        if let mockSchedules = try? modelContext.fetch(scheduleDescriptor) {
+            mockSchedules.forEach { modelContext.delete($0) }
+            print("🧹 \(mockSchedules.count) Mock-Schedules gelöscht")
+        }
+        
+        let videoDescriptor = FetchDescriptor<Video>(
+            predicate: #Predicate { $0.user == nil || $0.user?.id == mockId }
+        )
+        if let mockVideos = try? modelContext.fetch(videoDescriptor) {
+            mockVideos.forEach { modelContext.delete($0) }
+            print("🧹 \(mockVideos.count) Mock-Videos gelöscht")
+        }
+        
+        try? modelContext.save()
+        
+        // ← Merken dass es erledigt ist
+        UserDefaults.standard.set(true, forKey: key)
+        print("🧹 Mock-Daten bereinigt (einmalig)")
     }
   }

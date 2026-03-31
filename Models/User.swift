@@ -15,6 +15,9 @@ final class User: @unchecked Sendable {
     @Attribute(.unique) var id: UUID  // ← HINZUFÜGEN!
     @Attribute(.externalStorage) var profileImage: Data?
     
+    
+    var firebaseUID: String = ""
+    
     //Persönliche Daten
         var firstName: String
         var lastName: String

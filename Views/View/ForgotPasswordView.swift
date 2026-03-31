@@ -1,37 +1,19 @@
-
 import SwiftUI
 
 struct ForgotPasswordView: View {
     @State private var email = ""
-    @State private var resetCode = ""
-    @State private var newPassword = ""
-    @State private var confirmPassword = ""
-    @State private var step: ResetStep = .enterEmail // 1. Email → 2. Code → 3. Neues PW
     @State private var isLoading = false
     @State private var errorMessage: String?
-    @State private var successMessage: String?
+    @State private var emailSent = false  // ← statt step-Enum
     
     @Environment(\.dismiss) var dismiss
-    
-    
     @EnvironmentObject var authService: AuthService
     
-
-
-    
-    enum ResetStep {
-        case enterEmail
-        case enterCode
-        case resetPassword
-    }
-    
     var body: some View {
-        // ZStack für den Hintergrund, damit er sich über die gesamte View erstreckt
         ZStack {
-            // Hintergrund-Gradient der LoginView
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.accent.opacity(0.1), // Leichtere Telekom Magenta-Töne
+                    Color.accent.opacity(0.1),
                     Color.accent.opacity(0.05)
                 ]),
                 startPoint: .topLeading,
@@ -40,36 +22,35 @@ struct ForgotPasswordView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 20) {
-            
-      
-                    // Dein Agil Logo
-                    Image("AgilLogo") // Stelle sicher, dass der Asset-Name "Agil" korrekt ist
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 180, height: 180) 
                 
+                Image("AgilLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 180, height: 180)
                 
-                // ============ HEADER ============
+                // MARK: - Header
                 VStack(spacing: 12) {
-                    Image(systemName: "key.circle.fill")
+                    Image(systemName: emailSent ? "checkmark.circle.fill" : "key.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.accent)
+                        .foregroundColor(emailSent ? .green : .accent)
                     
                     Text("Passwort zurücksetzen")
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text(stepDescription)
+                    Text(emailSent
+                         ? "Wir haben dir eine Email an \(email) gesendet. Klicke auf den Link in der Email um dein Passwort zurückzusetzen."
+                         : "Gib deine Email ein — wir schicken dir einen Link zum Zurücksetzen.")
                         .font(.caption)
                         .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
                 }
                 .padding(.bottom, 20)
                 
-                // ============ STEP 1: EMAIL ============
-                if step == .enterEmail {
+                // MARK: - Email eingeben (nur wenn noch nicht gesendet)
+                if !emailSent {
                     VStack(spacing: 12) {
-                        // Email Input - Identisch zur LoginView
-                        VStack(alignment: .leading, spacing: 8) { // Label für Inputfelder
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Email")
                                 .font(.caption)
                                 .fontWeight(.semibold)
@@ -80,17 +61,20 @@ struct ForgotPasswordView: View {
                                     .foregroundColor(.accent)
                                     .font(.system(size: 14))
                                 
-                                CustomPlaceholderTextField(text: $email, placeholder: "deine@email.de")
-                                    .textContentType(.emailAddress)
-                                    .keyboardType(.emailAddress)
-                                    .autocorrectionDisabled()
-                                    .textInputAutocapitalization(.never)
-                                    .accentColor(.accent)
+                                CustomPlaceholderTextField(
+                                    text: $email,
+                                    placeholder: "deine@email.de"
+                                )
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                                .accentColor(.accent)
                             }
                             .padding(14)
-                            .background(Color.white) // Hintergrund ist Weiß
+                            .background(Color.white)
                             .cornerRadius(12)
-                            .overlay( // Der Stroke ist identisch zur LoginView
+                            .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
                                         Color.accent.opacity(
@@ -103,223 +87,54 @@ struct ForgotPasswordView: View {
                         
                         Button(action: sendResetEmail) {
                             if isLoading {
-                                ProgressView()
-                                    .tint(.white)
+                                ProgressView().tint(.white)
                             } else {
-                                Text("Code senden")
-                                    .fontWeight(.semibold)
-                                    .frame(maxWidth: .infinity) // Button breiter machen
-                            }
-                        }
-                        .frame(height: 50) // Höhe wie LoginButton
-                        .foregroundColor(.white)
-                        .background(ValidationHelper.isValidEmail(email) ? Color.accent : Color.accent.opacity(0.2))
-                        .cornerRadius(12)
-                        .disabled(isLoading || !ValidationHelper.isValidEmail(email))
-                        .opacity(ValidationHelper.isValidEmail(email) ? 1 : 0.65) // Opacity wie LoginButton
-                        .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4) // Shadow wie LoginButton
-                    }
-                }
-                
-                // ============ STEP 2: CODE ============
-                if step == .enterCode {
-                    VStack(spacing: 12) {
-                        Text("Wir haben einen Code an \(email) gesendet")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.bottom, 8)
-                        
-                        // Code Input - Design wie LoginView
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Reset Code") // Label hinzugefügt
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.accent)
-                            
-                            HStack(spacing: 12) {
-                                Image(systemName: "number.square.fill") // Passendes Icon
-                                    .foregroundColor(.accent)
-                                    .font(.system(size: 14))
-                                
-                                TextField("6-stelliger Code", text: $resetCode)
-                                    .keyboardType(.numberPad)
-                                    .textContentType(.oneTimeCode)
-                                    .accentColor(.accent)
-                            }
-                            .padding(14)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.accent.opacity(
-                                            !resetCode.isEmpty ? 0.25 : 0.6 // Statusabhängig
-                                        ),
-                                        lineWidth: 2
-                                    )
-                            )
-                        }
-                        
-                        Button(action: verifyCode) {
-                            Text("Code bestätigen")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .frame(height: 50)
-                        .foregroundColor(.white)
-                        .background(!resetCode.isEmpty ? Color.accent : Color.gray)
-                        .cornerRadius(12)
-                        .disabled(resetCode.isEmpty)
-                        .opacity(!resetCode.isEmpty ? 1 : 0.65)
-                        .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4)
-                    }
-                }
-                
-                // ============ STEP 3: NEW PASSWORD ============
-                if step == .resetPassword {
-                    VStack(spacing: 12) {
-                        // Neues Passwort Input - Design wie LoginView
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Neues Passwort")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.accent)
-                            
-                            HStack(spacing: 12) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.accent)
-                                    .font(.system(size: 14))
-                                
-                                SecureField("Neues Passwort", text: $newPassword)
-                                    .textContentType(.newPassword)
-                                    .accentColor(.accent)
-                            }
-                            .padding(14)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.accent.opacity(
-                                            ValidationHelper.isValidPassword(newPassword) ? 0.25 : 0.6
-                                        ),
-                                        lineWidth: 2
-                                    )
-                            )
-                        }
-                        
-                        // Passwort wiederholen Input - Design wie LoginView
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Passwort wiederholen")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.accent)
-                            
-                            HStack(spacing: 12) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundColor(.accent)
-                                    .font(.system(size: 14))
-                                
-                                SecureField("Passwort wiederholen", text: $confirmPassword)
-                                    .textContentType(.newPassword)
-                                    .accentColor(.accent)
-                            }
-                            .padding(14)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(
-                                        Color.accent.opacity(
-                                            (newPassword == confirmPassword && !confirmPassword.isEmpty) ? 0.25 : 0.6
-                                        ),
-                                        lineWidth: 2
-                                    )
-                            )
-                        }
-                        
-                        Button(action: confirmReset) {
-                            if isLoading {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Text("Passwort aktualisieren")
+                                Text("Link senden")
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                             }
                         }
                         .frame(height: 50)
                         .foregroundColor(.white)
-                        .background(
-                            !newPassword.isEmpty &&
-                            newPassword == confirmPassword &&
-                            ValidationHelper.isValidPassword(newPassword) ?
-                            Color.accent : Color.gray
-                        )
+                        .background(ValidationHelper.isValidEmail(email) ? Color.accent : Color.accent.opacity(0.2))
                         .cornerRadius(12)
-                        .disabled(isLoading)
-                        .opacity((!newPassword.isEmpty && newPassword == confirmPassword && ValidationHelper.isValidPassword(newPassword)) ? 1 : 0.65)
+                        .disabled(isLoading || !ValidationHelper.isValidEmail(email))
+                        .opacity(ValidationHelper.isValidEmail(email) ? 1 : 0.65)
                         .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4)
                     }
                 }
                 
-                // ============ MESSAGES ============
+                // MARK: - Fehler
                 if let error = errorMessage {
-                    HStack(spacing: 10) { // Spacing angepasst
+                    HStack(spacing: 10) {
                         Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundColor(.white) // Icon weiß wie in LoginView
-                        Text(error)
-                            .font(.caption)
-                            .lineLimit(2) // LineLimit wie in LoginView
                             .foregroundColor(.white)
-                    }
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.accent.opacity(0.8)) // Hintergrund telekomMagenta
-                    .cornerRadius(10) // CornerRadius angepasst
-                }
-                
-                if let success = successMessage {
-                    HStack(spacing: 10) { // Spacing angepasst
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.white) // Icon weiß für Konsistenz
-                        Text(success)
+                        Text(error)
                             .font(.caption)
                             .lineLimit(2)
                             .foregroundColor(.white)
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.green.opacity(0.8)) // Grüner Hintergrund für Erfolg, Opacity angepasst
+                    .background(Color.accent.opacity(0.8))
                     .cornerRadius(10)
                 }
                 
                 Spacer()
                 
-                // ============ BACK BUTTON ============
+                // MARK: - Zurück Button
                 Button(action: { dismiss() }) {
-                    Text("Zurück zum Login")
+                    Text(emailSent ? "Zurück zum Login" : "Abbrechen")
                         .font(.caption)
                         .foregroundColor(.accent)
-                        .fontWeight(.semibold) // Wie der "Jetzt registrieren" Link in LoginView
+                        .fontWeight(.semibold)
                 }
             }
             .padding(20)
         }
     }
     
-    // ... (Helper-Methoden bleiben unverändert)
-    private var stepDescription: String {
-        switch step {
-        case .enterEmail:
-            return "Gib deine Email ein, um einen Reset-Code zu erhalten"
-        case .enterCode:
-            return "Gib den Code ein, den wir dir gesendet haben"
-        case .resetPassword:
-            return "Gib dein neues Passwort ein"
-        }
-    }
-    
+    // MARK: - Aktion
     private func sendResetEmail() {
         guard ValidationHelper.isValidEmail(email) else { return }
         
@@ -328,85 +143,23 @@ struct ForgotPasswordView: View {
         
         Task {
             do {
-                let code = try await authService.sendPasswordResetEmail(email: email)
-                print("📧 Reset Code erhalten: \(code)")
+                // Firebase schickt den Link selbst — wir müssen nichts weiter tun
+                _ = try await authService.sendPasswordResetEmail(email: email)
                 await MainActor.run {
-                    successMessage = "Code gesendet!"
-                    step = .enterCode
-                    isLoading = false
-                }
-            } catch let error as AuthError {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
+                    emailSent = true  // ← Screen wechselt zu Bestätigung
                     isLoading = false
                 }
             } catch {
                 await MainActor.run {
-                    errorMessage = "Fehler beim Versenden des Codes"
-                    isLoading = false
-                }
-            }
-        }
-    }
-    
-    private func verifyCode() {
-        // Vereinfachte Verifizierung (in echtem Backend würde das geprüft)
-        if !resetCode.isEmpty {
-            step = .resetPassword
-            successMessage = "Code bestätigt!"
-        }
-    }
-    
-    private func confirmReset() {
-        guard newPassword == confirmPassword else {
-            errorMessage = "Passwörter stimmen nicht überein"
-            return
-        }
-        
-        guard ValidationHelper.isValidPassword(newPassword) else {
-            errorMessage = "Passwort zu kurz (min. 6 Zeichen)"
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        Task {
-            do {
-                try await authService.confirmPasswordReset(
-                    email: email,
-                    resetCode: resetCode,
-                    newPassword: newPassword
-                )
-                
-                await MainActor.run {
-                    successMessage = "Passwort erfolgreich zurückgesetzt!"
-                    isLoading = false
-                    
-                    // Nach 2 Sekunden zurück zum Login
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        dismiss()
-                    }
-                }
-            } catch let error as AuthError {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Fehler beim Zurücksetzen"
+                    errorMessage = "Email konnte nicht gesendet werden. Prüfe die Adresse."
                     isLoading = false
                 }
             }
         }
     }
 }
-#Preview {
-    ForgotPasswordView()
-        .environmentObject(AuthService(authServiceProtocol: MockAuthService()))
 
-}
+
 struct CustomPlaceholderTextField: View {
     @Binding var text: String
     var placeholder: String
@@ -416,10 +169,16 @@ struct CustomPlaceholderTextField: View {
             if text.isEmpty {
                 Text(placeholder)
                     .foregroundColor(Color.gray.opacity(0.7))
-                    .padding(.leading, 4) // Gleiche Padding wie TextField
+                    .padding(.leading, 4)
             }
             TextField("", text: $text)
                 .foregroundColor(.black)
         }
     }
+}
+
+
+#Preview {
+    ForgotPasswordView()
+        .environmentObject(AuthService(authServiceProtocol: MockAuthService()))
 }
