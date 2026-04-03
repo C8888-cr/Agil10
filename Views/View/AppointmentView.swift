@@ -69,38 +69,7 @@ struct AppointmentView: View {
         .sheet(isPresented: $showingManualEntry) {
             ManualAppointmentEntryView()
         }
- /*       .sheet(isPresented: $showingEmailImport) {
-            EmailImportView(
-                emailText: $emailText,
-                onImport: {
-                    Task {
-                        do {
-                            let changes = try await viewModel.parseAppointmentsFromEmail(emailText)
-                            
-                            // ✅ Results setzen
-                            importResults = changes
-                            emailText = ""
-                            
-                            // ✅ Email-Sheet schließen
-                            showingEmailImport = false
-                            
-                            // ✅ Kurz warten
-                            try? await Task.sleep(nanoseconds: 300_000_000)
-                            
-                            // Results-Sheet öffnet sich automatisch durch sheet(item:)!
-                            
-                        } catch {
-                            print("❌ Error: \(error)")
-                            showingEmailImport = false
-                        }
-                    }
-                },
-                onDismiss: {
-                    showingEmailImport = false
-                    emailText = ""
-                }
-            )
-        }*/
+
         // ✅ Öffnet automatisch, wenn importResults != nil
         .sheet(item: $importResults) { changes in
             ImportResultsView(changes: changes)

@@ -209,6 +209,7 @@ struct CancelAppointmentView: View {
     @Environment(\.dismiss) private var dismiss
     
     let appointment: Appointment
+    
     @EnvironmentObject var viewModel: AppointmentViewModel
     @Binding var isPresented: Bool
     
@@ -353,7 +354,8 @@ struct CancelAppointmentView: View {
                         await viewModel.cancelAppointment(
                             appointment,
                             reason: cancelReason,
-                            userEmail: authService.currentUser?.email ?? ""
+                            userEmail: authService.currentUser?.email ?? "",
+                            userName: "\(authService.currentUser?.firstName ?? "") \(authService.currentUser?.lastName ?? "")"
                         )
                         await MainActor.run {
                             isPresented = false
@@ -382,6 +384,8 @@ struct CancelAppointmentView: View {
         isProcessing = true
         
         let userEmail = authService.currentUser?.email ?? ""
+
+        
         
         sendEmailWithSelectedApp(userEmail: userEmail) { success in
             isProcessing = false
@@ -393,6 +397,10 @@ struct CancelAppointmentView: View {
     }
     
     private func sendEmailWithSelectedApp(userEmail: String, completion: @escaping (Bool) -> Void) {
+        
+        let userName = "\(authService.currentUser?.firstName ?? "") \(authService.currentUser?.lastName ?? "")"
+        
+        
         let practiceEmail: String
         if let praxisId = authService.currentUser?.praxisId,
            let praxis = PraxisDataManager.shared.getPraxis(by: praxisId),
@@ -415,7 +423,7 @@ struct CancelAppointmentView: View {
         if !cancelReason.isEmpty {
             body += "\n\nGrund: \(cancelReason)"
         }
-        body += "\n\nMit freundlichen Grüßen\n\(userEmail)"
+        body += "\n\nMit freundlichen Grüßen\n\(userName)"
         
         let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""

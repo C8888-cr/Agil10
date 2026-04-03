@@ -18,6 +18,7 @@ struct CancelAppointmentUseCase {
         appointment: Appointment,
         reason: String?,
         userEmail: String,
+        userName: String, 
         practiceEmail: String
     ) async throws {
         print("🚫 Setze Status auf cancelled für: \(appointment.therapist)")
@@ -37,7 +38,8 @@ struct CancelAppointmentUseCase {
     private func buildCancellationEmail(
         appointment: Appointment,
         reason: String?,
-        userEmail: String
+        userEmail: String,
+        userName: String
     ) -> (subject: String, body: String) {
         let subject = "Terminabsage - \(appointment.dateString)"
         
@@ -59,7 +61,7 @@ struct CancelAppointmentUseCase {
         
         
         Mit freundlichen Grüßen
-        \(userEmail)
+        \(userName)
         """
         
         return (subject, body)

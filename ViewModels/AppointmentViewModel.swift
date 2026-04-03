@@ -260,7 +260,8 @@ class AppointmentViewModel: ObservableObject {
        func cancelAppointment(
            _ appointment: Appointment,
            reason: String?,
-           userEmail: String
+           userEmail: String,
+           userName: String
        ) async {
            
            // ✅ practiceEmail hier im ViewModel auflösen
@@ -279,6 +280,7 @@ class AppointmentViewModel: ObservableObject {
                    appointment: appointment,
                    reason: reason,
                    userEmail: userEmail,
+                   userName: userName,
                    practiceEmail: practiceEmail
                )
              
