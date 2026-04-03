@@ -681,7 +681,7 @@ class SettingsViewModel: ObservableObject {
                 : preferences.reminderTime
 
             let content = UNMutableNotificationContent()
-            content.title = "Zeit für dein Training 💪"
+            content.title = "Zeit für dein Training"
             content.body = "Du hast heute \(goal.targetMinutes) Minuten geplant."
             content.sound = .default
 

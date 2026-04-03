@@ -451,7 +451,12 @@ struct SettingsView: View {
                         "",
                         selection: Binding(
                             get: { goal.reminderTime },
-                            set: { goal.reminderTime = $0; saveDayGoal() }
+                            set: {
+                                       goal.reminderTime = $0
+                                       goal.reminderEnabled = true          // ← NEU: sicherstellen dass aktiv
+                                       settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                                       settingsVM.scheduleAllReminders()    // ← NEU
+                                   }
                         ),
                         displayedComponents: .hourAndMinute
                     )
@@ -460,9 +465,9 @@ struct SettingsView: View {
 
                     Button {
                         goal.hasIndividualReminderTime = false
-                        goal.reminderTime = settingsVM.preferences.reminderTime
-                        saveDayGoal()
-                    } label: {
+                          goal.reminderTime = settingsVM.preferences.reminderTime
+                          settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                          settingsVM.scheduleAllReminders()                           } label: {
                         Text("Standard")
                             .font(.caption)
                             .foregroundColor(.accent)
@@ -478,7 +483,8 @@ struct SettingsView: View {
 
                     Button {
                         goal.hasIndividualReminderTime = true
-                        saveDayGoal()
+                          settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                          settingsVM.scheduleAllReminders()
                     } label: {
                         Image(systemName: "pencil.circle")
                             .foregroundColor(.accent)
