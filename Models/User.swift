@@ -58,6 +58,12 @@ final class User: @unchecked Sendable {
            let ageComponents = calendar.dateComponents([.year], from: dateOfBirth, to: now)
            return ageComponents.year
        }
+    
+    
+    var appointmentReminderEnabled: Bool = false
+    var appointmentReminderTime: Date = Calendar.current.date(
+        bySettingHour: 8, minute: 0, second: 0, of: Date()
+    ) ?? Date()
             
             init(
                 id: UUID = UUID(),

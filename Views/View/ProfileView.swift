@@ -2,6 +2,7 @@
 import SwiftUI
 import SwiftData
 import MapKit
+import UserNotifications
 
 
 struct ProfileView: View {
@@ -11,7 +12,7 @@ struct ProfileView: View {
     
     
     @Query var users: [User]
-    
+    @Query private var allAppointments: [Appointment]
     private var currentUser: User? {
         guard let userId = authService.currentUser?.id else { return nil }
         return users.first { $0.id == userId }  // ✅ Aus SwiftData statt AuthService
@@ -189,6 +190,11 @@ struct ProfileView: View {
                                     icon: "calendar"
                                 )
                             }
+                            
+                            AppointmentReminderSection(
+                                user: user,
+                                appointments: allAppointments.filter { $0.userId == user.id }
+                            )
                             
                             // ✅ BUTTONS
                             VStack(spacing: 12) {
