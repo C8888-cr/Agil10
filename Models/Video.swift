@@ -15,7 +15,7 @@ final class Video: @unchecked Sendable {
     @Relationship(deleteRule: .cascade)
         var schedules: [VideoSchedule]?
 
-    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var id: UUID = UUID()
     var title: String
     var videoFileName: String           // Lokaler Dateiname
     var thumbnailFileName: String?      // Thumbnail Dateiname
@@ -202,7 +202,7 @@ import SwiftData
 import Foundation
 @Model
 final class Exercise {
-    @Attribute(.unique) var id: UUID
+    @Attribute(.unique) var id: UUID = UUID()
     var name: String
     var videoURL: URL?            // Lokal oder Cloud
     var isLocal: Bool             // true = eigenes Video
