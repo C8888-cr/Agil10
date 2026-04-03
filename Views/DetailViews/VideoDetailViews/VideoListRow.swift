@@ -24,36 +24,38 @@ struct VideoListRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             
             // Info
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(video.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .lineLimit(2)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 
-                HStack(spacing: 12) {
+                HStack(spacing: 6) {
                     // Category
                     Label(video.category.rawValue, systemImage: video.category.icon)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                      
                     
                     // Body Region
                     Label(video.bodyRegion.rawValue, systemImage: video.bodyRegion.icon)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
+                .font(.caption)
+                .foregroundStyle(.secondary)
                 
                 // Duration & Equipment
-                HStack(spacing: 12) {
+                HStack(spacing: 6) {
                     Text(video.formattedDuration)
-                        .font(.caption2)
-                        .foregroundStyle(.accent)
                     
                     if video.equipment != .noEquipment {
                         Label(video.equipment.rawValue, systemImage: video.equipment.icon)
-                            .font(.caption2)
                             .foregroundStyle(.orange)
+                            .lineLimit(1)
                     }
                 }
+                .font(.caption2)
+                
             }
             
             Spacer()
@@ -74,13 +76,14 @@ struct VideoListRow: View {
             }
             .font(.title3)
         }
+        .dynamicTypeSize(.small ... .large)
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(Color(.systemBackground))
-        .cornerRadius(16)                                          // ← NEU
-        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)    // ← NEU
-        .padding(.horizontal, 16)                                  // ← NEU äußeres padding
-        .padding(.vertical, 4)                                     // ← NEU äußeres padding
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
         .contentShape(Rectangle())
        
         .onTapGesture {
@@ -111,6 +114,26 @@ struct VideoListRow: View {
     }
 }
 // MARK: - Preview
+
+#Preview("Große Schrift") {
+    VideoListRow(
+        video: Video(
+            title: "Schulter-Mobilisation",
+            videoFileName: "shoulder.mov",
+            category: .mobility,
+            bodyRegion: .legs,
+            equipment: .noEquipment,
+            durationSeconds: 45,
+            fileSizeBytes: 15_000_000,
+            loopDurationSeconds: 60,
+            rating: 5
+        ),
+        onTap: { video in print("Tapped") },
+        onFavorite: {},
+        onDelete: {}
+    )
+    .environment(\.dynamicTypeSize, .accessibility3)  // ← extremste Größe
+}
 #Preview("Standard Row") {
     VideoListRow(
         video: Video(
@@ -147,7 +170,7 @@ struct VideoListRow: View {
                         rating: 4,
                     ),
                   
-                    onTap: { video in print("Tapped \(video.title)") },  // ← 
+                    onTap: { video in print("Tapped \(video.title)") },  // ←
                     onFavorite: {},
                     onDelete: {}
                 )
