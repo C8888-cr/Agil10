@@ -339,7 +339,8 @@ struct CalendarView: View {
                                    return
                                }
                                print("🏠 HomeView onAppear - currentUser.email: '\(user.email)'")
-                               progressVM.loadToday(for: user)
+                       progressVM.loadToday(for: user, date: calendarViewModel.selectedDate)
+                       
                            }
         }
     }
