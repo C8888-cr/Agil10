@@ -6,10 +6,10 @@
 //
 import SwiftData
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 @Model
-final class Video: @unchecked Sendable {
+final class Video {
     
     // ✅ CASCADE DELETE: Wenn Video gelöscht wird
     @Relationship(deleteRule: .cascade)

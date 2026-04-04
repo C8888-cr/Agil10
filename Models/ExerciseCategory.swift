@@ -8,7 +8,7 @@
 
 import SwiftData
 import Foundation
-import SwiftUICore
+import SwiftUI
 /// Kategorien für Übungstypen
  enum ExerciseCategory: String, Codable, CaseIterable, Identifiable, Hashable {
     case warmup = "Aufwärmen"

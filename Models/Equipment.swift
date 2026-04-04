@@ -6,7 +6,7 @@
 //
 import SwiftData
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 enum Equipment: String, Codable, CaseIterable, Identifiable, Hashable {
     case noEquipment = "Kein Equipment"

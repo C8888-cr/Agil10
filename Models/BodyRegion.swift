@@ -7,7 +7,7 @@
 
 import SwiftData
 import Foundation
-import SwiftUICore
+import SwiftUI
 
 /// Körperregionen
 enum BodyRegion: String, Codable, CaseIterable, Identifiable, Hashable {
