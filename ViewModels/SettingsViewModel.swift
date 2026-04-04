@@ -659,9 +659,12 @@ class SettingsViewModel: ObservableObject {
 
     func recurrenceRule(for date: Date) -> RecurrenceRule {
         let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)  // lokale Zeit!
+        let localDate = calendar.startOfDay(for: date)
+        let weekday = calendar.component(.weekday, from: localDate)
         let dayIndex = (weekday + 5) % 7  // 0=Mo, 6=So
-        return preferences.getGoalFor(dayOfWeek: dayIndex)?.recurrenceRule ?? .single
+        let rule = preferences.getGoalFor(dayOfWeek: dayIndex)?.recurrenceRule ?? .single
+           print("🔍 recurrenceRule: weekday=\(weekday), dayIndex=\(dayIndex), rule=\(rule.rawValue)")
+           return rule
     }
     // MARK: - Notifications
 
