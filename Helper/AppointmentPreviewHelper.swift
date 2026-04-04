@@ -180,7 +180,8 @@ struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
         return items
     }
     
-    // ✅ PRIVATE Helper
+    // ✅ PRIVATE Helper – iOS 26 MKAddress API
+    // ✅ PRIVATE Helper – iOS 26 MKAddress API
     private static func createMapItem(
         name: String,
         street: String,
@@ -190,16 +191,14 @@ struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
         latitude: Double,
         longitude: Double
     ) -> MKMapItem {
-        let placemark = MKPlacemark(
-            coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude),
-            addressDictionary: [
-                CNPostalAddressCityKey: city,
-                CNPostalAddressPostalCodeKey: zip,
-                CNPostalAddressStreetKey: "\(street) \(number)"
-            ]
+        let location = CLLocation(latitude: latitude, longitude: longitude)
+        
+        let address = MKAddress(
+            fullAddress: "\(street) \(number), \(zip) \(city)",
+            shortAddress: "\(street) \(number)"
         )
         
-        let mapItem = MKMapItem(placemark: placemark)
+        let mapItem = MKMapItem(location: location, address: address)
         mapItem.name = name
         return mapItem
     }
