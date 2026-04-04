@@ -8,6 +8,8 @@
 
 import Foundation
 
+
+@MainActor
 protocol VideoRepositoryProtocol {
     func createVideo(metadata: Video) async throws
     func fetchAllVideos(for user: User) async throws -> [Video]
