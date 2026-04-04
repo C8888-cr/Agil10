@@ -11,7 +11,7 @@ import SwiftData
 import AVFoundation
 import UIKit
 
-
+@MainActor
 final class VideoRepository: VideoRepositoryProtocol {
     
     // MARK: - Properties
@@ -81,44 +81,24 @@ final class VideoRepository: VideoRepositoryProtocol {
         category: ExerciseCategory,
         bodyRegion: BodyRegion,
         equipment: Equipment,
-     //   defaultRepetitions: Int,
-     //   defaultPauseSeconds: Int,
-    //    loopDurationSeconds: Int?,
         for user: User
     ) async throws -> Video {
         
         print("🔍 uploadVideo START for user: \(user.email) (ID: \(user.id))")
         
-        // ✅ WICHTIG: User im aktuellen Context holen!
-        let userInContext = await MainActor.run { () -> User? in
-            let descriptor = FetchDescriptor<User>()
-            
-            do {
-                let allUsers = try modelContext.fetch(descriptor)
-                let foundUser = allUsers.first(where: { $0.id == user.id })
-                
-                if let foundUser = foundUser {
-                    print("✅ User found in context: \(foundUser.email)")
-                    return foundUser
-                } else {
-                    print("❌ User NOT in context, inserting...")
-                    modelContext.insert(user)
-                    try modelContext.save()
-                    return user
-                }
-            } catch {
-                print("❌ Failed to fetch user: \(error)")
-                return nil
-            }
-        }
-        
-        guard let validUser = userInContext else {
+        // ✅ Direkt fetchen – kein MainActor.run nötig, wir sind bereits @MainActor
+        let userID = user.persistentModelID
+        let userDescriptor = FetchDescriptor<User>(
+            predicate: #Predicate { $0.persistentModelID == userID }
+        )
+        guard let validUser = try modelContext.fetch(userDescriptor).first else {
             throw NSError(
                 domain: "VideoRepository",
                 code: -2,
                 userInfo: [NSLocalizedDescriptionKey: "User nicht im Context gefunden"]
             )
         }
+        print("✅ User found: \(validUser.email)")
         
         // 1. Save video file
         print("📁 Saving video file...")
@@ -131,9 +111,9 @@ final class VideoRepository: VideoRepositoryProtocol {
         let thumbnailFileName = try await thumbnailService.generateThumbnail(from: videoURL)
         print("✅ Thumbnail saved: \(thumbnailFileName)")
         
-        // 3. Create metadata mit VALIDEM User
+        // 3. Create & save – direkt, kein MainActor.run nötig
         print("📝 Creating Video object...")
-        let metadata = Video(
+        let video = Video(
             id: UUID(),
             title: title,
             videoFileName: fileName,
@@ -142,51 +122,26 @@ final class VideoRepository: VideoRepositoryProtocol {
             equipment: equipment,
             durationSeconds: Int(duration),
             fileSizeBytes: fileSize,
-         //   defaultRepetitions: defaultRepetitions,
-        //    defaultPauseSeconds: defaultPauseSeconds,
             loopDurationSeconds: Int(duration),
-            user: validUser,  // ✅ User aus Context!
+            user: validUser,
             uploadedByTherapist: nil,
             isWatched: false,
             rating: 0
         )
+        video.thumbnailFileName = thumbnailFileName
         
-        metadata.thumbnailFileName = thumbnailFileName
-        print("📦 Video created: \(metadata.title) for user: \(validUser.email)")
+        print("💾 Inserting & Saving...")
+        modelContext.insert(video)
+        try modelContext.save()
+        print("✅ SAVED!")
         
-        // 4. Save on MainActor
-        await MainActor.run {
-            print("💾 [MainActor] Inserting...")
-            modelContext.insert(metadata)
-            
-            do {
-                print("💾 [MainActor] Saving...")
-                try modelContext.save()
-                print("✅ [MainActor] SAVED!")
-            } catch {
-                print("❌ [MainActor] Save failed: \(error)")
-            }
-        }
-        
-        // 5. Verify
-        let verified = await MainActor.run { () -> Bool in
-            print("🔍 [MainActor] Verifying...")
-            modelContext.processPendingChanges()
-            
-            let descriptor = FetchDescriptor<Video>()
-            
-            do {
-                let allVideos = try modelContext.fetch(descriptor)
-                print("📊 [MainActor] Total videos: \(allVideos.count)")
-                
-                return allVideos.contains(where: { $0.id == metadata.id })
-            } catch {
-                print("❌ [MainActor] Verify failed: \(error)")
-                return false
-            }
-        }
-        
-        if !verified {
+        // 4. Verify
+        modelContext.processPendingChanges()
+        let videoID = video.persistentModelID
+        let verifyDescriptor = FetchDescriptor<Video>(
+            predicate: #Predicate { $0.persistentModelID == videoID }
+        )
+        guard (try modelContext.fetch(verifyDescriptor)).first != nil else {
             throw NSError(
                 domain: "VideoRepository",
                 code: -1,
@@ -195,7 +150,7 @@ final class VideoRepository: VideoRepositoryProtocol {
         }
         
         print("✅ Upload complete: \(title)")
-        return metadata
+        return video
     }
     
     // MARK: - Delete Video
