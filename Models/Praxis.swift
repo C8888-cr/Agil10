@@ -80,15 +80,21 @@ final class Praxis: @unchecked Sendable, Identifiable {
                 }
                 
                 /// Maps Integration
-                func openInMaps() {
-                    guard let coordinate = coordinate else { return }
-                    
-                    let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
-                    mapItem.name = name
-                    mapItem.openInMaps(launchOptions: [
-                        MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
-                    ])
-                }
+    func openInMaps() {
+        guard let coordinate = coordinate else { return }
+        
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        let address = fullAddress.flatMap {
+            MKAddress(fullAddress: $0, shortAddress: addresse)
+        }
+        
+        let mapItem = MKMapItem(location: location, address: address)
+        mapItem.name = name
+        mapItem.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
+        ])
+    }
             }
     
   

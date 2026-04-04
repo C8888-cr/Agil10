@@ -12,7 +12,7 @@ import CoreLocation
 import MapKit
 
 @Model
-final class Appointment: @unchecked Sendable {
+final class Appointment {
     @Attribute(.unique) var id: UUID
   
     var date: Date
@@ -113,9 +113,16 @@ extension Appointment {
         guard let coordinate = coordinate else { return }
         
         let name = locationName ?? "Termin"
-        let placemark = MKPlacemark(coordinate: coordinate)
-        let mapItem = MKMapItem(placemark: placemark)
-        mapItem.name = name
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        
+        let address = locationAddress.flatMap {
+               MKAddress(fullAddress: $0, shortAddress: locationName)
+           }
+        
+        let mapItem = MKMapItem(location: location, address: address)
+           mapItem.name = name
+        
+      
         
         mapItem.openInMaps(launchOptions: [
             MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving

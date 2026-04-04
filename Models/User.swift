@@ -11,7 +11,7 @@ import Foundation
 
 
 @Model
-final class User: @unchecked Sendable { 
+final class User { 
     @Attribute(.unique) var id: UUID  // ← HINZUFÜGEN!
     @Attribute(.externalStorage) var profileImage: Data?
     
