@@ -207,6 +207,7 @@ struct HomeView: View {
                         } else {
                             // ✅ Neues Video hinzufügen
                             let rule = settingsVM.recurrenceRule(for: pendingDate)
+                            print("🔍 HomeView onAdd: rule=\(rule.rawValue), pendingDate=\(pendingDate)")
                             if rule == .single {
                                 progressVM.addVideo(
                                     video,
