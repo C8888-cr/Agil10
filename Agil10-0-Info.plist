@@ -17,5 +17,12 @@
            <string>webdemail</string>
            <string>gmxmail</string>
        </array>
+       
+       
+       <key>NSCameraUsageDescription</key>
+            <string>Agil benötigt die Kamera um Übungsvideos aufzunehmen.</string>
+       <key>NSMicrophoneUsageDescription</key>
+            <string>Agil benötigt das Mikrofon für Videoaufnahmen.</string>
+       
 </dict>
 </plist>
