@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-@MainActor
+
 final class MockAuthService: AuthServiceProtocol, ObservableObject {
     private weak var modelContext: ModelContext?
     
