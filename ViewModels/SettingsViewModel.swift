@@ -666,6 +666,9 @@ class SettingsViewModel: ObservableObject {
            print("🔍 recurrenceRule: weekday=\(weekday), dayIndex=\(dayIndex), rule=\(rule.rawValue)")
            return rule
     }
+    
+    
+    
     // MARK: - Notifications
 
     func scheduleAllReminders() {
@@ -691,7 +694,6 @@ class SettingsViewModel: ObservableObject {
             var components = DateComponents()
             components.hour = Calendar.current.component(.hour, from: time)
             components.minute = Calendar.current.component(.minute, from: time)
-            // dayOfWeek: 0=Mo → weekday 2, ..., 6=So → weekday 1
             components.weekday = goal.dayOfWeek == 6 ? 1 : goal.dayOfWeek + 2
 
             let trigger = UNCalendarNotificationTrigger(
@@ -699,14 +701,17 @@ class SettingsViewModel: ObservableObject {
                 repeats: true
             )
 
+            // ✅ dayOfWeek vorher extrahieren – kein Goal-Objekt im Closure
+            let dayOfWeek = goal.dayOfWeek
+
             let request = UNNotificationRequest(
-                identifier: "reminder_day_\(goal.dayOfWeek)",
+                identifier: "reminder_day_\(dayOfWeek)",
                 content: content,
                 trigger: trigger
             )
 
             center.add(request) { error in
-                if let error { print("❌ Notification Error Tag \(goal.dayOfWeek): \(error)") }
+                if let error { print("❌ Notification Error Tag \(dayOfWeek): \(error)") }
             }
         }
 
