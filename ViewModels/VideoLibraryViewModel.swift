@@ -44,6 +44,8 @@ final class VideoLibraryViewModel: ObservableObject {
     @Published var storageUsed: String = "0 MB"
     @Published var storageAvailable: String = "0 GB"
     
+    @Published var pendingVideoURL: URL? = nil
+    
     enum ViewMode {
         case grid, list
     }
@@ -330,6 +332,25 @@ final class VideoLibraryViewModel: ObservableObject {
         
         // Available storage (example: 5 GB)
         storageAvailable = "5 GB"
+    }
+    // MARK: - Kamera Video
+    func handleCameraVideo(url: URL) {
+        // ✅ Gleicher Flow wie handleVideoSelection –
+        // URL direkt als temporäre Kopie speichern
+        let tempURL = URL.temporaryDirectory.appending(path: "import_\(UUID().uuidString).mov")
+        
+        do {
+            try FileManager.default.copyItem(at: url, to: tempURL)
+            
+            // ✅ Ins UploadSheet weitergeben – gleicher Flow wie PhotosPicker
+            pendingVideoURL = tempURL
+            showUploadSheet = true
+            print("✅ Kamera-Video bereit: \(tempURL)")
+        } catch {
+            errorMessage = "Kamera-Video konnte nicht verarbeitet werden: \(error.localizedDescription)"
+            showError = true
+            print("❌ Kamera-Video Fehler: \(error)")
+        }
     }
 }
 // MARK: - Video Transferable (für PhotosPicker)
