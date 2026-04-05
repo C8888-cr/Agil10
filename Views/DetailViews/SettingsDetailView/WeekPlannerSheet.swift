@@ -103,6 +103,7 @@ struct WeekPlannerSheet: View {
                 Spacer()
                 saveButton
             }
+            
             .navigationTitle(rule == .daily ? "Täglicher Plan" : "Wöchentlicher Plan")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
