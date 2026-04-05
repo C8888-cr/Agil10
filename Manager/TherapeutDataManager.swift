@@ -225,7 +225,7 @@ class TherapeutDataManager {
         ),
         Therapeut(
             id: TherapeutDataManager.t24Id,
-            firstName: "Caro",
+            firstName: "Carolin",
             lastName: "Lang",
             praxisId: PraxisDataManager.praxis4Id
         ),
