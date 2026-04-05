@@ -21,6 +21,8 @@ struct LibraryView: View {
     @State private var showProfile = false
     @State private var showSettings = false
     
+    @State private var showCamera = false
+    
 
     var onVideoSelected: ((Video) -> Void)? = nil
     
@@ -43,7 +45,12 @@ struct LibraryView: View {
             .toolbar {
                 toolbarContent
             }
-        
+        // Sheet hinzufügen:
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraVideoPickerView { url in
+                viewModel.handleCameraVideo(url: url)
+            }
+        }
         
             .searchable(
                 text: $viewModel.searchText,
@@ -329,12 +336,25 @@ struct LibraryView: View {
         // LINKS: Plus + Filter
         ToolbarItem(placement: .topBarLeading) {
             HStack(spacing: 12) {
-                // Plus-Button
-                Button(action: { pickerPresented = true }) {
+                Menu {
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        Button {
+                            showCamera = true
+                        } label: {
+                            Label("Video aufnehmen", systemImage: "camera.fill")
+                        }
+                    }
+                    Button {
+                        pickerPresented = true
+                    } label: {
+                        Label("Aus Bibliothek", systemImage: "photo.on.rectangle")
+                    }
+                } label: {
                     Image(systemName: "plus.circle.fill")
                         .symbolRenderingMode(.hierarchical)
                 }
                 
+   
                 // Filter-Button
                 Button {
                     showFilterSheet = true
