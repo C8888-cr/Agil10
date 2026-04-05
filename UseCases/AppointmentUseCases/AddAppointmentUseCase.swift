@@ -28,11 +28,12 @@ struct AddAppointmentUseCase {
     ) async throws -> Appointment {
         print("📝 addAppointmentManual called")
         
-        guard let user = await authService.currentUser else {  // ✅ GEÄNDERT: await entfernt
-            print("❌ Kein User gefunden")
-            throw AppointmentError.validationFailed("Nicht eingeloggt")
-        }
-        print("👤 User gefunden: \(user.id)")
+        // ✅ Nur die ID extrahieren – User-Objekt nicht über Actor-Grenzen weitergeben
+           guard let userId = await MainActor.run(body: { authService.currentUser?.id }) else {
+               print("❌ Kein User gefunden")
+               throw AppointmentError.validationFailed("Nicht eingeloggt")
+           }
+        print("👤 User gefunden: \(userId)")
         
         let appointment = Appointment(
             date: date,
@@ -43,14 +44,14 @@ struct AddAppointmentUseCase {
             locationLongitude: longitude,
             notes: notes,
             status: .confirmed,
-            userId: user.id,
+            userId: userId,
             praxisId: UUID()  // ✅ Status hinzugefügt
         )
         
         print("📅 Appointment erstellt:")
         print("   → Datum: \(date)")
         print("   → Therapeut: \(therapist)")
-        print("   → User: \(user.id)")
+        print("   → User: \(userId)")
         
         // ✅ Validierung + Speichern
         let savedAppointment = try await execute(appointment)
