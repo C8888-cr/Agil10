@@ -22,8 +22,8 @@ import MapKit
 final class LocationService: NSObject, ObservableObject {
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
-    private let geocoder = CLGeocoder()
     private let locationManager = CLLocationManager()
+    // ✅ CLGeocoder entfernt – nicht mehr nötig
     
     override init() {
         super.init()
@@ -41,44 +41,51 @@ final class LocationService: NSObject, ObservableObject {
         authorizationStatus == .authorizedAlways
     }
     
-    // MARK: - Geocoding (Address → Coordinates)
     func geocode(address: String) async throws -> CLLocationCoordinate2D {
-        let placemarks = try await geocoder.geocodeAddressString(address)
-        
-        guard let location = placemarks.first?.location else {
+        guard let request = MKGeocodingRequest(addressString: address) else {
             throw LocationError.geocodingFailed
         }
         
+        let items = try await request.mapItems
+        
+        guard let location = items.first?.location else {
+            throw LocationError.geocodingFailed
+        }
         return location.coordinate
     }
     
     // MARK: - Reverse Geocoding (Coordinates → Address)
     func reverseGeocode(coordinate: CLLocationCoordinate2D) async throws -> String {
-        let location = CLLocation(
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude
-        )
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         
-        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-        
-        guard let placemark = placemarks.first else {
+        guard let request = MKReverseGeocodingRequest(location: location) else {
             throw LocationError.reverseGeocodingFailed
         }
         
-        return formatAddress(from: placemark)
+        let items = try await request.mapItems
+        
+        guard let item = items.first else {
+            throw LocationError.reverseGeocodingFailed
+        }
+        
+        // ✅ iOS 26: address statt placemark
+        if let fullAddress = item.address?.fullAddress {
+            return fullAddress
+        }
+        
+        // Fallback: name des MapItems
+        return item.name ?? ""
     }
     
-    // MARK: - Search
+    // MARK: - Search (unverändert – MKLocalSearch ist nicht deprecated)
     func search(query: String) async throws -> [MKMapItem] {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = query
-        
         let search = MKLocalSearch(request: request)
         let response = try await search.start()
-        
         return response.mapItems
     }
-    
+}
     // MARK: - Helpers
     private func formatAddress(from placemark: CLPlacemark) -> String {
         var components: [String] = []
@@ -102,7 +109,7 @@ final class LocationService: NSObject, ObservableObject {
         
         return components.joined(separator: ", ")
     }
-}
+
 // MARK: - CLLocationManagerDelegate
 extension LocationService: CLLocationManagerDelegate {
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
