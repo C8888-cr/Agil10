@@ -111,8 +111,11 @@ struct LocationSection: View {
     
     // MARK: - Navigation Helpers
     private func openInMaps(coordinate: CLLocationCoordinate2D) {
-        let placemark = MKPlacemark(coordinate: coordinate)
-        let mapItem = MKMapItem(placemark: placemark)
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        let address = appointment.locationAddress.flatMap {
+            MKAddress(fullAddress: $0, shortAddress: appointment.locationName)
+        }
+        let mapItem = MKMapItem(location: location, address: address)
         mapItem.name = appointment.locationName ?? "Termin-Ort"
         mapItem.openInMaps(launchOptions: [
             MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving
@@ -280,8 +283,11 @@ struct FullMapView: View {
     }
     
     private func openInMaps() {
-        let placemark = MKPlacemark(coordinate: coordinate)
-        let mapItem = MKMapItem(placemark: placemark)
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        let mkAddress = address.flatMap {
+            MKAddress(fullAddress: $0, shortAddress: locationName)
+        }
+        let mapItem = MKMapItem(location: location, address: mkAddress)
         mapItem.name = locationName
         mapItem.openInMaps(launchOptions: [
             MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving

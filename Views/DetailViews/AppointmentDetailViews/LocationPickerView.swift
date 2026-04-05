@@ -45,7 +45,7 @@ struct LocationPickerView: View {
                     ForEach(searchResults, id: \.self) { item in
                         Marker(
                             item.name ?? "Ort",
-                            coordinate: item.placemark.coordinate
+                            coordinate: item.location.coordinate
                         )
                         .tint(.blue)
                     }
@@ -139,7 +139,7 @@ struct LocationPickerView: View {
     
     private func selectLocation(_ item: MKMapItem) {
         selectedLocation = item
-        region.center = item.placemark.coordinate
+        region.center = item.location.coordinate
         region.span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     }
     
@@ -147,8 +147,8 @@ struct LocationPickerView: View {
         guard let item = selectedLocation else { return }
         
         locationName = item.name ?? ""
-        locationAddress = formatAddress(from: item.placemark)
-        coordinate = item.placemark.coordinate
+        locationAddress = item.address?.fullAddress ?? ""
+        coordinate = item.location.coordinate
         
         dismiss()
     }
@@ -206,21 +206,11 @@ struct LocationResultRow: View {
     }
     
     private func formatAddress() -> String? {
-        var components: [String] = []
-        
-        if let street = item.placemark.thoroughfare {
-            components.append(street)
+        // ✅ MKAddress direkt nutzen
+        if let full = item.address?.fullAddress {
+            return full
         }
-        if let number = item.placemark.subThoroughfare {
-            if let last = components.last {
-                components[components.count - 1] = "\(last) \(number)"
-            }
-        }
-        if let city = item.placemark.locality {
-            components.append(city)
-        }
-        
-        return components.isEmpty ? nil : components.joined(separator: ", ")
+        return item.name
     }
 }
 // MARK: - Previews
