@@ -28,7 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
+		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
 		56F4C5E12ECDB52C00417181 /* Agil10.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Agil10.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -40,84 +40,24 @@
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		5636C55E2F837E490011D0CF /* Data */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Data;
-			sourceTree = "<group>";
-		};
 		5636C5602F837EDB0011D0CF /* Presentation */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Presentation;
 			sourceTree = "<group>";
 		};
-		56B377DB2EEDA95900CBA27E /* AgilData */ = {
+		5636C6E32F842E0D0011D0CF /* Data */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = AgilData;
+			path = Data;
 			sourceTree = "<group>";
 		};
-		56B377DE2EEDA95C00CBA27E /* DI */ = {
+		5636C7222F8439230011D0CF /* Infrastructure */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DI;
+			path = Infrastructure;
 			sourceTree = "<group>";
 		};
-		56B377E72EEDA95E00CBA27E /* Error */ = {
+		5636C7242F84396F0011D0CF /* Core */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Error;
-			sourceTree = "<group>";
-		};
-		56B377F12EEDA96200CBA27E /* Extensions */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Extensions;
-			sourceTree = "<group>";
-		};
-		56B377F72EEDA96600CBA27E /* Helper */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Helper;
-			sourceTree = "<group>";
-		};
-		56B377FC2EEDA97000CBA27E /* Manager */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Manager;
-			sourceTree = "<group>";
-		};
-		56B3780E2EEDA97300CBA27E /* Models */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Models;
-			sourceTree = "<group>";
-		};
-		56B378222EEDA97600CBA27E /* Protocol */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Protocol;
-			sourceTree = "<group>";
-		};
-		56B378282EEDA97800CBA27E /* Repository */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Repository;
-			sourceTree = "<group>";
-		};
-		56B378412EEDA97A00CBA27E /* Services */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Services;
-			sourceTree = "<group>";
-		};
-		56B3785A2EEDA97C00CBA27E /* UseCases */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = UseCases;
-			sourceTree = "<group>";
-		};
-		56B3786C2EEDA97E00CBA27E /* ViewModels */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		56B378A12EEDA98000CBA27E /* Views */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Views;
-			sourceTree = "<group>";
-		};
-		56F267782F598E25009FAEED /* Enum */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Enum;
+			path = Core;
 			sourceTree = "<group>";
 		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
@@ -166,24 +106,12 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
-				5636C5602F837EDB0011D0CF /* Presentation */,
-				5636C55E2F837E490011D0CF /* Data */,
-				5636C5552F837CAB0011D0CF /* Domain */,
-				56F267782F598E25009FAEED /* Enum */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
-				56B377DB2EEDA95900CBA27E /* AgilData */,
-				56B377DE2EEDA95C00CBA27E /* DI */,
-				56B377F72EEDA96600CBA27E /* Helper */,
-				56B377F12EEDA96200CBA27E /* Extensions */,
-				56B377E72EEDA95E00CBA27E /* Error */,
-				56B377FC2EEDA97000CBA27E /* Manager */,
-				56B3780E2EEDA97300CBA27E /* Models */,
-				56B378222EEDA97600CBA27E /* Protocol */,
-				56B378282EEDA97800CBA27E /* Repository */,
-				56B378412EEDA97A00CBA27E /* Services */,
-				56B3785A2EEDA97C00CBA27E /* UseCases */,
-				56B3786C2EEDA97E00CBA27E /* ViewModels */,
-				56B378A12EEDA98000CBA27E /* Views */,
+				5636C5552F837CAB0011D0CF /* Domain */,
+				5636C6E32F842E0D0011D0CF /* Data */,
+				5636C5602F837EDB0011D0CF /* Presentation */,
+				5636C7222F8439230011D0CF /* Infrastructure */,
+				5636C7242F84396F0011D0CF /* Core */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 				56F4C5F12ECDB52D00417181 /* AgilTests */,
 				56F4C5FB2ECDB52D00417181 /* AgilUITests */,
@@ -218,22 +146,10 @@
 			);
 			fileSystemSynchronizedGroups = (
 				5636C5552F837CAB0011D0CF /* Domain */,
-				5636C55E2F837E490011D0CF /* Data */,
 				5636C5602F837EDB0011D0CF /* Presentation */,
-				56B377DB2EEDA95900CBA27E /* AgilData */,
-				56B377DE2EEDA95C00CBA27E /* DI */,
-				56B377E72EEDA95E00CBA27E /* Error */,
-				56B377F12EEDA96200CBA27E /* Extensions */,
-				56B377F72EEDA96600CBA27E /* Helper */,
-				56B377FC2EEDA97000CBA27E /* Manager */,
-				56B3780E2EEDA97300CBA27E /* Models */,
-				56B378222EEDA97600CBA27E /* Protocol */,
-				56B378282EEDA97800CBA27E /* Repository */,
-				56B378412EEDA97A00CBA27E /* Services */,
-				56B3785A2EEDA97C00CBA27E /* UseCases */,
-				56B3786C2EEDA97E00CBA27E /* ViewModels */,
-				56B378A12EEDA98000CBA27E /* Views */,
-				56F267782F598E25009FAEED /* Enum */,
+				5636C6E32F842E0D0011D0CF /* Data */,
+				5636C7222F8439230011D0CF /* Infrastructure */,
+				5636C7242F84396F0011D0CF /* Core */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 			);
 			name = Agil10.0;
