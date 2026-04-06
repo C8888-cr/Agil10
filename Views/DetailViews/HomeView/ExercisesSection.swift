@@ -88,53 +88,43 @@ struct ExercisesSection: View {
     }
 }
 
-
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
         for: VideoSchedule.self, Video.self,
         configurations: config
     )
-    
     let context = ModelContext(container)
 
-    // ✅ ERST Videos + Schedules einfügen
     let video1 = Video.previewMobility
     let video2 = Video.previewStrength
     let video3 = Video.previewStretching
-    
     context.insert(video1)
     context.insert(video2)
     context.insert(video3)
-    
+
     let schedule1 = VideoSchedule(scheduledDate: Date(), orderIndex: 0, video: video1)
     let schedule2 = VideoSchedule(scheduledDate: Date(), orderIndex: 1, video: video2)
     let schedule3 = VideoSchedule(scheduledDate: Date(), orderIndex: 2, video: video3)
-    
     context.insert(schedule1)
     context.insert(schedule2)
     context.insert(schedule3)
-    
     try? context.save()
 
-    // ✅ DANN ViewModels erstellen
-    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
-    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: AppDependencies.shared.authService)
+    let authService = AuthService(authServiceProtocol: MockAuthService())
+    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: authService)
     let progressVM = ProgressViewModel(modelContext: context, authService: authService)
 
-    return ExercisesSection(
+    return ExercisesSection(  // ← return hinzufügen
         onToggleCompletion: { _ in },
         onDelete: { _ in },
         onConfig: { _ in },
         onPlay: { _, _ in },
         onAddVideo: { },
         onRate: { _, _ in },
- onPlayAll: { }
+        onPlayAll: { }
     )
     .environmentObject(progressVM)
     .environmentObject(settingsVM)
     .modelContainer(container)
 }
-
-
-

@@ -1,41 +1,50 @@
-
-
 // Core/DI/AppDependencies.swift
 import Foundation
 import SwiftData
-
 
 @MainActor
 class AppDependencies: ObservableObject {
     static let shared = AppDependencies()
     
-    // MARK: - Core
+    // MARK: - Infrastructure
     let modelContainer: ModelContainer
     let modelContext: ModelContext
-    let authService: AuthService
- 
+    
+    // MARK: - Auth ALT (bleibt bis alle ViewModels migriert sind)
+    let authService: AuthService  // ← wieder rein, aber nur temporär!
+    
+    // MARK: - Auth NEU (Clean Architecture)
+    private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
+    private lazy var userRepository = UserRepository(modelContext: modelContext)
+    lazy var sessionManager = SessionManager(userRepository: userRepository)
+    
+    func makeAuthViewModel() -> AuthViewModel {
+        AuthViewModel(
+            session: sessionManager,
+            loginUseCase: LoginUseCase(authService: authServiceProtocol),
+            signUpUseCase: SignUpUseCase(authService: authServiceProtocol),
+            signOutUseCase: SignOutUseCase(authService: authServiceProtocol),
+            resetPasswordUseCase: ResetPasswordUseCase(authService: authServiceProtocol)
+        )
+    }
 
     // MARK: - Services
     let emailParser: EmailParserService
     let emailService: EmailService
     
-    
-    // MARK: - Repositories (LAZY)
+    // MARK: - Repositories
     lazy var appointmentRepository = AppointmentRepository(
         modelContext: modelContext,
         authService: authService
     )
-    
-    lazy var videoRepository = VideoRepository (
-            modelContext: modelContext,
-            storageService: .shared,
-            thumbnailService: .shared
-        )
-    // MARK: - Repositories
+    lazy var videoRepository = VideoRepository(
+        modelContext: modelContext,
+        storageService: .shared,
+        thumbnailService: .shared
+    )
     lazy var videoScheduleRepository = VideoScheduleRepository(
         modelContext: modelContext
     )
- 
     
     // MARK: - AppointmentUseCases
     lazy var addAppointmentUseCase = AddAppointmentUseCase(
@@ -64,17 +73,11 @@ class AppDependencies: ObservableObject {
         detectChangesUseCase: detectAppointmentChangesUseCase
     )
     
-    
-    
-    
-    
-    
-    // MARK: - ViewModels (LAZY)
+    // MARK: - ViewModels (noch nicht migriert)
     lazy var progressViewModel = ProgressViewModel(
-        modelContext: modelContext, authService: authService,
-          // repository: videoScheduleRepository
-       )
-
+        modelContext: modelContext,
+        authService: authService
+    )
     lazy var appointmentViewModel = AppointmentViewModel(
         modelContext: modelContext,
         repository: appointmentRepository,
@@ -88,81 +91,50 @@ class AppDependencies: ObservableObject {
         deleteAppointmentUseCase: deleteAppointmentUseCase,
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
-    
     lazy var calendarViewModel = CalendarViewModel(
-           progressViewModel: progressViewModel,
-           authService: authService
-       )
-    
-    lazy var videoLibraryVM =
-        VideoLibraryViewModel(
-            repository: videoRepository,
-            modelContext: modelContext,
-            authService: authService
-        )
-    
-
+        progressViewModel: progressViewModel,
+        authService: authService
+    )
+    lazy var videoLibraryVM = VideoLibraryViewModel(
+        repository: videoRepository,
+        modelContext: modelContext,
+        authService: authService
+    )
     lazy var settingsViewModel = SettingsViewModel(
         modelContext: modelContext,
         authService: authService
     )
-    
     lazy var profileViewModel = ProfileViewModel(
         modelContext: modelContext,
         authService: authService
     )
-    
 
     // MARK: - Init
     private init() {
-        // 1. SwiftData ZUERST
         self.modelContainer = PersistenceController.shared.container
         self.modelContext = modelContainer.mainContext
         
-        print("✅ AppDependencies.init()")
-        print("   ModelContext: \(modelContext)")
-        
-     
-        
- /*
-        // 2. AUTH SERVICE erstellen (Mock/Real Switch)
         #if DEBUG
-        let mockService = MockAuthService(modelContext: modelContext)
-          self.authService = AuthService(
-              authServiceProtocol: mockService,
-              modelContext: modelContext
-          )
-  
-  */
- //   firebase test
-#if DEBUG
-self.authService = AuthService(
-    authServiceProtocol: FirebaseAuthService(),
-    modelContext: modelContext
-)
-#else
-self.authService = AuthService(
-    authServiceProtocol: FirebaseAuthService(), // ← war RealAuthService()
-    modelContext: modelContext
-)
-        print("✅ RealAuthService erstellt")
+        self.authService = AuthService(
+            authServiceProtocol: FirebaseAuthService(),
+            modelContext: modelContext
+        )
+        #else
+        self.authService = AuthService(
+            authServiceProtocol: FirebaseAuthService(),
+            modelContext: modelContext
+        )
         #endif
         
-        // 3. Services (nicht lazy - leichtgewichtig)
         self.emailParser = EmailParserService()
         self.emailService = EmailService()
         
-        // AppDependencies.init() - am Ende:
         cleanupMockData()
     }
     
-    // AppDependencies.swift - in init() nach modelContext setup:
     private func cleanupMockData() {
-        // ← Einmalig ausführen, danach nie wieder
         let key = "mockDataCleaned_v1"
-        guard !UserDefaults.standard.bool(forKey: key) else {
-            return  // ← bereits bereinigt, überspringen
-        }
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
         
         let mockId = UUID(uuidString: "12345678-1234-5678-1234-123456789ABC")!
         
@@ -183,9 +155,7 @@ self.authService = AuthService(
         }
         
         try? modelContext.save()
-        
-        // ← Merken dass es erledigt ist
         UserDefaults.standard.set(true, forKey: key)
         print("🧹 Mock-Daten bereinigt (einmalig)")
     }
-  }
+}

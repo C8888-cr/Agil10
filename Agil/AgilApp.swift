@@ -2,11 +2,9 @@ import SwiftUI
 import SwiftData
 import Firebase
 
-
 @main
 struct AgilApp: App {
     @StateObject private var dependencies = AppDependencies.shared
-  
     
     init() {
         FirebaseApp.configure()
@@ -14,9 +12,10 @@ struct AgilApp: App {
     
     var body: some Scene {
         WindowGroup {
-            AppRouter()
-                .preferredColorScheme(.light)
+            RootView()
+                .environmentObject(dependencies)
                 .environmentObject(dependencies.authService)
+                .environmentObject(dependencies.sessionManager)
                 .environmentObject(dependencies.appointmentViewModel)
                 .environmentObject(dependencies.calendarViewModel)
                 .environmentObject(dependencies.progressViewModel)
@@ -28,5 +27,20 @@ struct AgilApp: App {
                     await dependencies.authService.loadSavedSession()
                 }
         }
+    }
+}
+
+// Separater View der authViewModel als StateObject hält
+struct RootView: View {
+    @EnvironmentObject var dependencies: AppDependencies
+    @StateObject private var authViewModel: AuthViewModel
+    
+    init() {
+        _authViewModel = StateObject(wrappedValue: AppDependencies.shared.makeAuthViewModel())
+    }
+    
+    var body: some View {
+        AppRouter()
+            .environmentObject(authViewModel)
     }
 }

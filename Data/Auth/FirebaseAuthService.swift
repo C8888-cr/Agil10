@@ -1,6 +1,6 @@
 import FirebaseAuth
 import Foundation
-
+/*
 class FirebaseAuthService: AuthServiceProtocol {
     
     func login(email: String, password: String) async throws -> (user: User, sessionToken: String) {
@@ -71,5 +71,60 @@ class FirebaseAuthService: AuthServiceProtocol {
         user.lastName = nameParts.dropFirst().first.map(String.init) ?? ""
         user.firebaseUID = firebaseUser.uid  // ← das ist der eigentliche Fix!
         return user
+    }
+}
+*/
+import Firebase
+
+final class FirebaseAuthService: AuthServiceProtocol {
+    
+    var currentUser: AuthUser? {
+        guard let user = Auth.auth().currentUser else { return nil }
+        let nameParts = (user.displayName ?? "").split(separator: " ")
+        return AuthUser(
+            uid: user.uid,
+            email: user.email ?? "",
+            firstName: nameParts.first.map(String.init) ?? "",
+            lastName: nameParts.dropFirst().first.map(String.init) ?? "",
+            praxisId: nil
+        )
+    }
+
+    func login(email: String, password: String) async throws -> AuthUser {
+        let result = try await Auth.auth().signIn(withEmail: email, password: password)
+        let nameParts = (result.user.displayName ?? "").split(separator: " ")
+        return AuthUser(
+            uid: result.user.uid,
+            email: result.user.email ?? "",
+            firstName: nameParts.first.map(String.init) ?? "",
+            lastName: nameParts.dropFirst().first.map(String.init) ?? "",
+            praxisId: nil
+        )
+    }
+    
+    
+    func signUp(email: String, password: String, firstName: String,
+                lastName: String, praxisId: UUID?) async throws -> AuthUser {
+        let result = try await Auth.auth().createUser(withEmail: email, password: password)
+        
+        let changeRequest = result.user.createProfileChangeRequest()
+        changeRequest.displayName = "\(firstName) \(lastName)"
+        try await changeRequest.commitChanges()
+        
+        return AuthUser(
+            uid: result.user.uid,
+            email: result.user.email ?? "",
+            firstName: firstName,
+            lastName: lastName,
+            praxisId: praxisId
+        )
+    }
+
+    func signOut() throws {
+        try Auth.auth().signOut()
+    }
+
+    func resetPassword(email: String) async throws {
+        try await Auth.auth().sendPasswordReset(withEmail: email)
     }
 }

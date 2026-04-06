@@ -35,6 +35,21 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5636C5552F837CAB0011D0CF /* Domain */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		5636C55E2F837E490011D0CF /* Data */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Data;
+			sourceTree = "<group>";
+		};
+		5636C5602F837EDB0011D0CF /* Presentation */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Presentation;
+			sourceTree = "<group>";
+		};
 		56B377DB2EEDA95900CBA27E /* AgilData */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = AgilData;
@@ -151,6 +166,9 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
+				5636C5602F837EDB0011D0CF /* Presentation */,
+				5636C55E2F837E490011D0CF /* Data */,
+				5636C5552F837CAB0011D0CF /* Domain */,
 				56F267782F598E25009FAEED /* Enum */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				56B377DB2EEDA95900CBA27E /* AgilData */,
@@ -199,6 +217,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				5636C5552F837CAB0011D0CF /* Domain */,
+				5636C55E2F837E490011D0CF /* Data */,
+				5636C5602F837EDB0011D0CF /* Presentation */,
 				56B377DB2EEDA95900CBA27E /* AgilData */,
 				56B377DE2EEDA95C00CBA27E /* DI */,
 				56B377E72EEDA95E00CBA27E /* Error */,

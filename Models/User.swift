@@ -93,7 +93,7 @@ final class User {
 extension User {
     @MainActor static func mockPatient() -> User {
         let user = User(
-            id: MockAuthService.mockPatientId,
+            id: MockData.patientId,
             firstName: "Max",
             lastName: "Mustermann",
             email: "patient@agil.de",

@@ -14,7 +14,7 @@ import SwiftUI
 import SwiftData
 struct LoginView: View {
 
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     @State private var email = ""
     @State private var password = ""
@@ -204,36 +204,18 @@ struct LoginView: View {
         errorMessage = nil
         
         Task {
-            do {
-           
-                
-                try await authService.login(email: email, password: password)
-                
-                
-                if let user = authService.currentUser {
-                              print("🧪 AuthService.login – User VOR Speichern:")
-                              print("   email: \(user.email)")
-                              print("   firstName: \(user.firstName)")
-                              print("   lastName: \(user.lastName)")
-                              print("   praxisId: \(String(describing: user.praxisId))")
-                          }
-
-                await MainActor.run {
-                    showLoading = false
-                    isLoading = false
+            print("🔐 Login gestartet für: \(email)")
+            await authViewModel.login(email: email, password: password)
+            await MainActor.run {
+                print("🔐 Login fertig – errorMessage: \(authViewModel.errorMessage ?? "nil")")
+                print("🔐 session.isAuthenticated: \(authViewModel.session.isAuthenticated)")
+                print("🔐 session.currentUser: \(authViewModel.session.currentUser?.email ?? "nil")")
+                if let error = authViewModel.errorMessage {
+                    errorMessage = error
+                    authViewModel.errorMessage = nil
                 }
-            } catch let error as AuthError {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                    isLoading = false
-                    showLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Ein unerwarteter Fehler ist aufgetreten"
-                    isLoading = false
-                    showLoading = false
-                }
+                isLoading = false
+                showLoading = false
             }
         }
     }

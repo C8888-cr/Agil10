@@ -171,7 +171,7 @@ extension Array {
         configurations: config
     )
     let context = ModelContext(container)
-    let authService = AuthService(authServiceProtocol: MockAuthService(modelContext: context))
+    let authService = AuthService(authServiceProtocol: MockAuthService())
     let progressVM = ProgressViewModel(modelContext: context, authService: authService)
 
     let v1 = Video.previewWarmup
@@ -184,7 +184,7 @@ extension Array {
         VideoSchedule(scheduledDate: .now, orderIndex: 2, video: v3),
     ]
 
-    return PlayAllSessionView(
+    PlayAllSessionView(
         schedules: schedules,
         authService: authService,
         progressVM: progressVM

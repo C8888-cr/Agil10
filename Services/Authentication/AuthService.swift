@@ -43,27 +43,20 @@ class AuthService: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         
-        let (user, token) = try await authServiceProtocol.login(
-            email: email,
-            password: password
-        )
-        
-        self.currentUser = findOrCreateUser(user)
-        self.sessionToken = token
+        let authUser = try await authServiceProtocol.login(email: email, password: password)
+        self.currentUser = findOrCreateUser(firebaseUID: authUser.uid, email: authUser.email)
         self.isAuthenticated = true
-        KeychainHelper.save(token, forKey: "sessionToken")
-        
-        print("✅ AuthService Login: \(user.email)")
+        print("✅ AuthService Login: \(authUser.email)")
     }
     
     // MARK: - Logout
+    // MARK: - Logout
     func logout() async {
-        await authServiceProtocol.logout()
+        try? authServiceProtocol.signOut()
         currentUser = nil
         sessionToken = nil
         isAuthenticated = false
         KeychainHelper.delete(forKey: "sessionToken")
-        print("👋 AuthService: User geloggt aus")
     }
     
     // MARK: - Session wiederherstellen
@@ -83,75 +76,54 @@ class AuthService: ObservableObject {
     
     // MARK: - Fetch Current User
     func fetchCurrentUser() async throws {
-        isLoading = true
-        defer { isLoading = false }
-        
-        guard let token = KeychainHelper.load(forKey: "sessionToken") else {
-            print("⚠️ Kein Token gefunden")
-            throw AuthError.invalidToken
-        }
-        
-        self.sessionToken = token
-        
-        guard let user = try await authServiceProtocol.fetchCurrentUser() else {
-            print("⚠️ Kein User für Token gefunden")
+        guard let authUser = authServiceProtocol.currentUser else {
             throw AuthError.userNotFound
         }
-        
-        self.currentUser = findOrCreateUser(user)
+        self.currentUser = findOrCreateUser(firebaseUID: authUser.uid, email: authUser.email)
         self.isAuthenticated = true
-        print("✅ User geladen: \(user.email)")
     }
+
     
     // MARK: - Sign Up
-    func signUp(
-        email: String,
-        password: String,
-        firstName: String,
-        lastName: String,
-        role: UserRole,
-        praxisId: UUID?
-    ) async throws {
+    func signUp(email: String, password: String, firstName: String,
+                lastName: String, role: UserRole, praxisId: UUID?) async throws {
         isLoading = true
         defer { isLoading = false }
         
         guard ValidationHelper.isValidEmail(email) else { throw AuthError.invalidEmail }
         guard ValidationHelper.isValidPassword(password) else { throw AuthError.passwordTooShort }
         
-        let (newUser, token) = try await authServiceProtocol.signUp(
+        let authUser = try await authServiceProtocol.signUp(
             email: email,
             password: password,
+            firstName: firstName,    // ← ergänzt
+            lastName: lastName,      // ← ergänzt
+            praxisId: praxisId       // ← ergänzt
+        )
+        self.currentUser = findOrCreateUser(
+            firebaseUID: authUser.uid,
+            email: authUser.email,
             firstName: firstName,
             lastName: lastName,
-            role: role,
             praxisId: praxisId
         )
-        
-        self.currentUser = findOrCreateUser(newUser)
-        self.sessionToken = token
         self.isAuthenticated = true
-        KeychainHelper.save(token, forKey: "sessionToken")
-        
-        print("✅ User registriert: \(newUser.email)")
     }
     
     // MARK: - Password Reset
-    func sendPasswordResetEmail(email: String) async throws -> String {
-        let code = try await authServiceProtocol.sendPasswordResetEmail(email: email)
-        print("📧 Reset Code für \(email): \(code)")
-        return code
+    func sendPasswordResetEmail(email: String) async throws {
+        try await authServiceProtocol.resetPassword(email: email)
     }
+    
     
     func confirmPasswordReset(email: String, resetCode: String, newPassword: String) async throws {
         guard ValidationHelper.isValidPassword(newPassword) else { throw AuthError.passwordTooShort }
-        try await authServiceProtocol.confirmPasswordReset(
-            email: email,
-            resetCode: resetCode,
-            newPassword: newPassword
-        )
-        print("✅ Passwort geändert für: \(email)")
+        // confirmPasswordReset gibt es nicht mehr im Protokoll
+        // Firebase macht das direkt über den Link in der Email
+        // Hier nur noch lokale Validierung nötig
+        print("✅ Passwort-Reset angefordert für: \(email)")
     }
-    
+
     // MARK: - User aktualisieren
     func updateUser(firstName: String, lastName: String) throws {
         guard let user = currentUser, let context = modelContext else { return }
@@ -162,12 +134,16 @@ class AuthService: ObservableObject {
         print("✅ User gespeichert: \(user.fullName)")
     }
     
-    // MARK: - findOrCreateUser (privat!)
-    private func findOrCreateUser(_ user: User) -> User {
-        guard let context = modelContext else { return user }
+    // MARK: - findOrCreateUser
+    private func findOrCreateUser(firebaseUID: String, email: String,
+                                   firstName: String = "",
+                                   lastName: String = "",
+                                   praxisId: UUID? = nil) -> User {
+        guard let context = modelContext else {
+            return User(email: email, passwordHash: "firebase", role: .patient, praxisId: praxisId)
+        }
         
         // 1. Nach firebaseUID suchen
-        let firebaseUID = user.firebaseUID
         if !firebaseUID.isEmpty {
             let descriptor = FetchDescriptor<User>(
                 predicate: #Predicate { $0.firebaseUID == firebaseUID }
@@ -179,12 +155,10 @@ class AuthService: ObservableObject {
         }
         
         // 2. Fallback: nach Email suchen
-        let email = user.email
         let emailDescriptor = FetchDescriptor<User>(
             predicate: #Predicate { $0.email == email }
         )
         if let existing = (try? context.fetch(emailDescriptor))?.first {
-            // firebaseUID nachtragen falls leer
             if existing.firebaseUID.isEmpty && !firebaseUID.isEmpty {
                 existing.firebaseUID = firebaseUID
                 try? context.save()
@@ -193,10 +167,14 @@ class AuthService: ObservableObject {
             return existing
         }
         
-        // 3. Neuer User
-        context.insert(user)
+        // 3. Neuer User anlegen
+        let newUser = User(email: email, passwordHash: "firebase", role: .patient, praxisId: praxisId)
+        newUser.firebaseUID = firebaseUID
+        newUser.firstName = firstName
+        newUser.lastName = lastName
+        context.insert(newUser)
         try? context.save()
-        print("🆕 Neuer User angelegt: \(user.email)")
-        return user
+        print("🆕 Neuer User angelegt: \(email)")
+        return newUser
     }
 }

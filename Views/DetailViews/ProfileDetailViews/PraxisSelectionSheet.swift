@@ -185,16 +185,16 @@ struct PraxisSelectionSheet: View {
     }
 }
 #Preview {
-    let mockContainer = try! ModelContainer(
-        for: User.self
-    )
+    let mockContainer = try! ModelContainer(for: User.self)
     let mockContext = ModelContext(mockContainer)
     
-    let mockAuthService = MockAuthService(modelContext: mockContext)
+    let authService = AuthService(
+        authServiceProtocol: MockAuthService(),
+        modelContext: mockContext
+    )
     
-    // ✅ Therapist User
     let therapistUser = User(
-        id: MockAuthService.mockTherapistId,
+        id: MockData.therapistId,  // ← war MockAuthService.mockTherapistId
         firstName: "Christiane",
         lastName: "Roth",
         email: "therapist@agil.de",
@@ -203,7 +203,7 @@ struct PraxisSelectionSheet: View {
         praxisId: PraxisDataManager.praxis1Id
     )
     
-    PraxisSelectionSheet(user: therapistUser)
-        .environmentObject(mockAuthService)
+    return PraxisSelectionSheet(user: therapistUser)
+        .environmentObject(authService)  // ← AuthService, nicht MockAuthService
         .modelContainer(mockContainer)
 }

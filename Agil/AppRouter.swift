@@ -1,26 +1,20 @@
-//
-//  AppRouter.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 16.12.25.
-//
-
 import SwiftUI
-import SwiftData
 
+// AppRouter.swift
 struct AppRouter: View {
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var authService: AuthService  // ← noch drin für isLoading
+    @EnvironmentObject var session: SessionManager   // ← NEU
     
     var body: some View {
         Group {
             if authService.isLoading {
                 LoadingView()
-            } else if authService.isAuthenticated {
+            } else if session.isAuthenticated {  // ← session statt authService
                 ContentView()
             } else {
                 LoginView()
             }
         }
-        .animation(.easeInOut, value: authService.isAuthenticated)
+        .animation(.easeInOut, value: session.isAuthenticated)
     }
 }

@@ -15,7 +15,7 @@ struct SignUpView: View {
     @State private var selectedPraxisId: UUID? = nil
     
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var authViewModel: AuthViewModel
     var body: some View {
         ZStack {
             LinearGradient(
@@ -39,7 +39,6 @@ struct SignUpView: View {
                         confirmPassword: $confirmPassword,
                         firstName: $firstName,
                         lastName: $lastName,
-                        isTherapist: $isTherapist,
                         selectedPraxisId: $selectedPraxisId
                     )
                     .padding(.bottom, 20)
@@ -79,36 +78,27 @@ struct SignUpView: View {
             errorMessage = "Passwörter stimmen nicht überein"
             return
         }
-        
         isLoading = true
         errorMessage = nil
         
         Task {
-            do {
-                
-                // ✅ isTherapist zu UserRole konvertieren
-                let userRole: UserRole = isTherapist ? .therapist : .patient
-                
-                try await authService.signUp(
-                    email: email,
-                    password: password,
-                    firstName: firstName,
-                    lastName: lastName,
-                    role: userRole,
-                    praxisId: selectedPraxisId
-                )
-                
-                await MainActor.run {
-                    isLoading = false
+            let request = SignUpRequest(
+                email: email,
+                password: password,
+                firstName: firstName,
+                lastName: lastName,
+                praxisId: selectedPraxisId
+            )
+            await authViewModel.signUp(request: request)
+            await MainActor.run {
+                if let error = authViewModel.errorMessage {
+                    errorMessage = error
+                    authViewModel.errorMessage = nil
+                } else {
                     print("✅ Registrierung erfolgreich für: \(email)")
-                    print("🔑 Token gespeichert: \(authService.sessionToken ?? "N/A")")
                     dismiss()
                 }
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Registrierung fehlgeschlagen: \(error.localizedDescription)"
-                    isLoading = false
-                }
+                isLoading = false
             }
         }
     }
@@ -136,7 +126,7 @@ struct FormSection: View {
     @Binding var confirmPassword: String
     @Binding var firstName: String
     @Binding var lastName: String
-    @Binding var isTherapist: Bool
+
     @Binding var selectedPraxisId: UUID?
     
     var body: some View {
@@ -146,7 +136,7 @@ struct FormSection: View {
             EmailField(email: $email)
             PasswordField(password: $password)
             ConfirmPasswordField(password: $password, confirmPassword: $confirmPassword)
-            TherapistToggleField(isTherapist: $isTherapist)
+        
             PraxisPickerField(selectedPraxisId: $selectedPraxisId)
         }
     }
