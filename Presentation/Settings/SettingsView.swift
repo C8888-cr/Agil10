@@ -14,7 +14,7 @@ struct SettingsView: View {
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var progressVM: ProgressViewModel 
     
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.modelContext) var modelContext
     
@@ -45,7 +45,7 @@ struct SettingsView: View {
             WeekPlannerSheet(
                 rule: rule,  // ← kommt direkt aus dem item, kein State-Timing-Problem
                 onSave: { startDate, plan, strategy in
-                    if let user = authService.currentUser {
+                    if let user = session.currentUser {
                         if let goal = settingsVM.preferences.getGoalFor(dayOfWeek: selectedDay) {
                             goal.recurrenceRule = rule
                         }
@@ -66,13 +66,13 @@ struct SettingsView: View {
             )
             .environmentObject(settingsVM)
             .environmentObject(videoLibraryVM)
-            .environmentObject(authService)
+            .environmentObject(session)
         }
         .sheet(isPresented: $showDailyTemplate) {
             DailyTemplateView(rule: currentDayGoal?.recurrenceRule ?? .daily)
                 .environmentObject(settingsVM)
                 .environmentObject(videoLibraryVM)
-                .environmentObject(authService)
+                .environmentObject(session)
                 .environmentObject(progressVM)
         }
           .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
@@ -232,7 +232,7 @@ struct SettingsView: View {
                                     weekPlannerRuleToShow = rule
                                 }
                             } else {
-                                if let user = authService.currentUser {
+                                if let user = session.currentUser {
                                     for i in 0..<7 {
                                         settingsVM.updateRecurrenceRule(
                                             rule,
@@ -610,26 +610,17 @@ extension Notification.Name {
     static let preferencesDidChange = Notification.Name("preferencesDidChange")
 }
 #Preview {
+    let container = try! ModelContainer(
+        for: User.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: container.mainContext)
+    )
     SettingsView()
         .environmentObject(SettingsViewModel(
-            modelContext: ModelContext(
-                try! ModelContainer(
-                    for: User.self,
-                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-                )
-            ),
-            authService: AppDependencies.shared.authService
+            modelContext: container.mainContext,
+            session: sessionManager
         ))
-}
-#Preview {
-    SettingsView()
-        .environmentObject(SettingsViewModel(
-            modelContext: ModelContext(
-                try! ModelContainer(
-                    for: User.self,
-                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-                )
-            ),
-            authService: AppDependencies.shared.authService
-        ))
+        .environmentObject(sessionManager)
 }

@@ -9,7 +9,7 @@ struct AppointmentCardView: View {
     let isNext: Bool
     let onDelete: (() -> Void)?
     let onCancel: ((String?) -> Void)?
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) var modelContext
     
     
@@ -172,7 +172,7 @@ struct AppointmentCardView: View {
          
                 isPresented: $showingCancelSheet
             )
-            .environmentObject(authService)
+            .environmentObject(session)
         }
            }
        }

@@ -23,7 +23,7 @@ struct WeekPlannerSheet: View {
     
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     
     @State private var startDate: Date = Date()
     @State private var selectedDayIndex: Int = 0
@@ -122,7 +122,7 @@ struct WeekPlannerSheet: View {
                             }
                         }
                     )
-                    .environmentObject(authService)
+                    .environmentObject(session)
                     .environmentObject(videoLibraryVM)
                     .environmentObject(settingsVM)
                 }
@@ -411,7 +411,7 @@ struct WeekPlannerSheet: View {
     }
     
     private func checkExistingSchedules(from date: Date) {
-        guard let user = authService.currentUser else { return }
+        guard let user = session.currentUser else { return }
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: date)
         

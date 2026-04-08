@@ -1,63 +1,56 @@
-//
-//  SessionManager.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 06.04.26.
-//
-
-
 import Combine
 import FirebaseAuth
 
-// SessionManager.swift
 @MainActor
 final class SessionManager: ObservableObject {
     @Published var currentUser: User?
     @Published var isAuthenticated: Bool = false
+    
     private var authStateListener: AuthStateDidChangeListenerHandle?
-    private var isSigningIn = false  // ← NEU
-
     private let userRepository: UserRepository
 
     init(userRepository: UserRepository) {
         self.userRepository = userRepository
-        self.isAuthenticated = KeychainHelper.load(forKey: "sessionToken") != nil
-
+        
+        // Nur für App-Start: prüfen ob noch eine Session existiert
         authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
             Task { @MainActor in
+                guard let self else { return }
+                
+                // Nur reagieren wenn wir noch keine Session haben
+                // (Login/SignUp setzen die Session explizit via setAuthenticatedUser)
+                guard !self.isAuthenticated else { return }
+                
                 if let firebaseUser {
-                    self?.isSigningIn = true  // ← Login läuft
-                    self?.isAuthenticated = true
-                    if self?.currentUser == nil {
-                        self?.currentUser = self?.userRepository.findOrCreate(
-                            firebaseUID: firebaseUser.uid,
-                            email: firebaseUser.email ?? ""
-                        )
-                    }
-                    // Token speichern
+                    // App-Start: Firebase kennt noch den User → Session wiederherstellen
+                    // Namen sind leer — User muss ggf. Profil vervollständigen
+                    self.currentUser = self.userRepository.findOrCreate(
+                        firebaseUID: firebaseUser.uid,
+                        email: firebaseUser.email ?? ""
+                    )
+                    self.isAuthenticated = true
+                    
+                    // Token aktualisieren
                     if let token = try? await firebaseUser.getIDToken() {
                         KeychainHelper.save(token, forKey: "sessionToken")
                     }
-                    self?.isSigningIn = false
                 } else {
-                    // Nur ausloggen wenn wir nicht gerade einloggen
-                    guard self?.isSigningIn == false else {
-                        print("⚠️ Temporäres nil während Login – ignoriert")
-                        return
-                    }
-                    try? await Task.sleep(nanoseconds: 300_000_000)
-                    if Auth.auth().currentUser == nil && self?.isSigningIn == false {
-                        self?.isAuthenticated = false
-                        self?.currentUser = nil
-                        KeychainHelper.delete(forKey: "sessionToken")
-                    }
+                    // Kein Firebase-User → ausgeloggt
+                    self.clearSession()
                 }
             }
         }
     }
 
-    func saveSession(token: String) {
-        KeychainHelper.save(token, forKey: "sessionToken")
+    // MARK: - Explizit nach Login/SignUp aufrufen
+    func setAuthenticatedUser(_ authUser: AuthUser) {
+        self.currentUser = userRepository.findOrCreate(
+            firebaseUID: authUser.uid,
+            email: authUser.email,
+            firstName: authUser.firstName,
+            lastName: authUser.lastName
+        )
+        self.isAuthenticated = true
     }
 
     func clearSession() {

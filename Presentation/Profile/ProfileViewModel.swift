@@ -11,15 +11,15 @@ import Combine
 class ProfileViewModel: ObservableObject {
     
     let modelContext: ModelContext
-    let authService: AuthService
+    private let session: SessionManager
     
     @Published var currentUserInContext: User?  // ✅ Published, damit View reagiert
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(modelContext: ModelContext, authService: AuthService) {
+    init(modelContext: ModelContext, session: SessionManager) {
         self.modelContext = modelContext
-        self.authService = authService
+        self.session = session
         
         print("🔧 ProfileViewModel.init()")
         
@@ -27,7 +27,7 @@ class ProfileViewModel: ObservableObject {
         loadCurrentUser()
         
         // ✅ Bei User-Änderung neu laden
-        authService.$currentUser
+        session.$currentUser
             .sink { [weak self] _ in
                 self?.loadCurrentUser()
             }
@@ -35,7 +35,7 @@ class ProfileViewModel: ObservableObject {
     }
     
     private func loadCurrentUser() {
-        guard let userId = authService.currentUser?.id else {
+        guard let userId = session.currentUser?.id else {
             print("⚠️ ProfileVM: Kein User eingeloggt")
             currentUserInContext = nil
             return

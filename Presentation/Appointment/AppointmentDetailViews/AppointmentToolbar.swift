@@ -10,7 +10,7 @@ struct AppointmentToolbar: ToolbarContent {
     let showingProfile: () -> Void
     let showingSettings: () -> Void
     
-    let authService: AuthService 
+    let session: SessionManager
     
     var body: some ToolbarContent {
         // LINKS: Plus-Menü
@@ -32,7 +32,7 @@ struct AppointmentToolbar: ToolbarContent {
                 Button("Einstellungen", action: showingSettings)
             } label: {
                 // ✅ PROFILBILD STATT ICON
-                         if let user = authService.currentUser,
+                         if let user = session.currentUser,
                             let imageData = user.profileImage,
                             let uiImage = UIImage(data: imageData) {
                              Image(uiImage: uiImage)
@@ -45,7 +45,7 @@ struct AppointmentToolbar: ToolbarContent {
                                  .fill(Color.accentColor.opacity(0.3))
                                  .frame(width: 35, height: 35)
                                  .overlay(
-                                    Text(authService.currentUser?.initials ?? "?")
+                                    Text(session.currentUser?.initials ?? "?")
                                         .font(.system(size: 14, weight: .bold))
                                         .foregroundStyle(Color.accentColor)
                                  )
@@ -54,8 +54,12 @@ struct AppointmentToolbar: ToolbarContent {
         }
     }
 }
-// MARK: - Preview
+/// MARK: - Preview
 #Preview {
+    let container = PreviewHelper.createModelContainer()
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: container.mainContext)
+    )
     NavigationStack {
         Text("Content")
             .toolbar {
@@ -64,7 +68,7 @@ struct AppointmentToolbar: ToolbarContent {
                     showingEmailImport: { print("Email Import") },
                     showingProfile: { print("Profile") },
                     showingSettings: { print("Settings") },
-                    authService: AuthService(authServiceProtocol: MockAuthService())  // ✅ Direkt hier
+                    session: sessionManager
                 )
             }
     }

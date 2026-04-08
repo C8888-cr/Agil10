@@ -8,28 +8,28 @@ final class DataManager: ObservableObject {
     
     /// SwiftData ModelContext für alle Datenoperationen
     let modelContext: ModelContext
+    private weak var session: SessionManager?
     
     // MARK: - Initialization
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
+    init(modelContext: ModelContext, session: SessionManager? = nil) {
+           self.modelContext = modelContext
+           self.session = session
+       }
     
     // MARK: - Utility Methods
     
     /// Holt den aktuellen User aus dem Context
     func getCurrentUser() -> User? {
-        let userId = AppDependencies.shared.authService.currentUser?.id
-        guard let userId = userId else { return nil }
-        
-        let descriptor = FetchDescriptor<User>(
-            predicate: #Predicate<User> { user in
-                user.id == userId
-            }
-        )
-        
-        return try? modelContext.fetch(descriptor).first
-    }
+          guard let userId = session?.currentUser?.id else { return nil }
+          
+          let descriptor = FetchDescriptor<User>(
+              predicate: #Predicate<User> { user in
+                  user.id == userId
+              }
+          )
+          return try? modelContext.fetch(descriptor).first
+      }
     
     /// Speichert alle Änderungen im Context
     func save() throws {

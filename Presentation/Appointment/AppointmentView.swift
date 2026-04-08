@@ -1,19 +1,14 @@
-// Features/Appointments/Presentation/Views/AppointmentView.swift
 import SwiftUI
 import SwiftData
 
 struct AppointmentView: View {
     
-    
     @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var viewModel: AppointmentViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
-    
-    
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) private var modelContext
     
-  
     @State private var showingManualEntry = false
     @State private var showingEmailImport = false
     @State private var emailText = ""
@@ -24,23 +19,17 @@ struct AppointmentView: View {
 
     @Query private var allAppointments: [Appointment]
         
-    // ✅ Filter in computed property
-       private var appointments: [Appointment] {
-           guard let currentUserId = authService.currentUser?.id else {
-               print("⚠️ Kein User eingeloggt - keine Termine")
-               return []
-           }
-           
-           
-           return allAppointments.filter { appointment in
-               appointment.userId == currentUserId
-           }
-                   .sorted { $0.date < $1.date }
-           
-       }
+    private var appointments: [Appointment] {
+        guard let currentUserId = session.currentUser?.id else {  // ← session
+            print("⚠️ Kein User eingeloggt - keine Termine")
+            return []
+        }
+        return allAppointments
+            .filter { $0.userId == currentUserId }
+            .sorted { $0.date < $1.date }
+    }
     
     var body: some View {
-        
         Group {
             if appointments.isEmpty {
                 EmptyStateView(
@@ -54,23 +43,20 @@ struct AppointmentView: View {
                 )
             }
         }
-        .background(Color(.systemGroupedBackground))  // ← statt ZStack
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Termine")
         .toolbar {
-               AppointmentToolbar(
-                   showingManualEntry: { showingManualEntry = true },
-                   showingEmailImport: { showingEmailImport = true },
-                   showingProfile: { showProfile = true },
-                   showingSettings: { showSettings = true },
-                   authService: authService
-               )
-           }
-        
+            AppointmentToolbar(
+                showingManualEntry: { showingManualEntry = true },
+                showingEmailImport: { showingEmailImport = true },
+                showingProfile: { showProfile = true },
+                showingSettings: { showSettings = true },
+                session: session  
+            )
+        }
         .sheet(isPresented: $showingManualEntry) {
             ManualAppointmentEntryView()
         }
-
-        // ✅ Öffnet automatisch, wenn importResults != nil
         .sheet(item: $importResults) { changes in
             ImportResultsView(changes: changes)
                 .presentationDetents([.medium, .large])
@@ -81,20 +67,13 @@ struct AppointmentView: View {
                 onImport: {
                     Task {
                         do {
-                            // ✅ NEUE Methode mit Return
                             let changes = try await viewModel.parseAppointmentsFromEmail(emailText)
-                            
-                            // ✅ Results speichern
                             importResults = changes
-                            
-                            // ✅ UI updaten
                             showingEmailImport = false
                             showingImportResults = true
                             emailText = ""
-                            
                         } catch {
                             print("❌ Email import failed: \(error)")
-                            // Optional: Error dem User zeigen
                             viewModel.setError(.parsingFailed(error.localizedDescription))
                         }
                     }
@@ -112,20 +91,26 @@ struct AppointmentView: View {
             SettingsView()
         }
     }
-
 }
+
 // MARK: - Preview
 #Preview {
     let container = PreviewHelper.createModelContainer()
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: authService)
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: container.mainContext)
+    )
+    let settingsVM = SettingsViewModel(
+        modelContext: container.mainContext,
+        session: sessionManager
+    )
     
-    AppointmentView()  // ← kein Parameter mehr
+    AppointmentView()
         .modelContainer(container)
-        .environmentObject(authService)
+        .environmentObject(sessionManager)
         .environmentObject(settingsVM)
         .environmentObject(PreviewHelper.createAppointmentViewModel())
-        .environmentObject(ProfileViewModel(modelContext: container.mainContext, authService: authService))
+        .environmentObject(ProfileViewModel(
+            modelContext: container.mainContext,
+            session: sessionManager
+        ))
 }
-
-

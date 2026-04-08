@@ -3,7 +3,7 @@ import SwiftData
 struct RoleEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var authService: AuthService
+    
     
     @State private var selectedRole: UserRole
     @State private var therapistCode: String = ""
@@ -196,7 +196,7 @@ struct RoleEditSheet: View {
             try modelContext.save()
             
             // ✅ AuthService currentUser aktualisieren
-            authService.currentUser = user
+ 
             
             print("✅ Role aktualisiert auf: \(selectedRole.rawValue)")
             
@@ -267,19 +267,11 @@ struct RoleOptionButton: View {
         praxisId: nil
     )
     
-    // ✅ KORREKTUR: AuthService (nicht MockAuthService)
-    let mockAuthService = AuthService(
-        authServiceProtocol: MockAuthService(),
-        modelContext: nil
-    )
-    
-    // ✅ KORREKTUR: ModelContainer richtig erstellen
     let container = try! ModelContainer(
         for: User.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     
     RoleEditSheet(user: mockUser)
-        .environmentObject(mockAuthService)
         .environment(\.modelContext, container.mainContext)
 }

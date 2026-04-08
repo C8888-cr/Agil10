@@ -14,7 +14,7 @@ struct AgilApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(dependencies)
-                .environmentObject(dependencies.authService)
+         
                 .environmentObject(dependencies.sessionManager)
                 .environmentObject(dependencies.appointmentViewModel)
                 .environmentObject(dependencies.calendarViewModel)
@@ -23,9 +23,7 @@ struct AgilApp: App {
                 .environmentObject(dependencies.profileViewModel)
                 .environmentObject(dependencies.videoLibraryVM)
                 .environment(\.modelContext, dependencies.modelContext)
-                .task {
-                    await dependencies.authService.loadSavedSession()
-                }
+                
         }
     }
 }

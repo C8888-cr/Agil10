@@ -54,22 +54,21 @@ final class VideoLibraryViewModel: ObservableObject {
     let repository: VideoRepositoryProtocol
     private let storageService: VideoStorageService
     private let modelContext: ModelContext
-    private let authService: AuthService
+    private let session: SessionManager
     
     
     // MARK: - Init
     init(
         repository: VideoRepositoryProtocol,
         modelContext: ModelContext,
-        authService: AuthService,
+        session: SessionManager,  // ← statt authService
         storageService: VideoStorageService = .shared
     ) {
         self.repository = repository
         self.modelContext = modelContext
-        self.authService = authService
+        self.session = session
         self.storageService = storageService
     }
-    
 
     // MARK: - Setup
     func setup(for user: User) {

@@ -122,7 +122,9 @@ struct LoginView: View {
                         HStack {
                             Spacer()
                             NavigationLink("Passwort vergessen?") {
-                                ForgotPasswordView()
+                                ForgotPasswordView { email in
+                                        await authViewModel.resetPassword(email: email)
+                                   }
                             }
                             .font(.caption)
                             .fontWeight(.semibold)

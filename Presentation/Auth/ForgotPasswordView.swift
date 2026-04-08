@@ -7,7 +7,8 @@ struct ForgotPasswordView: View {
     @State private var emailSent = false  // ← statt step-Enum
     
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var authService: AuthService
+ 
+    let onResetPassword: (String) async throws -> Void
     
     var body: some View {
         ZStack {
@@ -143,17 +144,16 @@ struct ForgotPasswordView: View {
         
         Task {
             do {
-                // Firebase schickt den Link selbst — wir müssen nichts weiter tun
-                _ = try await authService.sendPasswordResetEmail(email: email)
-                await MainActor.run {
-                    emailSent = true  // ← Screen wechselt zu Bestätigung
-                    isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    errorMessage = "Email konnte nicht gesendet werden. Prüfe die Adresse."
-                    isLoading = false
-                }
+                           try await onResetPassword(email)
+                           await MainActor.run {
+                               emailSent = true
+                               isLoading = false
+                           }
+                       } catch {
+                           await MainActor.run {
+                               errorMessage = "Email konnte nicht gesendet werden."
+                               isLoading = false
+                           }
             }
         }
     }
@@ -178,7 +178,16 @@ struct CustomPlaceholderTextField: View {
 }
 
 
-#Preview {
-    ForgotPasswordView()
-        .environmentObject(AuthService(authServiceProtocol: MockAuthService()))
+// Erfolg simulieren:
+#Preview("Erfolg") {
+    ForgotPasswordView { email in
+        try await Task.sleep(nanoseconds: 1_000_000_000) // 1s Delay
+    }
+}
+
+// Fehler simulieren:
+#Preview("Fehler") {
+    ForgotPasswordView { email in
+        throw AuthError.invalidCredentials
+    }
 }

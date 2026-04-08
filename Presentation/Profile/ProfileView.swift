@@ -7,15 +7,16 @@ import UserNotifications
 
 struct ProfileView: View {
     
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var authViewModel: AuthViewModel 
     @Environment(\.modelContext) var modelContext
     
     
     @Query var users: [User]
     @Query private var allAppointments: [Appointment]
     private var currentUser: User? {
-        guard let userId = authService.currentUser?.id else { return nil }
-        return users.first { $0.id == userId }  // ✅ Aus SwiftData statt AuthService
+        guard let userId = session.currentUser?.id else { return nil }
+        return users.first { $0.id == userId }
     }
     
     @State private var isEditing = false
@@ -233,7 +234,7 @@ struct ProfileView: View {
                                 
                                 Button {
                                     Task {
-                                        await authService.logout()
+                                        await authViewModel.signOut()
                                     }
                                 } label: {
                                     HStack {

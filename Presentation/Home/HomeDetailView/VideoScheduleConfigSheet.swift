@@ -293,8 +293,6 @@ import SwiftData
 
 struct VideoScheduleConfigSheet: View {
     
-    @EnvironmentObject var authService: AuthService
-    
     @Environment(\.dismiss) private var dismiss
     
     let video: Video
@@ -477,7 +475,6 @@ private func formatSeconds(_ seconds: Int) -> String {
 }
 #Preview("Standard Video (2 Min)") {
     struct PreviewWrapper: View {
-        let authService = AuthService(authServiceProtocol: MockAuthService())
         @State private var repetitions = 3
         @State private var pauseSeconds = 30
         @State private var loopDuration = 0
@@ -503,73 +500,7 @@ private func formatSeconds(_ seconds: Int) -> String {
                 onAdd: { print("✅ Hinzugefügt") },
                 onCancel: { print("❌ Abgebrochen") }
             )
-            .environmentObject(authService)
-        }
-    }
-    return PreviewWrapper()
-}
-#Preview("Kurzes Video (30s)") {
-    struct PreviewWrapper: View {
-        let authService = AuthService(authServiceProtocol: MockAuthService())
-        @State private var repetitions = 5
-        @State private var pauseSeconds = 15
-        @State private var loopDuration = 0
-        
-        var body: some View {
-            VideoScheduleConfigSheet(
-                video: Video(
-                    title: "Nacken Dehnung",
-                    videoFileName: "neck.mp4",
-                    category: .stretching,
-                    bodyRegion: .cervicalSpine,
-                    equipment: .noEquipment,
-                    durationSeconds: 30,
-                    fileSizeBytes: 8_000_000,
-                    defaultRepetitions: 5,
-                    defaultPauseSeconds: 15,
-                    loopDurationSeconds: 30,
-                    rating: 5
-                ),
-                loopDuration: $loopDuration,
-                repetitions: $repetitions,
-                pauseSeconds: $pauseSeconds,
-                onAdd: { print("✅ Hinzugefügt") },
-                onCancel: { print("❌ Abgebrochen") }
-            )
-            .environmentObject(authService)
-        }
-    }
-    return PreviewWrapper()
-}
-#Preview("Langes Video (4 Min)") {
-    struct PreviewWrapper: View {
-        let authService = AuthService(authServiceProtocol: MockAuthService())
-        @State private var repetitions = 2
-        @State private var pauseSeconds = 60
-        @State private var loopDuration = 0
-        
-        var body: some View {
-            VideoScheduleConfigSheet(
-                video: Video(
-                    title: "Rücken Kräftigung",
-                    videoFileName: "back.mp4",
-                    category: .strength,
-                    bodyRegion: .lumbarSpine,
-                    equipment: .bodyweight,
-                    durationSeconds: 240,
-                    fileSizeBytes: 50_000_000,
-                    defaultRepetitions: 2,
-                    defaultPauseSeconds: 60,
-                    loopDurationSeconds: 240,
-                    rating: 4
-                ),
-                loopDuration: $loopDuration,
-                repetitions: $repetitions,
-                pauseSeconds: $pauseSeconds,
-                onAdd: { print("✅ Hinzugefügt") },
-                onCancel: { print("❌ Abgebrochen") }
-            )
-            .environmentObject(authService)
+            // ← kein environmentObject nötig!
         }
     }
     return PreviewWrapper()

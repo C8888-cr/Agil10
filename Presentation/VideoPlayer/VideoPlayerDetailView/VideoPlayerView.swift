@@ -8,6 +8,7 @@
 
 import SwiftUI
 import AVKit
+import SwiftData
 
 
 struct VideoPlayerView: View {
@@ -24,7 +25,7 @@ struct VideoPlayerView: View {
     init(video: Video,
          scheduleId: UUID? = nil,
          progressViewModel: ProgressViewModel? = nil,
-         authService: AuthService,
+         session: SessionManager,
          onComplete: (() -> Void)? = nil
     ) {
         self.video = video
@@ -35,7 +36,7 @@ struct VideoPlayerView: View {
             video: video,
             scheduleId: scheduleId,
             progressViewModel: progressViewModel,
-            authService: authService,
+            session: session,
             onComplete: onComplete
         ))
     }
@@ -395,9 +396,18 @@ struct VideoPlayerView: View {
         }
     }
 }
-// MARK: - Preview
 #Preview("VideoPlayerView - Training Mode") {
-    let deps = AppDependencies.shared
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(
+        for: Video.self,
+        configurations: config
+    )
+    let context = ModelContext(container)
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: context)
+    )
+    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
+    
     let mockVideo = Video(
         title: "Schulter Mobilisation",
         videoFileName: "shoulder.mov",
@@ -411,10 +421,10 @@ struct VideoPlayerView: View {
         rating: 4
     )
     
-    VideoPlayerView(
-           video: mockVideo,
-           scheduleId: UUID(),
-           authService: deps.authService  // ← neu
-       )
-       .environmentObject(deps.progressViewModel)
-   }
+    return VideoPlayerView(
+        video: mockVideo,
+        scheduleId: UUID(),
+        session: sessionManager
+    )
+    .environmentObject(progressVM)
+}

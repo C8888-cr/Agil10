@@ -3,7 +3,7 @@ import SwiftData
 
 struct PlayAllSessionView: View {
     let schedules: [VideoSchedule]
-    let authService: AuthService
+    let session: SessionManager
     let progressVM: ProgressViewModel
     
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +30,7 @@ struct PlayAllSessionView: View {
                         video: video,
                         scheduleId: schedule.id,
                         progressViewModel: progressVM,
-                        authService: authService,
+                        session: session,
                         onComplete: {
                             goToNext()
                         }
@@ -171,8 +171,10 @@ extension Array {
         configurations: config
     )
     let context = ModelContext(container)
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: context)
+    )
+    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
 
     let v1 = Video.previewWarmup
     let v2 = Video.previewMobility
@@ -184,27 +186,10 @@ extension Array {
         VideoSchedule(scheduledDate: .now, orderIndex: 2, video: v3),
     ]
 
-    PlayAllSessionView(
+    return PlayAllSessionView(
         schedules: schedules,
-        authService: authService,
+        session: sessionManager,     // ← statt authService
         progressVM: progressVM
     )
     .modelContainer(container)
-}
-
-#Preview("Countdown Between Videos") {
-    ZStack {
-        Color.black.ignoresSafeArea()
-        CountdownBetweenVideosView(
-            countdown: 42,
-            nextVideoTitle: Video.previewMobility.title
-        )
-    }
-}
-
-#Preview("All Done View") {
-    ZStack {
-        Color.black.ignoresSafeArea()
-        AllDoneView(onDismiss: {})
-    }
 }

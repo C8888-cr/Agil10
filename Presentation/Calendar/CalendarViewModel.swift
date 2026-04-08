@@ -5,7 +5,7 @@ import SwiftUI
 final class CalendarViewModel: ObservableObject {
 
     // MARK: - Dependencies
-    private let authService: AuthService
+    private let session: SessionManager
     private let calendar: Calendar = .current
 
     // MARK: - Published
@@ -20,12 +20,12 @@ final class CalendarViewModel: ObservableObject {
     init(
         selectedDate: Date = Date(),
         progressViewModel: ProgressViewModel,
-        authService: AuthService
+        session: SessionManager
     ) {
         self.selectedDate = selectedDate
         self.anchorDate = selectedDate
         self.progressViewModel = progressViewModel
-        self.authService = authService
+        self.session = session
     }
 
     // MARK: - Week Navigation
@@ -56,7 +56,7 @@ final class CalendarViewModel: ObservableObject {
         selectedDate = date
 
         if let progressVM = progressViewModel,
-           let user = authService.currentUser {
+           let user = session.currentUser {
             progressVM.selectedDate = date
             progressVM.loadToday(for: user, date: date)
         }
@@ -113,7 +113,7 @@ final class CalendarViewModel: ObservableObject {
             selectedDate = currentWeekStart
 
             if let progressVM = progressViewModel,
-               let user = authService.currentUser {
+               let user = session.currentUser { 
                 progressVM.selectedDate = selectedDate
                 progressVM.loadToday(for: user, date: selectedDate)
             }

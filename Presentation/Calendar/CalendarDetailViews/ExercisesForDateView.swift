@@ -12,7 +12,7 @@ struct ExercisesForDateView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     
     
     var body: some View {
@@ -42,7 +42,7 @@ struct ExercisesForDateView: View {
                         onDelete: {
                             if let onDelete = onDelete {
                                      onDelete(schedule)
-                                 } else if let user = authService.currentUser {
+                                 } else if let user = session.currentUser {
                                      progressVM.removeSchedule(schedule, for: user)
                                  }
                              },
@@ -54,7 +54,7 @@ struct ExercisesForDateView: View {
                             onPlay(schedule, video)
                         },
                         onRate: { rating in
-                                if let user = authService.currentUser {
+                                if let user = session.currentUser {
                                     schedule.rating = rating
                                     progressVM.updateSchedule(schedule, for: user)
                                 }

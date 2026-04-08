@@ -1,15 +1,14 @@
 import SwiftUI
 
-// AppRouter.swift
 struct AppRouter: View {
-    @EnvironmentObject var authService: AuthService  // ← noch drin für isLoading
-    @EnvironmentObject var session: SessionManager   // ← NEU
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var session: SessionManager
+
     var body: some View {
         Group {
-            if authService.isLoading {
+            if authViewModel.isLoading {
                 LoadingView()
-            } else if session.isAuthenticated {  // ← session statt authService
+            } else if session.isAuthenticated {
                 ContentView()
             } else {
                 LoginView()

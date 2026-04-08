@@ -1,74 +1,78 @@
-//
-//  AppointmentPreviewHelper.swift
-//  Agil
-//
-//  Created by Christiane Roth on 25.11.25.
-//
 import Foundation
 import SwiftData
 import MapKit
-import Contacts  // ✅ NEU!
-struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
+import Contacts
+
+struct PreviewHelper {
     
     static func createModelContainer() -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try! ModelContainer(
+        return try! ModelContainer(
             for: Appointment.self,
             configurations: config
         )
-        return container
     }
     
     @MainActor
-    static func createMockAuthService() -> AuthService {
-        let authService = AuthService(authServiceProtocol: MockAuthService())
-        
-        authService.currentUser = User(
-            id: UUID(),
-            email: "preview@example.com",
-            passwordHash: "mock",
-            role: .patient
+    static func createSessionManager() -> SessionManager {
+        let container = try! ModelContainer(
+            for: User.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        authService.isAuthenticated = true
+        let context = ModelContext(container)
+        let userRepository = UserRepository(modelContext: context)
+        let sessionManager = SessionManager(userRepository: userRepository)
         
-        return authService
+        // Mock User setzen
+        let mockUser = userRepository.findOrCreate(
+            firebaseUID: "preview-uid",
+            email: "preview@example.com",
+            firstName: "Max",
+            lastName: "Mustermann"
+        )
+        sessionManager.setAuthenticatedUser(AuthUser(
+            uid: "preview-uid",
+            email: "preview@example.com",
+            firstName: "Max",
+            lastName: "Mustermann",
+            praxisId: PraxisDataManager.praxis1Id
+        ))
+        
+        return sessionManager
     }
     
     @MainActor
     static func createAppointmentViewModel() -> AppointmentViewModel {
         let container = createModelContainer()
         let context = ModelContext(container)
-        
-        let authService = createMockAuthService()
+        let sessionManager = createSessionManager()
         
         let repository = AppointmentRepository(
             modelContext: context,
-            authService: authService
+            session: sessionManager  // ← statt authService
         )
         
         let emailService = EmailService()
-        let emailParser = EmailParserService()
+        let emailParser = EmailParserService(session: sessionManager)
         
-        // ✅ Use Cases erstellen
         let addAppointmentUseCase = AddAppointmentUseCase(
             repository: repository,
-            authService: authService
+            session: sessionManager  // ← statt authService
         )
         
         let detectChangesUseCase = DetectAppointmentChangesUseCase(
             repository: repository
         )
         
-        // Sample-Daten
         let sampleAppointments = createSampleAppointments()
         for appointment in sampleAppointments {
             context.insert(appointment)
         }
         try? context.save()
         
-        // ✅ ALLE 12 PARAMETER!
         return AppointmentViewModel(
             modelContext: context,
+            session: sessionManager,  // ← neu
             repository: repository,
             emailParser: emailParser,
             detectAppointmentChangesUseCase: detectChangesUseCase,
@@ -84,10 +88,6 @@ struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
             loadAppointmentsUseCase: LoadAppointmentsUseCase(
                 repository: repository
             ),
-       /*     parseEmailUseCase: ParseEmailUseCase(
-                parser: emailParser,
-                addAppointmentUseCase: addAppointmentUseCase
-            ),*/
             deleteAppointmentUseCase: DeleteAppointmentUseCase(
                 repository: repository
             ),
@@ -99,6 +99,7 @@ struct PreviewHelper {  // ✅ Umbenennen von PreviewHelper
         )
     }
     
+
     static func createSampleAppointments() -> [Appointment] {
         let mockUserId = UUID()
         

@@ -13,7 +13,7 @@ final class SignOutUseCase {
         self.authService = authService
     }
 
-    func execute() throws {
+    func execute() async throws {
         try authService.signOut()
     }
 }

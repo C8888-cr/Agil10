@@ -6,7 +6,7 @@ import SwiftData
 struct StatusEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var authService: AuthService
+    
     
     @State private var isLoading: Bool = false
     @State private var showSuccess: Bool = false
@@ -252,7 +252,7 @@ struct StatusEditSheet: View {
         // ✅ Lokal setzen – später durch StoreKit ersetzen
         user.isPremium = true
         try? modelContext.save()
-        authService.currentUser = user
+      
         
         isLoading = false
         dismiss()
@@ -277,6 +277,7 @@ struct StatusEditSheet: View {
      
      */
 }
+
 // MARK: - FeatureRow
 struct FeatureRow: View {
     let icon: String
@@ -325,7 +326,6 @@ struct FeatureRow: View {
         .opacity(isAvailable ? 1.0 : 0.7)
     }
 }
-// MARK: - Preview
 #Preview {
     let container = try! ModelContainer(
         for: User.self,
@@ -342,12 +342,6 @@ struct FeatureRow: View {
     )
     container.mainContext.insert(mockUser)
     
-    let mockAuthService = AuthService(
-        authServiceProtocol: MockAuthService(),
-        modelContext: nil
-    )
-    
     return StatusEditSheet(user: mockUser)
-        .environmentObject(mockAuthService)
         .modelContainer(container)
 }

@@ -11,7 +11,7 @@ import SwiftData
 struct ProgressTabView: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @EnvironmentObject var profileVM: ProfileViewModel
     @State private var activeSheet: SheetType?
 
@@ -53,7 +53,7 @@ struct ProgressTabView: View {
                             Button("Einstellungen") { activeSheet = .settings }
                     } label: {
                         // ✅ PROFILBILD STATT ICON
-                                   if let user = authService.currentUser,
+                                   if let user = session.currentUser,
                                       let imageData = user.profileImage,
                                       let uiImage = UIImage(data: imageData) {
                                        Image(uiImage: uiImage)
@@ -66,7 +66,7 @@ struct ProgressTabView: View {
                                            .fill(Color.accentColor.opacity(0.3))
                                            .frame(width: 35, height: 35)
                                            .overlay(
-                                               Text(authService.currentUser?.initials ?? "?")
+                                               Text(session.currentUser?.initials ?? "?")
                                                    .font(.system(size: 14, weight: .bold))
                                                    .foregroundStyle(Color.accentColor)
                                            )
@@ -81,17 +81,17 @@ struct ProgressTabView: View {
                         .environmentObject(settingsVM)   // ← VM injizieren!
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {
-                            progressVM.loadToday(for: authService.currentUser!)
+                            progressVM.loadToday(for: session.currentUser!)
                         }
                     
                 case .profile:
                     ProfileView()
-                        .environmentObject(authService)
+                        .environmentObject(session)
                         .environment(\.modelContext, profileVM.modelContext)
                 }
             }
             .onAppear {
-                guard let user = authService.currentUser else { return }
+                guard let user = session.currentUser else { return }
                 progressVM.calculateAllProgress(for: user)
             }
         }

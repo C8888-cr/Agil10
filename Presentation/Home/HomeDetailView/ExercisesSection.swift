@@ -111,11 +111,14 @@ struct ExercisesSection: View {
     context.insert(schedule3)
     try? context.save()
 
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let settingsVM = SettingsViewModel(modelContext: container.mainContext, authService: authService)
-    let progressVM = ProgressViewModel(modelContext: context, authService: authService)
+    // ← SessionManager korrekt instanziieren
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: context)
+    )
+    let settingsVM = SettingsViewModel(modelContext: context, session: sessionManager)
+    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
 
-    return ExercisesSection(  // ← return hinzufügen
+    return ExercisesSection(
         onToggleCompletion: { _ in },
         onDelete: { _ in },
         onConfig: { _ in },

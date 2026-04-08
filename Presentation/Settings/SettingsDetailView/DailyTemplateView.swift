@@ -4,7 +4,7 @@ import SwiftData
 struct DailyTemplateView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @EnvironmentObject var progressVM: ProgressViewModel
     
     let rule: RecurrenceRule  // ← NEU
@@ -118,7 +118,7 @@ struct DailyTemplateView: View {
                         for i in indexSet {
                             settingsVM.removeDailyTemplate(
                                 schedules[i],
-                                user: authService.currentUser!
+                                user: session.currentUser!
                             )
                         }
                     }
@@ -196,7 +196,7 @@ struct DailyTemplateView: View {
                         for index in indexSet {
                             settingsVM.removeDailyTemplate(
                                 templateSchedules[index],
-                                user: authService.currentUser!
+                                user: session.currentUser!
                             )
                         }
                     }
@@ -257,7 +257,7 @@ struct DailyTemplateView: View {
                     }
                 }
             )
-            .environmentObject(authService)
+            .environmentObject(session)
             .environmentObject(videoLibraryVM)
             .environmentObject(settingsVM)
         }
@@ -267,7 +267,7 @@ struct DailyTemplateView: View {
         VideoQuickConfigSheet(
             video: video,
             onAdd: { reps, loopDuration, pause in
-                if let user = authService.currentUser {
+                if let user = session.currentUser {
                     settingsVM.addDailyTemplate(
                         video: video,
                         repetitions: reps,
@@ -334,7 +334,7 @@ struct DailyTemplateView: View {
             
             // Mülleimer
             Button {
-                if let user = authService.currentUser {
+                if let user = session.currentUser {
                     settingsVM.removeDailyTemplate(schedule, user: user)
                 }
             } label: {
@@ -356,12 +356,12 @@ struct DailyTemplateView: View {
         return s > 0 ? "\(m):\(String(format: "%02d", s)) Min" : "\(m) Min"
     }
     private func applyDailyTemplates() {
-        guard let user = authService.currentUser else { return }
+        guard let user = session.currentUser else { return }
         settingsVM.applyTemplatesToActiveDays(for: user, progressVM: progressVM)
     }
 
     private func applyWeeklyTemplates() {
-        guard let user = authService.currentUser else { return }
+        guard let user = session.currentUser else { return }
         
         var weekPlan: [Int: [WeekPlannerSheet.PlannedVideo]] = [:]
         
@@ -389,33 +389,32 @@ struct DailyTemplateView: View {
     }
 }
 
-/*
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
-        for: Video.self, VideoSchedule.self,
+        for: Video.self, VideoSchedule.self, User.self,
         configurations: config
     )
     let context = ModelContext(container)
-    
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    let repository = VideoScheduleRepository(modelContext: context)
-      let progressVM = ProgressViewModel(authService: authService, repository: repository)
-    let settingsVM = SettingsViewModel(modelContext: context, authService: authService)
+    let sessionManager = SessionManager(
+        userRepository: UserRepository(modelContext: context)
+    )
+    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
+    let settingsVM = SettingsViewModel(modelContext: context, session: sessionManager)
     let videoLibraryVM = VideoLibraryViewModel(
-        repository: VideoRepository(modelContext: context, storageService: .shared, thumbnailService: .shared),
+        repository: VideoRepository(
+            modelContext: context,
+            storageService: .shared,
+            thumbnailService: .shared
+        ),
         modelContext: context,
-        authService: authService,
-        storageService: .shared
+        session: sessionManager
     )
     
-    Group {
-        DailyTemplateView(rule: .daily)
-            .environmentObject(settingsVM)
-            .environmentObject(videoLibraryVM)
-            .environmentObject(authService)
-            .environmentObject(progressVM)
-    }
-    .modelContainer(container)
+    DailyTemplateView(rule: .daily)
+        .environmentObject(settingsVM)
+        .environmentObject(videoLibraryVM)
+        .environmentObject(sessionManager)
+        .environmentObject(progressVM)
+        .modelContainer(container)
 }
-*/

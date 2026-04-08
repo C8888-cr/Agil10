@@ -10,8 +10,6 @@ class AppDependencies: ObservableObject {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     
-    // MARK: - Auth ALT (bleibt bis alle ViewModels migriert sind)
-    let authService: AuthService  // ← wieder rein, aber nur temporär!
     
     // MARK: - Auth NEU (Clean Architecture)
     private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
@@ -29,13 +27,13 @@ class AppDependencies: ObservableObject {
     }
 
     // MARK: - Services
-    let emailParser: EmailParserService
+    lazy var emailParser: EmailParserService = EmailParserService(session: sessionManager)
     let emailService: EmailService
     
     // MARK: - Repositories
     lazy var appointmentRepository = AppointmentRepository(
         modelContext: modelContext,
-        authService: authService
+        session: sessionManager
     )
     lazy var videoRepository = VideoRepository(
         modelContext: modelContext,
@@ -49,7 +47,7 @@ class AppDependencies: ObservableObject {
     // MARK: - AppointmentUseCases
     lazy var addAppointmentUseCase = AddAppointmentUseCase(
         repository: appointmentRepository,
-        authService: authService
+        session: sessionManager
     )
     lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(
         repository: appointmentRepository
@@ -76,10 +74,11 @@ class AppDependencies: ObservableObject {
     // MARK: - ViewModels (noch nicht migriert)
     lazy var progressViewModel = ProgressViewModel(
         modelContext: modelContext,
-        authService: authService
+        session: sessionManager
     )
     lazy var appointmentViewModel = AppointmentViewModel(
         modelContext: modelContext,
+        session: sessionManager,
         repository: appointmentRepository,
         emailParser: emailParser,
         detectAppointmentChangesUseCase: detectAppointmentChangesUseCase,
@@ -93,42 +92,27 @@ class AppDependencies: ObservableObject {
     )
     lazy var calendarViewModel = CalendarViewModel(
         progressViewModel: progressViewModel,
-        authService: authService
+        session: sessionManager
     )
     lazy var videoLibraryVM = VideoLibraryViewModel(
         repository: videoRepository,
         modelContext: modelContext,
-        authService: authService
+        session: sessionManager
     )
     lazy var settingsViewModel = SettingsViewModel(
         modelContext: modelContext,
-        authService: authService
+        session: sessionManager
     )
     lazy var profileViewModel = ProfileViewModel(
         modelContext: modelContext,
-        authService: authService
+        session: sessionManager
     )
 
     // MARK: - Init
     private init() {
         self.modelContainer = PersistenceController.shared.container
         self.modelContext = modelContainer.mainContext
-        
-        #if DEBUG
-        self.authService = AuthService(
-            authServiceProtocol: FirebaseAuthService(),
-            modelContext: modelContext
-        )
-        #else
-        self.authService = AuthService(
-            authServiceProtocol: FirebaseAuthService(),
-            modelContext: modelContext
-        )
-        #endif
-        
-        self.emailParser = EmailParserService()
-        self.emailService = EmailService()
-        
+        self.emailService = EmailService()  // ← nur das noch
         cleanupMockData()
     }
     

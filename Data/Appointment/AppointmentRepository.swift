@@ -11,18 +11,16 @@ import SwiftData
 @MainActor
 class AppointmentRepository: AppointmentRepositoryProtocol {
     private let modelContext: ModelContext
-    private weak var authService: AuthService?
+    private weak var session: SessionManager?
     
-    // ✅ KORRIGIERT: authService statt userId übergeben
-    init(modelContext: ModelContext, authService: AuthService) {
-        self.modelContext = modelContext
-        self.authService = authService
-    }
-    
-    // ✅ Computed Property für aktuelle userId
-    private var currentUserId: UUID? {
-        authService?.currentUser?.id
-    }
+    init(modelContext: ModelContext, session: SessionManager) {
+           self.modelContext = modelContext
+           self.session = session
+       }
+       
+       private var currentUserId: UUID? {
+           session?.currentUser?.id  
+       }
     
     // MARK: - Fetch Methods
     

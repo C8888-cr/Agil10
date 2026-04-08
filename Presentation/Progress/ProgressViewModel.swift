@@ -54,7 +54,7 @@ class ProgressViewModel: ObservableObject {
     // MARK: - Dependencies
     
     private let modelContext: ModelContext
-    private let authService: AuthService
+    private let session: SessionManager
 
     private let calendar = Calendar.current
     
@@ -65,9 +65,9 @@ class ProgressViewModel: ObservableObject {
     
     // MARK: - Init
     
-    init(modelContext: ModelContext, authService: AuthService) {
+    init(modelContext: ModelContext, session: SessionManager) { 
         self.modelContext = modelContext
-        self.authService = authService
+        self.session = session
         
         loadTodaysSchedules()
         setupPreferencesObserver()
@@ -80,7 +80,7 @@ class ProgressViewModel: ObservableObject {
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                guard let user = authService.currentUser else {
+                guard let user = session.currentUser else { 
                     print("⚠️ [DEBOUNCED] Kein User - skip reload")
                     return
                 }

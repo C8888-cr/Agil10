@@ -14,7 +14,7 @@ import PhotosUI
 struct ProfileHeaderEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var authService: AuthService
+ 
     
     @State private var firstName: String
     @State private var lastName: String
@@ -236,9 +236,6 @@ struct ProfileHeaderEditSheet: View {
         praxisId: nil
     )
     
-    let authService = AuthService(authServiceProtocol: MockAuthService())
-    
     ProfileHeaderEditSheet(user: mockUser)
-        .environmentObject(authService)
         .modelContainer(for: User.self, inMemory: true)
 }

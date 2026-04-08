@@ -13,7 +13,7 @@ import SwiftData
 struct EmailEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var authService: AuthService
+
     
     @State private var newEmail: String = ""
     @State private var verificationCode: String = ""
@@ -326,7 +326,8 @@ struct EmailEditSheet: View {
             try modelContext.save()
             
             // ✅ AuthService aktualisieren
-            authService.currentUser = user
+            //weg weil angeblich unnötig. falls doch: sessionManager
+         //   authService.currentUser = user
             
             print("✅ Email aktualisiert auf: \(newEmail)")
             
@@ -341,6 +342,10 @@ struct EmailEditSheet: View {
     }
 }
 #Preview {
+    let container = try! ModelContainer(
+        for: User.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
     let mockUser = User(
         firstName: "Max",
         lastName: "Mustermann",
@@ -350,17 +355,6 @@ struct EmailEditSheet: View {
         praxisId: nil
     )
     
-    let mockAuthService = AuthService(
-        authServiceProtocol: MockAuthService(),
-        modelContext: nil
-    )
-    
-    let container = try! ModelContainer(
-        for: User.self,
-        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-    )
-    
     EmailEditSheet(user: mockUser)
-        .environmentObject(mockAuthService)
         .environment(\.modelContext, container.mainContext)
 }

@@ -9,7 +9,7 @@ import SwiftData
 
 struct VideoLibraryUploadSheet: View {
     @ObservedObject var viewModel: VideoLibraryViewModel
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     
     @Environment(\.dismiss) private var dismiss
     
@@ -106,7 +106,7 @@ struct VideoLibraryUploadSheet: View {
     // MARK: - Upload Logic
     
     func uploadVideo() {
-        guard let user = authService.currentUser else {
+        guard let user = session.currentUser else {
             uploadError = "Kein Benutzer angemeldet"
             showError = true
             return

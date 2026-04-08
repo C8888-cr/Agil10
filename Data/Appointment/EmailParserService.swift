@@ -12,6 +12,26 @@ import Foundation
 
 @MainActor
 class EmailParserService {
+    
+    private weak var session: SessionManager?  // ← neu
+        
+        init(session: SessionManager? = nil) {  // ← neu
+            self.session = session
+        }
+        
+        private var currentUserId: UUID {
+            session?.currentUser?.id ?? UUID()  // ← session
+        }
+
+        private var currentPraxisId: UUID {
+            session?.currentUser?.praxisId ??
+            PraxisDataManager.shared.praxen.first?.id ??
+            PraxisDataManager.praxis1Id
+        }
+    
+    
+    
+    
     func parseAppointments(from emailText: String) -> [Appointment] {
         print("\n📧 === EMAIL PARSING STARTED ===")
         print("Email Text:\n\(emailText)")
@@ -39,14 +59,7 @@ class EmailParserService {
         return parsedAppointments
     }
     
-    private var currentUserId: UUID {
-        AppDependencies.shared.authService.currentUser?.id ?? UUID()
-    }
 
-    private var currentPraxisId: UUID {
-        AppDependencies.shared.authService.currentUser?.praxisId ??
-        PraxisDataManager.shared.praxen.first?.id ?? PraxisDataManager.praxis1Id
-    }
 
     
     // MARK: - Private Helper Methods

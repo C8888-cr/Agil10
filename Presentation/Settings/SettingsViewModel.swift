@@ -12,11 +12,11 @@ class SettingsViewModel: ObservableObject {
     @Published var error: Error?
     
     let modelContext: ModelContext
-    let authService: AuthService  // ✅ Als Property speichern
+    let session: SessionManager
     
     // ✅ User aus Context holen (mit Relationships!)
     private var currentUserInContext: User? {
-        guard let userId = authService.currentUser?.id else { return nil }
+        guard let userId = session.currentUser?.id else { return nil }
         
         let descriptor = FetchDescriptor<User>(
             predicate: #Predicate<User> { u in
@@ -27,18 +27,15 @@ class SettingsViewModel: ObservableObject {
         return try? modelContext.fetch(descriptor).first
     }
     
-    // ✅ AuthService als Parameter übergeben
-    init(modelContext: ModelContext, authService: AuthService) {
-        self.modelContext = modelContext
-        self.authService = authService  // ✅ Speichern!
-        
-        // ✅ Temporäre Initialisierung
-        self.preferences = UserPreferences(userId: UUID())
-        
+    init(modelContext: ModelContext, session: SessionManager) { 
+            self.modelContext = modelContext
+            self.session = session
+            self.preferences = UserPreferences(userId: UUID())
+
         print("🔧 SettingsViewModel.init() START")
-        print("👤 AuthService.currentUser: \(authService.currentUser?.email ?? "nil")")
+     
         
-        guard let user = authService.currentUser else {
+        guard let user = session.currentUser else {
             print("⚠️ No user logged in - warte auf setUser()")
             return
         }
@@ -403,7 +400,7 @@ class SettingsViewModel: ObservableObject {
 
     // Computed Property — alle Templates des Users
     var dailyTemplates: [VideoSchedule] {
-        let userId = authService.currentUser?.id
+        let userId = session.currentUser?.id
         let descriptor = FetchDescriptor<VideoSchedule>(
             predicate: #Predicate<VideoSchedule> { s in
                 s.isTemplate == true

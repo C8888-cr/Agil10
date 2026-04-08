@@ -6,7 +6,7 @@ import SwiftData
 
 struct LibraryView: View {
     
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) private var modelContext
     
     @EnvironmentObject var profileVM: ProfileViewModel
@@ -34,7 +34,7 @@ struct LibraryView: View {
     
     
     private var currentUser: User? {
-           authService.currentUser
+        session.currentUser
        }
     var body: some View {
         
@@ -87,7 +87,7 @@ struct LibraryView: View {
             }
             .sheet(isPresented: $showProfile) {
                 ProfileView()
-                    .environmentObject(authService)
+                    .environmentObject(session)
                     .environment(\.modelContext, profileVM.modelContext)
             }
             .sheet(isPresented: $showSettings) {
@@ -118,8 +118,9 @@ struct LibraryView: View {
     }
     @ViewBuilder
     private var uploadSheet: some View {
-        if authService.currentUser != nil {
-            VideoLibraryUploadSheet(viewModel: viewModel)  
+        if session.currentUser != nil {
+            VideoLibraryUploadSheet(viewModel: viewModel)
+                .environmentObject(session)
         }
     }
     
@@ -135,11 +136,11 @@ struct LibraryView: View {
     private func setupView() async {
         print("🔍 Task gestartet")
         print("📦 ModelContext: \(modelContext)")
-        print("👤 AuthService User: \(authService.currentUser?.id.uuidString ?? "NIL")")
+        print("👤 AuthService User: \(session.currentUser?.id.uuidString ?? "NIL")")
         print("📹 ViewModel: \(viewModel)")
         print("🎬 Videos Count: \(viewModel.filteredVideos.count)")
         
-        guard let user = authService.currentUser else {
+        guard let user = session.currentUser else {
             print("❌ Kein User vorhanden!")
             return
         }
@@ -170,7 +171,7 @@ struct LibraryView: View {
             .padding(.top, 8)
         }
         .refreshable {
-            if let user = authService.currentUser {
+            if let user = session.currentUser {
                 await viewModel.loadVideos(for: user)
             }
         }
@@ -199,14 +200,14 @@ struct LibraryView: View {
 
                     onFavorite: {
                         Task {
-                            if let user = authService.currentUser {
+                            if let user = session.currentUser {
                                 await viewModel.toggleFavorite(video, for: user)
                             }
                         }
                     },
                     onDelete: {
                         Task {
-                            if let user = authService.currentUser {
+                            if let user = session.currentUser {
                                viewModel.deleteVideo(video, for: user)
                             }
                         }
@@ -381,7 +382,7 @@ struct LibraryView: View {
                 }
             } label: {
                 // ✅ PROFILBILD STATT ICON
-                           if let user = authService.currentUser,
+                           if let user = session.currentUser,
                               let imageData = user.profileImage,
                               let uiImage = UIImage(data: imageData) {
                                Image(uiImage: uiImage)
@@ -394,7 +395,7 @@ struct LibraryView: View {
                                    .fill(Color.accentColor.opacity(0.3))
                                    .frame(width: 35, height: 35)
                                    .overlay(
-                                       Text(authService.currentUser?.initials ?? "?")
+                                       Text(session.currentUser?.initials ?? "?")
                                            .font(.system(size: 14, weight: .bold))
                                            .foregroundStyle(Color.accentColor)
                                    )

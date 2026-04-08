@@ -9,11 +9,11 @@ import Foundation
 struct AddAppointmentUseCase {
     
     private let repository: AppointmentRepository
-    private let authService: AuthService
+    private let session: SessionManager
     
-    init(repository: AppointmentRepository, authService: AuthService) {
+    init(repository: AppointmentRepository, session: SessionManager) {
         self.repository = repository
-        self.authService = authService
+        self.session = session
     }
     
     // ✅ Für manuelles Hinzufügen (von UI)
@@ -29,7 +29,7 @@ struct AddAppointmentUseCase {
         print("📝 addAppointmentManual called")
         
         // ✅ Nur die ID extrahieren – User-Objekt nicht über Actor-Grenzen weitergeben
-           guard let userId = await MainActor.run(body: { authService.currentUser?.id }) else {
+           guard let userId = await MainActor.run(body: { session.currentUser?.id }) else {
                print("❌ Kein User gefunden")
                throw AppointmentError.validationFailed("Nicht eingeloggt")
            }

@@ -8,16 +8,14 @@ class AppointmentViewModel: ObservableObject {
     
     
     private let modelContext: ModelContext
+    private let session: SessionManager
     
-    // ✅ AuthService aus AppDependencies holen
-    var authService: AuthService {
-           AppDependencies.shared.authService
-       }
        
-       // ✅ Dann currentUser daraus holen
-       private var currentUser: User? {
-           authService.currentUser
+    private var currentUser: User? {
+           session.currentUser  
        }
+    
+    
     // MARK: - Dependencies
     private let markAsNotifiedUseCase: MarkAsNotifiedUseCase
 //    private let parseEmailUseCase: ParseEmailUseCase
@@ -60,6 +58,7 @@ class AppointmentViewModel: ObservableObject {
     // MARK: - Init (mit allen Dependencies)
         init(
             modelContext: ModelContext,
+            session: SessionManager,
             repository: AppointmentRepository,
             emailParser: EmailParserService,
             detectAppointmentChangesUseCase: DetectAppointmentChangesUseCase,
@@ -75,6 +74,7 @@ class AppointmentViewModel: ObservableObject {
         ) {
          //   self.repository = repository
             self.modelContext = modelContext
+            self.session = session
             self.emailParser = emailParser
             self.detectAppointmentChangesUseCase = detectAppointmentChangesUseCase
             self.cancelAppointmentUseCase = cancelAppointmentUseCase

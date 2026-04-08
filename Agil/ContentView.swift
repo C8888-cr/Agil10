@@ -5,8 +5,8 @@ import Foundation
 
 @MainActor
 struct ContentView: View {
-    @EnvironmentObject var authService: AuthService  // ← noch für andere VMs
-    @EnvironmentObject var session: SessionManager   // ← NEU
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var session: SessionManager
     
     var body: some View {
         if let user = session.currentUser {
@@ -38,18 +38,10 @@ struct ContentView: View {
                 
             }
             .task {
-                      print("✅ Eingeloggt als: \(user.email)")
-                      AppDependencies.shared.settingsViewModel.setUser(user)
-                      // alte VMs syncen
-                      authService.currentUser = user
-                      authService.isAuthenticated = true
-                  }
-              } else {
-                  VStack(spacing: 20) {
-                      Button("Zur Anmeldung") {
-                          Task { await authService.logout() }
-                      }
-                  }
-              }
-          }
+                       print("✅ Eingeloggt als: \(user.email)")
+                       AppDependencies.shared.settingsViewModel.setUser(user)
+                   }
+             
+               }
+           }
 }

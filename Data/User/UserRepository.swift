@@ -1,11 +1,3 @@
-//
-//  UserRepository.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 06.04.26.
-//
-
-
 import SwiftData
 import Foundation
 
@@ -16,7 +8,9 @@ final class UserRepository {
         self.modelContext = modelContext
     }
 
-    func findOrCreate(firebaseUID: String, email: String) -> User {
+    func findOrCreate(firebaseUID: String, email: String,
+                      firstName: String = "",
+                      lastName: String = "") -> User {
         // 1. Nach firebaseUID suchen
         if !firebaseUID.isEmpty {
             let descriptor = FetchDescriptor<User>(
@@ -39,11 +33,14 @@ final class UserRepository {
             return existing
         }
 
-        // 3. Neuen User anlegen
+        // 3. Neuen User anlegen — Namen nur bei Registrierung befüllt
         let newUser = User(email: email, passwordHash: "firebase", role: .patient, praxisId: nil)
         newUser.firebaseUID = firebaseUID
+        newUser.firstName = firstName
+        newUser.lastName = lastName
         modelContext.insert(newUser)
         try? modelContext.save()
+        print("🆕 Neuer User angelegt: \(email)")
         return newUser
     }
 

@@ -13,8 +13,7 @@ import SwiftData
 
 
 struct AppointmentDetailView: View {
-    @EnvironmentObject var authService: AuthService
-    
+    @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
     let appointment: Appointment
     @EnvironmentObject var viewModel: AppointmentViewModel
@@ -26,7 +25,7 @@ struct AppointmentDetailView: View {
 
     
     private var userEmail: String {
-          authService.currentUser?.email ?? ""
+         session.currentUser?.email ?? ""
       }
 
     
@@ -196,7 +195,7 @@ struct AppointmentDetailView: View {
                                        
                                                 isPresented: $showingCancelSheet
                                             )
-                                            .environmentObject(authService) 
+                                            .environmentObject(session)
                                         }
                                     }
                                 }
@@ -205,7 +204,7 @@ struct AppointmentDetailView: View {
 
 
 struct CancelAppointmentView: View {
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
     
     let appointment: Appointment
@@ -354,8 +353,8 @@ struct CancelAppointmentView: View {
                         await viewModel.cancelAppointment(
                             appointment,
                             reason: cancelReason,
-                            userEmail: authService.currentUser?.email ?? "",
-                            userName: "\(authService.currentUser?.firstName ?? "") \(authService.currentUser?.lastName ?? "")"
+                            userEmail: session.currentUser?.email ?? "",
+                            userName: "\(session.currentUser?.firstName ?? "") \(session.currentUser?.lastName ?? "")"
                         )
                         await MainActor.run {
                             isPresented = false
@@ -383,7 +382,7 @@ struct CancelAppointmentView: View {
     private func performCancel() {
         isProcessing = true
         
-        let userEmail = authService.currentUser?.email ?? ""
+        let userEmail = session.currentUser?.email ?? ""
 
         
         
@@ -398,11 +397,11 @@ struct CancelAppointmentView: View {
     
     private func sendEmailWithSelectedApp(userEmail: String, completion: @escaping (Bool) -> Void) {
         
-        let userName = "\(authService.currentUser?.firstName ?? "") \(authService.currentUser?.lastName ?? "")"
+        let userName = "\(session.currentUser?.firstName ?? "") \(session.currentUser?.lastName ?? "")"
         
         
         let practiceEmail: String
-        if let praxisId = authService.currentUser?.praxisId,
+        if let praxisId = session.currentUser?.praxisId,
            let praxis = PraxisDataManager.shared.getPraxis(by: praxisId),
            let email = praxis.email {
             practiceEmail = email
@@ -453,7 +452,7 @@ struct CancelAppointmentView: View {
                             // MARK: - Manual Appointment Entry
 struct ManualAppointmentEntryView: View {
     
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var session: SessionManager
     
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: AppointmentViewModel
@@ -473,13 +472,13 @@ struct ManualAppointmentEntryView: View {
     // ❌ selectedPraxisId entfernt — Praxis kommt fest aus dem Profil
     
     private var userPraxis: Praxis? {
-        guard let praxisId = authService.currentUser?.praxisId else { return nil }
+        guard let praxisId = session.currentUser?.praxisId else { return nil }
         return PraxisDataManager.shared.praxen.first { $0.id == praxisId }
     }
     
     // Therapeuten der Praxis aus dem Profil
     private var availableTherapists: [Therapeut] {
-        guard let praxisId = authService.currentUser?.praxisId else { return [] }
+        guard let praxisId = session.currentUser?.praxisId else { return [] }
         return TherapeutDataManager.shared.getTherapeutenForPraxis(praxisId)
     }
     
@@ -646,7 +645,7 @@ struct ManualAppointmentEntryView: View {
     }
     
     private func saveAppointment() {
-        guard authService.currentUser != nil else {
+        guard session.currentUser != nil else {
             print("❌ Kein User eingeloggt")
             errorMessage = "Nicht eingeloggt"
             showingError = true
@@ -706,18 +705,31 @@ struct ManualAppointmentEntryView: View {
         .modelContainer(PreviewHelper.createModelContainer())
 }
 
-#Preview {
-    ManualAppointmentEntryView()
-        .environmentObject(PreviewHelper.createMockAuthService())
+#Preview("Appointment Detail") {
+    let appointment = PreviewHelper.createSampleAppointments()[0]
+    let sessionManager = PreviewHelper.createSessionManager()
+    
+    AppointmentDetailView(appointment: appointment)
+        .environmentObject(sessionManager)
         .environmentObject(PreviewHelper.createAppointmentViewModel())
         .modelContainer(PreviewHelper.createModelContainer())
 }
 
+#Preview {
+    let sessionManager = PreviewHelper.createSessionManager()
+    
+    ManualAppointmentEntryView()
+        .environmentObject(sessionManager)
+        .environmentObject(PreviewHelper.createAppointmentViewModel())
+        .modelContainer(PreviewHelper.createModelContainer())
+}
 
 #Preview("Cancelled Appointment") {
-    let appointment = PreviewHelper.createSampleAppointments()[2] // Der abgesagte Termin
+    let appointment = PreviewHelper.createSampleAppointments()[2]
+    let sessionManager = PreviewHelper.createSessionManager()
     
     AppointmentDetailView(appointment: appointment)
-    .modelContainer(PreviewHelper.createModelContainer())
-    .environmentObject(PreviewHelper.createAppointmentViewModel())
+        .environmentObject(sessionManager)
+        .modelContainer(PreviewHelper.createModelContainer())
+        .environmentObject(PreviewHelper.createAppointmentViewModel())
 }

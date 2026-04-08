@@ -5,7 +5,6 @@ final class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isLoading = false
 
-    // SessionManager hält currentUser + isAuthenticated
     let session: SessionManager
 
     private let loginUseCase: LoginUseCase
@@ -32,8 +31,7 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let authUser = try await loginUseCase.execute(email: email, password: password)
-            // Session wird automatisch via Firebase StateListener aktualisiert
-            print("✅ Login: \(authUser.email)")
+            session.setAuthenticatedUser(authUser)  // ← explizit, kein Firebase-Seiteneffekt
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -44,15 +42,15 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let authUser = try await signUpUseCase.execute(request: request)
-            print("✅ SignUp: \(authUser.email)")
+            session.setAuthenticatedUser(authUser)  // ← Namen kommen aus dem Request
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
-    func signOut() {
+    func signOut() async {
         do {
-            try signOutUseCase.execute()
+            try await signOutUseCase.execute()
             session.clearSession()
         } catch {
             errorMessage = error.localizedDescription

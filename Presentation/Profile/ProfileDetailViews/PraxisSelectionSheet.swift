@@ -12,7 +12,7 @@ import SwiftData
 struct PraxisSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    @EnvironmentObject var authService: AuthService
+   
     
     @Bindable var user: User 
     @State private var selectedPraxisId: UUID?
@@ -172,7 +172,7 @@ struct PraxisSelectionSheet: View {
             try modelContext.save()
             
             // Update auch in AuthService
-            authService.currentUser?.praxisId = praxisId
+        //    authService.currentUser?.praxisId = praxisId
             
             print("✅ Praxis gespeichert: \(PraxisDataManager.shared.getPraxisName(for: praxisId))")
             dismiss()
@@ -185,16 +185,13 @@ struct PraxisSelectionSheet: View {
     }
 }
 #Preview {
-    let mockContainer = try! ModelContainer(for: User.self)
-    let mockContext = ModelContext(mockContainer)
-    
-    let authService = AuthService(
-        authServiceProtocol: MockAuthService(),
-        modelContext: mockContext
+    let container = try! ModelContainer(
+        for: User.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     
     let therapistUser = User(
-        id: MockData.therapistId,  // ← war MockAuthService.mockTherapistId
+        id: MockData.therapistId,
         firstName: "Christiane",
         lastName: "Roth",
         email: "therapist@agil.de",
@@ -203,7 +200,6 @@ struct PraxisSelectionSheet: View {
         praxisId: PraxisDataManager.praxis1Id
     )
     
-    return PraxisSelectionSheet(user: therapistUser)
-        .environmentObject(authService)  // ← AuthService, nicht MockAuthService
-        .modelContainer(mockContainer)
+    PraxisSelectionSheet(user: therapistUser)
+        .modelContainer(container)
 }

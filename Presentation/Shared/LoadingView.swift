@@ -1,19 +1,12 @@
 //
 //  LoadingView.swift
-//  Agil
+//  Agil10.0
 //
-//  Created by Christiane Roth on 30.11.25.
-//
-
-
-//
-//  LoadingView.swift
-//  Agil9.0
-//
-//  Created by Christiane Roth on 11.11.25.
+//  Created by Christiane Roth on 08.04.26.
 //
 
-//
+
+
 //  LoadingView.swift
 //  Agil9.0
 //
