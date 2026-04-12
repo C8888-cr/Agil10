@@ -6,6 +6,7 @@ final class CalendarViewModel: ObservableObject {
 
     // MARK: - Dependencies
     private let session: SessionManager
+    private let getSchedulesUseCase: GetSchedulesForDateUseCase
     private let calendar: Calendar = .current
 
     // MARK: - Published
@@ -14,18 +15,17 @@ final class CalendarViewModel: ObservableObject {
 
     // MARK: - Private
     private let anchorDate: Date
-    private(set) weak var progressViewModel: ProgressViewModel?
 
     // MARK: - Init
     init(
         selectedDate: Date = Date(),
-        progressViewModel: ProgressViewModel,
-        session: SessionManager
+        session: SessionManager,
+        getSchedulesUseCase: GetSchedulesForDateUseCase
     ) {
         self.selectedDate = selectedDate
         self.anchorDate = selectedDate
-        self.progressViewModel = progressViewModel
         self.session = session
+        self.getSchedulesUseCase = getSchedulesUseCase
     }
 
     // MARK: - Week Navigation
@@ -54,13 +54,6 @@ final class CalendarViewModel: ObservableObject {
 
     func select(date: Date) {
         selectedDate = date
-
-        if let progressVM = progressViewModel,
-           let user = session.currentUser {
-            progressVM.selectedDate = date
-            progressVM.loadToday(for: user, date: date)
-        }
-
         let selectedWeekStart = startOfWeek(for: date)
         let daysDiff = calendar.dateComponents([.day], from: anchorWeekStart, to: selectedWeekStart).day ?? 0
         currentWeekOffset = daysDiff / 7
@@ -76,18 +69,19 @@ final class CalendarViewModel: ObservableObject {
 
     // MARK: - Schedule Info
     func hasSchedules(on date: Date) -> Bool {
-        guard let progressVM = progressViewModel else { return false }
-        return !progressVM.schedulesFor(date: date).isEmpty
+        guard let userId = session.currentUser?.id else { return false }
+        let schedules = (try? getSchedulesUseCase.execute(date: date, userId: userId)) ?? []
+        return !schedules.isEmpty
     }
 
     func scheduleCount(for date: Date) -> Int {
-        guard let progressVM = progressViewModel else { return 0 }
-        return progressVM.schedulesFor(date: date).count
+        guard let userId = session.currentUser?.id else { return 0 }
+        return (try? getSchedulesUseCase.execute(date: date, userId: userId))?.count ?? 0
     }
 
     func completionPercentage(for date: Date) -> Double {
-        guard let progressVM = progressViewModel else { return 0.0 }
-        let schedules = progressVM.schedulesFor(date: date)
+        guard let userId = session.currentUser?.id else { return 0.0 }
+        let schedules = (try? getSchedulesUseCase.execute(date: date, userId: userId)) ?? []
         guard !schedules.isEmpty else { return 0.0 }
         let completed = schedules.filter { $0.isCompleted }.count
         return Double(completed) / Double(schedules.count)
@@ -106,17 +100,5 @@ final class CalendarViewModel: ObservableObject {
     // MARK: - Helpers
     private func startOfWeek(for date: Date) -> Date {
         calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
-    }
-
-    private func updateSelectedDateIfNeeded() {
-        if !currentWeekDays.contains(where: { calendar.isDate($0, inSameDayAs: selectedDate) }) {
-            selectedDate = currentWeekStart
-
-            if let progressVM = progressViewModel,
-               let user = session.currentUser { 
-                progressVM.selectedDate = selectedDate
-                progressVM.loadToday(for: user, date: selectedDate)
-            }
-        }
     }
 }

@@ -95,10 +95,9 @@ struct ExercisesForDateView: View {
             calendar.isDate(schedule.scheduledDate, inSameDayAs: selectedDate)
         }
     }
-    // ← HIER EINFÜGEN (neue Computed Properties):
-        private var trainingMinutesForDate: Int {
-            progressVM.getTodaysTargetMinutes(from: settingsVM, for: selectedDate)
-        }
+    private var trainingMinutesForDate: Int {
+        progressVM.targetMinutes
+    }
         
     private var remainingSeconds: Int {
         let targetSeconds = trainingMinutesForDate * 60

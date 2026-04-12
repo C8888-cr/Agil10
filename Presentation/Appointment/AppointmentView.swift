@@ -99,9 +99,14 @@ struct AppointmentView: View {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: container.mainContext)
     )
+    let context = ModelContext(container)
+
+    let repository = VideoScheduleRepository(modelContext: context)
     let settingsVM = SettingsViewModel(
-        modelContext: container.mainContext,
-        session: sessionManager
+        modelContext: context,
+        session: sessionManager,
+        addScheduleUseCase: AddScheduleUseCase(repository: repository),
+        removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
     )
     
     AppointmentView()
@@ -110,7 +115,7 @@ struct AppointmentView: View {
         .environmentObject(settingsVM)
         .environmentObject(PreviewHelper.createAppointmentViewModel())
         .environmentObject(ProfileViewModel(
-            modelContext: container.mainContext,
+            userRepository: UserRepository(modelContext: container.mainContext),
             session: sessionManager
         ))
 }

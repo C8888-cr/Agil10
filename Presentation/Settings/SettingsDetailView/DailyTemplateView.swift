@@ -399,8 +399,14 @@ struct DailyTemplateView: View {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: context)
     )
-    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
-    let settingsVM = SettingsViewModel(modelContext: context, session: sessionManager)
+    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
+    let repository = VideoScheduleRepository(modelContext: context)
+    let settingsVM = SettingsViewModel(
+        modelContext: context,
+        session: sessionManager,
+        addScheduleUseCase: AddScheduleUseCase(repository: repository),
+        removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
+    )
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(
             modelContext: context,

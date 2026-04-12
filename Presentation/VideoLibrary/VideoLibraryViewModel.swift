@@ -16,7 +16,7 @@ import SwiftData
 @MainActor
 final class VideoLibraryViewModel: ObservableObject {
     // MARK: - Published Properties
-    @Published var allVideos: [Video] = []  // ✅ Renamed from 'videos'
+    @Published var allVideos: [Video] = []  
     @Published var filteredVideos: [Video] = []
     @Published var selectedVideo: Video? = nil
     

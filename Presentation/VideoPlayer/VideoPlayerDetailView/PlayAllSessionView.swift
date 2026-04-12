@@ -174,7 +174,7 @@ extension Array {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: context)
     )
-    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
+    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
 
     let v1 = Video.previewWarmup
     let v2 = Video.previewMobility

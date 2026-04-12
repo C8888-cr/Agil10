@@ -24,7 +24,7 @@ struct PreviewHelper {
         let sessionManager = SessionManager(userRepository: userRepository)
         
         // Mock User setzen
-        let mockUser = userRepository.findOrCreate(
+        _ = userRepository.findOrCreate(
             firebaseUID: "preview-uid",
             email: "preview@example.com",
             firstName: "Max",

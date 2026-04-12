@@ -104,7 +104,7 @@ struct CalendarView: View {
     
     enum SheetType: Identifiable {
         case
-        library,
+        videoPicker,
         profile,
         appointments,
         settings
@@ -134,7 +134,7 @@ struct CalendarView: View {
                             ExercisesForDateView(
                                 selectedDate: calendarViewModel.selectedDate,
                                 onAddExercise: {
-                                    activeSheet = .library
+                                    activeSheet = .videoPicker
                                 },
                                 onConfig: { schedule in
                                     handleConfig(schedule)
@@ -171,32 +171,32 @@ struct CalendarView: View {
                    .sheet(item: $activeSheet) { sheet in
                        switch sheet {
                        case .settings:
-                           SettingsView() // ← user Parameter
-                               .environmentObject(settingsVM)   // ← VM injizieren!
+                           SettingsView()
+                               .environmentObject(settingsVM)
+                               .environmentObject(videoLibraryVM)  // ← NEU
+                               .environmentObject(progressVM)       // ← NEU
                                .environment(\.modelContext, settingsVM.modelContext)
                                .onDisappear {
                                    progressVM.loadToday(for: session.currentUser!)
                                }
-                       case .library:
-                           NavigationStack {
-                               LibraryView(
-                                onVideoSelected: { video in
-                                    activeSheet = nil
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        pendingDate = calendarViewModel.selectedDate
-                                        editingScheduleId = nil
-                                        playbackSettings = PlaybackSettings(
-                                            repetitions: video.defaultRepetitions,
-                                            pauseSeconds: video.defaultPauseSeconds,
-                                            loopDurationSeconds: video.loopDurationSeconds
-                                        )
-                                        selectedVideoForConfig = video
-                                    }
-                                }
-                               )
-                          
+                       case .videoPicker:
+                           VideoPickerSheet { video in
+                               activeSheet = nil
+                               DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                   pendingDate = calendarViewModel.selectedDate
+                                   editingScheduleId = nil
+                                   playbackSettings = PlaybackSettings(
+                                       repetitions: video.defaultRepetitions,
+                                       pauseSeconds: video.defaultPauseSeconds,
+                                       loopDurationSeconds: video.loopDurationSeconds
+                                   )
+                                   selectedVideoForConfig = video
+                               }
                            }
+                           .environmentObject(videoLibraryVM)
+                           .environmentObject(session)
+                           
+                           
                        case .profile:
                            ProfileView()
                                
@@ -270,12 +270,12 @@ struct CalendarView: View {
                                 to: pendingDate,
                                 for: session.currentUser!,
                                 scope: .onlyToday,
-                                progressVM: progressVM,
                                 customRepetitions: pendingReps,
                                 customPauseSeconds: pendingPause,
                                 customLoopDuration: pendingLoopDuration
                                
                             )
+                            progressVM.loadToday(for: session.currentUser!)
                         }
                         pendingVideo = nil
                     }
@@ -286,12 +286,12 @@ struct CalendarView: View {
                                 to: pendingDate,
                                 for: session.currentUser!,
                                 scope: .allFuture,
-                                progressVM: progressVM,
                                 customRepetitions: pendingReps,
                                 customPauseSeconds: pendingPause,
                                 customLoopDuration: pendingLoopDuration
                                 
                             )
+                            progressVM.loadToday(for: session.currentUser!)
                         }
                         pendingVideo = nil
                     }
@@ -309,10 +309,10 @@ struct CalendarView: View {
                             settingsVM.removeScheduleWithScope(
                                 schedule,
                                 for: session.currentUser!,
-                                scope: .onlyToday,
-                                progressVM: progressVM,
+                                scope: .onlyToday
                                
                             )
+                            progressVM.loadToday(for: session.currentUser!)
                         }
                         pendingDeleteSchedule = nil
                     }
@@ -321,10 +321,10 @@ struct CalendarView: View {
                             settingsVM.removeScheduleWithScope(
                                 schedule,
                                 for: session.currentUser!,
-                                scope: .allFuture,
-                                progressVM: progressVM,
+                                scope: .allFuture
                                
                             )
+                            progressVM.loadToday(for: session.currentUser!) 
                         }
                         pendingDeleteSchedule = nil
                     }

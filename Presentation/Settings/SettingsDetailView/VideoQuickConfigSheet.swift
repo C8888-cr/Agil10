@@ -31,7 +31,7 @@ struct VideoQuickConfigSheet: View {
         self.onAdd = onAdd
         self.onCancel = onCancel
         _repetitions = State(initialValue: initialRepetitions ?? video.defaultRepetitions)
-        _loopDurationSeconds = State(initialValue: initialLoopDuration ?? video.loopDurationSeconds)
+        _loopDurationSeconds = State(initialValue: max(10, initialLoopDuration ?? video.loopDurationSeconds))
         _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds)
     }
     

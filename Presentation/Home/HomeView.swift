@@ -40,7 +40,7 @@ struct HomeView: View {
 
     enum SheetType: Identifiable {
         case
-        library,
+        videoPicker,
         profile,
         settings
         var id: Self { self }
@@ -99,7 +99,7 @@ struct HomeView: View {
                         )
                     },
                     onAddVideo: {
-                        activeSheet = .library  // ← Sheet öffnet sich!
+                        activeSheet = .videoPicker
                     },
                     onRate: { schedule, rating in  // ← NEU
                            schedule.rating = rating
@@ -150,45 +150,37 @@ struct HomeView: View {
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
                 case .settings:
-                    SettingsView() // ← user Parameter
-                        .environmentObject(settingsVM)   // ← VM injizieren!
+                    SettingsView()
+                        .environmentObject(settingsVM)
+                        .environmentObject(videoLibraryVM)  // ← NEU
+                        .environmentObject(progressVM)       // ← NEU
                         .environment(\.modelContext, settingsVM.modelContext)
                         .onDisappear {
                             progressVM.loadToday(for: session.currentUser!)
                         }
-                        
+                    
                 case .profile:
                     ProfileView()
                         .environmentObject(session)
                         .environment(\.modelContext, profileVM.modelContext)
-                case .library:
-                    NavigationStack {
-                        LibraryView(
-                            // ✅ NEU
-                            onVideoSelected: { video in
-                                activeSheet = nil
-                                
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    pendingDate = Date()
-                                    editingScheduleId = nil
-                                    playbackSettings = PlaybackSettings(
-                                        repetitions: video.defaultRepetitions,
-                                        pauseSeconds: video.defaultPauseSeconds,
-                                        loopDurationSeconds: video.loopDurationSeconds
-                                    )
-                                    selectedVideoForConfig = video  // ← öffnet Config-Sheet
-                                }
-                            }
-                        )
-                        .environmentObject(session)
-                        .environmentObject(videoLibraryVM)
-                        .environmentObject(settingsVM)
-                    
+                case .videoPicker:
+                    VideoPickerSheet { video in
+                        activeSheet = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            pendingDate = Date()
+                            editingScheduleId = nil
+                            playbackSettings = PlaybackSettings(
+                                repetitions: video.defaultRepetitions,
+                                pauseSeconds: video.defaultPauseSeconds,
+                                loopDurationSeconds: video.loopDurationSeconds
+                            )
+                            selectedVideoForConfig = video
+                        }
                     }
-        
+                    .environmentObject(videoLibraryVM)
+                    .environmentObject(session)
                 }
-        }
-        
+            }
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
@@ -273,11 +265,12 @@ struct HomeView: View {
                         to: pendingDate,
                         for: session.currentUser!,
                         scope: .onlyToday,
-                        progressVM: progressVM,
-                        customRepetitions: pendingReps,      // ✅
-                                   customPauseSeconds: pendingPause,    // ✅
-                                   customLoopDuration: pendingLoopDuration // ✅
+                        customRepetitions: pendingReps,
+                        customPauseSeconds: pendingPause,
+                        customLoopDuration: pendingLoopDuration
                     )
+                    progressVM.loadToday(for: session.currentUser!) 
+
                 }
                 pendingVideo = nil
             }
@@ -288,14 +281,15 @@ struct HomeView: View {
                         to: pendingDate,
                         for: session.currentUser!,
                         scope: .allFuture,
-                        progressVM: progressVM,
-                        customRepetitions: pendingReps,      // ✅
-                                   customPauseSeconds: pendingPause,    // ✅
-                                   customLoopDuration: pendingLoopDuration // ✅
+                        customRepetitions: pendingReps,
+                        customPauseSeconds: pendingPause,
+                        customLoopDuration: pendingLoopDuration
                     )
+                    progressVM.loadToday(for: session.currentUser!)
                 }
                 pendingVideo = nil
             }
+    
             Button("Abbrechen", role: .cancel) { pendingVideo = nil }
         } message: {
             Text("Soll \"\(pendingVideo?.title ?? "")\" nur heute oder für alle \(pendingRecurrenceRule.rawValue.lowercased()) Termine eingeplant werden?")
@@ -310,10 +304,10 @@ struct HomeView: View {
                     settingsVM.removeScheduleWithScope(
                         schedule,
                         for: session.currentUser!,
-                        scope: .onlyToday,
-                        progressVM: progressVM,
+                        scope: .onlyToday
     
                     )
+                    progressVM.loadToday(for: session.currentUser!)
                 }
                 pendingDeleteSchedule = nil
             }
@@ -322,9 +316,9 @@ struct HomeView: View {
                     settingsVM.removeScheduleWithScope(
                         schedule,
                         for: session.currentUser!,
-                        scope: .allFuture,
-                        progressVM: progressVM,
+                        scope: .allFuture
                     )
+                    progressVM.loadToday(for: session.currentUser!)
                 }
                 pendingDeleteSchedule = nil
             }
@@ -357,8 +351,17 @@ struct HomeView: View {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: context)
     )
-    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
-    let settingsVM = SettingsViewModel(modelContext: context, session: sessionManager)
+    
+
+    let repository = VideoScheduleRepository(modelContext: context)
+    let settingsVM = SettingsViewModel(
+        modelContext: context,
+        session: sessionManager,
+        addScheduleUseCase: AddScheduleUseCase(repository: repository),
+        removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
+    )
+    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
+
     let videoLibraryVM = VideoLibraryViewModel(
         repository: VideoRepository(
             modelContext: context,
@@ -368,7 +371,10 @@ struct HomeView: View {
         modelContext: context,
         session: sessionManager
     )
-    let profileVM = ProfileViewModel(modelContext: context, session: sessionManager)
+    let profileVM = ProfileViewModel(
+        userRepository: UserRepository(modelContext: context),
+        session: sessionManager
+    )
 
     NavigationStack {
         HomeView()

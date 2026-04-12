@@ -406,7 +406,7 @@ struct VideoPlayerView: View {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: context)
     )
-    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
+    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
     
     let mockVideo = Video(
         title: "Schulter Mobilisation",

@@ -10,9 +10,9 @@ import SwiftUI
 struct VideoListRow: View {
     let video: Video
   
-    let onTap: (Video) -> Void  // ← VIDEO ÜBERGEBEN! NEU!
+    let onTap: (Video) -> Void  
     let onFavorite: () -> Void
-    let onDelete: () -> Void
+    let onDelete: (() -> Void)?
     
     @State private var showDeleteAlert = false
     
@@ -67,14 +67,17 @@ struct VideoListRow: View {
                         .foregroundStyle(video.isFavorite ? .yellow : .gray)
                 }
                 
-                Button {
-                    showDeleteAlert = true
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundStyle(.red)
+                if let onDelete {
+                    Button {
+                        showDeleteAlert = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundStyle(.red)
+                    }
+                    
+                    .font(.title3)
                 }
             }
-            .font(.title3)
         }
         .dynamicTypeSize(.small ... .large)
         .padding(.horizontal, 16)
@@ -92,7 +95,7 @@ struct VideoListRow: View {
         }
         .alert("Video löschen?", isPresented: $showDeleteAlert) {
             Button("Abbrechen", role: .cancel) {}
-            Button("Löschen", role: .destructive, action: onDelete)
+            Button("Löschen", role: .destructive) { onDelete?() }
         } message: {
             Text("Möchtest du '\(video.title)' wirklich löschen?")
         }

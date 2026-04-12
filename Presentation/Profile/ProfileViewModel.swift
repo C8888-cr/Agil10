@@ -7,26 +7,27 @@
 import SwiftUI
 import SwiftData
 import Combine
+
+
 @MainActor
 class ProfileViewModel: ObservableObject {
     
-    let modelContext: ModelContext
+    private let userRepository: UserRepository
     private let session: SessionManager
     
-    @Published var currentUserInContext: User?  // ✅ Published, damit View reagiert
+    @Published var currentUserInContext: User?
+    
+    var modelContext: ModelContext { userRepository.modelContext }
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(modelContext: ModelContext, session: SessionManager) {
-        self.modelContext = modelContext
+    init(userRepository: UserRepository, session: SessionManager) {
+        self.userRepository = userRepository
         self.session = session
         
         print("🔧 ProfileViewModel.init()")
-        
-        // ✅ Initial User laden
         loadCurrentUser()
         
-        // ✅ Bei User-Änderung neu laden
         session.$currentUser
             .sink { [weak self] _ in
                 self?.loadCurrentUser()
@@ -40,14 +41,7 @@ class ProfileViewModel: ObservableObject {
             currentUserInContext = nil
             return
         }
-        
-        let descriptor = FetchDescriptor<User>(
-            predicate: #Predicate<User> { u in
-                u.id == userId
-            }
-        )
-        
-        currentUserInContext = try? modelContext.fetch(descriptor).first
+        currentUserInContext = userRepository.fetchUser(by: userId)
         
         if let user = currentUserInContext {
             print("✅ ProfileVM: User geladen - \(user.email)")
@@ -56,7 +50,6 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
-    // ✅ Nach Edit neu laden
     func refreshUser() {
         loadCurrentUser()
     }

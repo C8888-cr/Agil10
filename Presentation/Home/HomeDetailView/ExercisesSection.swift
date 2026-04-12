@@ -23,10 +23,10 @@ struct ExercisesSection: View {
     let onPlayAll: () -> Void
     
     private var remainingSeconds: Int {
-           let targetSeconds = progressVM.getTodaysTargetMinutes(from: settingsVM, for: Date()) * 60
-           let totalScheduled = progressVM.todaysSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
-           return max(0, targetSeconds - totalScheduled)
-       }
+        let targetSeconds = progressVM.targetMinutes * 60
+        let totalScheduled = progressVM.todaysSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+        return max(0, targetSeconds - totalScheduled)
+    }
     
     var body: some View {
         VStack(spacing: 8) {
@@ -115,10 +115,18 @@ struct ExercisesSection: View {
     let sessionManager = SessionManager(
         userRepository: UserRepository(modelContext: context)
     )
-    let settingsVM = SettingsViewModel(modelContext: context, session: sessionManager)
-    let progressVM = ProgressViewModel(modelContext: context, session: sessionManager)
-
-    return ExercisesSection(
+ 
+    let repository = VideoScheduleRepository(modelContext: context)
+    let settingsVM = SettingsViewModel(
+        modelContext: context,
+        session: sessionManager,
+        addScheduleUseCase: AddScheduleUseCase(repository: repository),
+        removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
+    )
+    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
+    
+    
+  return ExercisesSection(
         onToggleCompletion: { _ in },
         onDelete: { _ in },
         onConfig: { _ in },

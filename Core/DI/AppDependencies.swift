@@ -10,8 +10,7 @@ class AppDependencies: ObservableObject {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     
-    
-    // MARK: - Auth NEU (Clean Architecture)
+    // MARK: - Auth
     private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
     private lazy var userRepository = UserRepository(modelContext: modelContext)
     lazy var sessionManager = SessionManager(userRepository: userRepository)
@@ -71,10 +70,45 @@ class AppDependencies: ObservableObject {
         detectChangesUseCase: detectAppointmentChangesUseCase
     )
     
-    // MARK: - ViewModels (noch nicht migriert)
+    // MARK: - ScheduleUseCases
+    lazy var getSchedulesForDateUseCase = GetSchedulesForDateUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var addScheduleUseCase = AddScheduleUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var removeScheduleUseCase = RemoveScheduleUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var toggleScheduleCompletionUseCase = ToggleScheduleCompletionUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var reorderSchedulesUseCase = ReorderSchedulesUseCase(
+        repository: videoScheduleRepository
+    )
+    
+    // MARK: - ProgressUseCases
+    lazy var calculateDailyProgressUseCase = CalculateDailyProgressUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var calculateWeeklyProgressUseCase = CalculateWeeklyProgressUseCase(
+        repository: videoScheduleRepository
+    )
+    lazy var calculateLifetimeProgressUseCase = CalculateLifetimeProgressUseCase(
+        repository: videoScheduleRepository
+    )
+    
+    // MARK: - ViewModels
     lazy var progressViewModel = ProgressViewModel(
-        modelContext: modelContext,
-        session: sessionManager
+        session: sessionManager,
+        getSchedulesUseCase: getSchedulesForDateUseCase,
+        addScheduleUseCase: addScheduleUseCase,
+        removeScheduleUseCase: removeScheduleUseCase,
+        toggleCompletionUseCase: toggleScheduleCompletionUseCase,
+        reorderSchedulesUseCase: reorderSchedulesUseCase,
+        dailyProgressUseCase: calculateDailyProgressUseCase,
+        weeklyProgressUseCase: calculateWeeklyProgressUseCase,
+        lifetimeProgressUseCase: calculateLifetimeProgressUseCase
     )
     lazy var appointmentViewModel = AppointmentViewModel(
         modelContext: modelContext,
@@ -91,8 +125,8 @@ class AppDependencies: ObservableObject {
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
     )
     lazy var calendarViewModel = CalendarViewModel(
-        progressViewModel: progressViewModel,
-        session: sessionManager
+        session: sessionManager,
+        getSchedulesUseCase: getSchedulesForDateUseCase
     )
     lazy var videoLibraryVM = VideoLibraryViewModel(
         repository: videoRepository,
@@ -101,18 +135,21 @@ class AppDependencies: ObservableObject {
     )
     lazy var settingsViewModel = SettingsViewModel(
         modelContext: modelContext,
-        session: sessionManager
+        session: sessionManager,
+        addScheduleUseCase: addScheduleUseCase,
+        removeScheduleUseCase: removeScheduleUseCase
     )
     lazy var profileViewModel = ProfileViewModel(
-        modelContext: modelContext,
+        userRepository: userRepository,
         session: sessionManager
     )
-
+    
+    
     // MARK: - Init
     private init() {
         self.modelContainer = PersistenceController.shared.container
         self.modelContext = modelContainer.mainContext
-        self.emailService = EmailService()  // ← nur das noch
+        self.emailService = EmailService()
         cleanupMockData()
     }
     

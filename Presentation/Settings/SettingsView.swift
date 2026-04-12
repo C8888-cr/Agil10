@@ -614,13 +614,18 @@ extension Notification.Name {
         for: User.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
+    let context = container.mainContext
     let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: container.mainContext)
+        userRepository: UserRepository(modelContext: context)
     )
+    let repository = VideoScheduleRepository(modelContext: context)
+    
     SettingsView()
         .environmentObject(SettingsViewModel(
-            modelContext: container.mainContext,
-            session: sessionManager
+            modelContext: context,
+            session: sessionManager,
+            addScheduleUseCase: AddScheduleUseCase(repository: repository),
+            removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
         ))
         .environmentObject(sessionManager)
 }

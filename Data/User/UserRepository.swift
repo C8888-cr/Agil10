@@ -2,10 +2,18 @@ import SwiftData
 import Foundation
 
 final class UserRepository {
-    private let modelContext: ModelContext
+    let modelContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+    
+    
+    func fetchUser(by id: UUID) -> User? {
+        let descriptor = FetchDescriptor<User>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return (try? modelContext.fetch(descriptor))?.first
     }
 
     func findOrCreate(firebaseUID: String, email: String,
