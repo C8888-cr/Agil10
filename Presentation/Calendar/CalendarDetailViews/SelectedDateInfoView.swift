@@ -37,6 +37,15 @@ struct SelectedDateInfoView: View {
                                     Text("\(appt.date.timeString) – \(appt.therapist)")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
+                                    
+                                    if let notes = appt.notes, !notes.isEmpty {
+                                                  Text(notes)
+                                            .font(.caption)
+                                                   .foregroundColor(.secondary)
+                                                   .italic()
+                                                   .lineLimit(2)
+                                                   .truncationMode(.tail)
+                                              }
                                 }
                                 .onTapGesture { onTapAppointment(appt) }
                             }

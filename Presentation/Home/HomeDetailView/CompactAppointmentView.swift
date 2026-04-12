@@ -52,6 +52,8 @@ struct CompactAppointmentView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .italic()
+                            .lineLimit(2)
+                            .truncationMode(.tail)
                     }
                 }
                 Spacer()
