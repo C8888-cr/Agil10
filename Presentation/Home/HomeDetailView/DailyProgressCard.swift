@@ -14,6 +14,10 @@ struct DailyProgressCard: View {
 
     @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
 
+    
+    @State private var selectedAppointment: Appointment? = nil
+    
+    
     private var appointments: [Appointment] {
         allAppointments.filter {
             $0.date > Date().addingTimeInterval(-86400) &&
@@ -89,9 +93,18 @@ struct DailyProgressCard: View {
             Divider()
 
             if let nextAppointment = appointmentViewModel.nextAppointment(from: appointments) {
-                CompactAppointmentView(appointment: nextAppointment)
+                CompactAppointmentView(
+                    appointment: nextAppointment,
+                    onTap: { selectedAppointment = nextAppointment }  // ← NEU
+                )
             }
         }
+        .sheet(item: $selectedAppointment) { appointment in
+            AppointmentDetailView(appointment: appointment)
+                .environmentObject(appointmentViewModel)  // ← schon als EnvironmentObject vorhanden
+        }
+        
+        
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)

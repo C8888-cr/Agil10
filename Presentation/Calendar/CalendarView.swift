@@ -52,6 +52,8 @@ struct CalendarView: View {
     @State private var pendingPause: Int = 30
     @State private var pendingLoopDuration: Int = 120
     
+    @State private var selectedAppointment: Appointment? = nil
+    
     
     var onVideoSelected: ((Video) -> Void)? = nil
     
@@ -125,7 +127,9 @@ struct CalendarView: View {
                                 appointments: userAppointments.filter { Calendar.current.isDate($0.date, inSameDayAs: calendarViewModel.selectedDate) },
                                 onAddAppointment: {
                                     activeSheet = .appointments
-                                    print("Add Appointment tapped") })
+                                    print("Add Appointment tapped") },
+                                onTapAppointment: { selectedAppointment = $0 }
+                            )
                        
                             .padding(.horizontal, 16)
                             .padding(.top, 12)
@@ -257,7 +261,13 @@ struct CalendarView: View {
                            session: session
                        )
                    }
-    
+                   .sheet(item: $selectedAppointment) { appointment in
+                       AppointmentDetailView(appointment: appointment)
+                           .environmentObject(session)
+                           .environmentObject(appointmentViewModel)
+                   }
+                    
+                    
                 .confirmationDialog(
                     "Video einplanen",
                     isPresented: $showScopeDialog,

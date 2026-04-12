@@ -14,12 +14,15 @@ import SwiftData
 
 struct AppointmentDetailView: View {
     @EnvironmentObject var session: SessionManager
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     let appointment: Appointment
     @EnvironmentObject var viewModel: AppointmentViewModel
     
     @State private var showingCancelSheet = false
     @State private var cancelReason = ""
+    @State private var isEditingNotes = false
+    @State private var editedNotes = ""
     
     @State private var showEmailSentConfirmation = false
 
@@ -104,7 +107,51 @@ struct AppointmentDetailView: View {
                     .cornerRadius(12)
                     .padding(.horizontal)
                     
-                    
+                    // Notes Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Label("Notizen", systemImage: "note.text")
+                                .font(.headline)
+                            Spacer()
+                            Button {
+                                if isEditingNotes {
+                                    // Speichern
+                                    appointment.notes = editedNotes.isEmpty ? nil : editedNotes
+                                    try? modelContext.save()
+                                    isEditingNotes = false
+                                } else {
+                                    editedNotes = appointment.notes ?? ""
+                                    isEditingNotes = true
+                                }
+                            } label: {
+                                Image(systemName: isEditingNotes ? "checkmark.circle.fill" : "pencil.circle")
+                                    .foregroundColor(.accent)
+                                    .font(.title3)
+                            }
+                        }
+                        
+                        if isEditingNotes {
+                            TextEditor(text: $editedNotes)
+                                .frame(minHeight: 80)
+                                .padding(4)
+                                .background(Color(.secondarySystemGroupedBackground))
+                                .cornerRadius(8)
+                        } else if let notes = appointment.notes {
+                            Text(notes)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Keine Notizen")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .italic()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                     
                     // Location Section
                     if appointment.locationName != nil || appointment.locationAddress != nil {
@@ -120,43 +167,31 @@ struct AppointmentDetailView: View {
                         .padding(.horizontal)
                                                 }
                                                 
-                      // Notes Section
-                      if let notes = appointment.notes {
-                         VStack(alignment: .leading, spacing: 12) {
-                            Label("Notizen", systemImage: "note.text")
-                                .font(.headline)
-                                                        
-                            Text(notes)
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                                    }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding()
-                                .background(Color(.systemBackground))
-                                .cornerRadius(12)
-                                .padding(.horizontal)
-                        }
+                     
                                                 
-                        // Status Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Label("Status", systemImage: "checkmark.circle.fill")
-                                .font(.headline)
-                                                    
-                            HStack {
-                                Circle()
-                                    .fill(appointment.status.color)
-                                    .frame(width: 12, height: 12)
-                                                        
-                                Text(appointment.status.displayName)
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                            }
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding()
-                                    .background(Color(.systemBackground))
-                                    .cornerRadius(12)
-                                    .padding(.horizontal)
+                   
+                    
+                    // ← NEU: Status nur wenn abgesagt
+                                  if appointment.status == .cancelled {
+                                      VStack(alignment: .leading, spacing: 12) {
+                                          Label("Status", systemImage: "xmark.circle.fill")
+                                              .font(.headline)
+                                          HStack {
+                                              Circle()
+                                                  .fill(appointment.status.color)
+                                                  .frame(width: 12, height: 12)
+                                              Text(appointment.status.displayName)
+                                                  .font(.body)
+                                                  .fontWeight(.medium)
+                                          }
+                                      }
+                                      .frame(maxWidth: .infinity, alignment: .leading)
+                                      .padding()
+                                      .background(Color(.systemBackground))
+                                      .cornerRadius(12)
+                                      .padding(.horizontal)
+                                  }
+
                                                 
                     
                             // Actions
@@ -169,7 +204,7 @@ struct AppointmentDetailView: View {
                                             .foregroundColor(.white)
                                             .frame(maxWidth: .infinity)
                                             .padding()
-                                            .background(Color.red)
+                                            .background(Color.accent)
                                             .cornerRadius(12)
                                                     }
                                             .padding(.horizontal)
@@ -189,14 +224,15 @@ struct AppointmentDetailView: View {
                                                 .fontWeight(.semibold)
                                             }
                                         }
-                                        .sheet(isPresented: $showingCancelSheet) {
-                                            CancelAppointmentView(
-                                                appointment: appointment,
-                                       
-                                                isPresented: $showingCancelSheet
-                                            )
-                                            .environmentObject(session)
-                                        }
+            // ← NEU: gleiche CancelAppointmentView wie in der Row
+                   .sheet(isPresented: $showingCancelSheet) {
+                       CancelAppointmentView(
+                           appointment: appointment,
+                           isPresented: $showingCancelSheet
+                       )
+                       .environmentObject(session)
+                       .environmentObject(viewModel)  // ← wichtig!
+                   }
                                     }
                                 }
                             }

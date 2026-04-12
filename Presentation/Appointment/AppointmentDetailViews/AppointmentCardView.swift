@@ -25,7 +25,6 @@ struct AppointmentCardView: View {
     init(
         appointment: Appointment,
         isNext: Bool,
-       // ← NEU
         onDelete: (() -> Void)? = nil,
         onCancel: ((String?) -> Void)? = nil
     ) {
@@ -87,23 +86,23 @@ struct AppointmentCardView: View {
                     .foregroundColor(.accent)
                 }
             
-            
+                //Notizen
+                    if let notes = appointment.notes {
+                        HStack(spacing: 4) {
+                            Image(systemName: "note.text")
+                                .font(.caption)
+                            Text(notes)
+                                .font(.caption)
+                                .lineLimit(2)
+                                .truncationMode(.tail)
+                        }
+                        .foregroundColor(.secondary)
+                    }
   
                   }
             
             Spacer()
-            
-            // Maps Button
-            if appointment.coordinate != nil {
-                Button(action: {
-                    appointment.openInMaps()
-                }) {
-                    Image(systemName: "arrow.triangle.turn.up.right.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.accent)
-                }
-                .buttonStyle(.plain)
-            }
+
             
             // MARK: - Actions Menu
             Menu {

@@ -13,32 +13,35 @@ struct SelectedDateInfoView: View {
     let selectedDate: Date
     let appointments: [Appointment]
     let onAddAppointment: () -> Void
+    let onTapAppointment: (Appointment) -> Void
     
     
      // MARK: - Body
      var body: some View {
-     VStack(alignment: .leading, spacing: 12) {
-     HStack {
-     VStack(alignment: .leading, spacing: 4) {
-     Text(selectedDate.formatted(date: .complete, time: .omitted))
-     .font(.headline)
+         VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        
+                        Text(selectedDate.formatted(date: .complete, time: .omitted))
+                            .font(.headline)
      
-     if appointments.isEmpty {
-     Text("Keine Termine")
-     .font(.subheadline)
-     .foregroundColor(.secondary)
-     } else {
-     ForEach(appointments) { appt in
-     HStack(spacing: 6) {
-     Image(systemName: "calendar.badge.clock")
-     .foregroundColor(.accentColor)
-     Text("\(appt.date.timeString) – \(appt.therapist)")
-     .font(.subheadline)
-     .foregroundColor(.secondary)
-     }
-     }
-     }
-     }
+                        if appointments.isEmpty {
+                            Text("Keine Termine")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(appointments) { appt in
+                                HStack(spacing: 6) {
+                                    Image(systemName: "calendar.badge.clock")
+                                        .foregroundColor(.accentColor)
+                                    Text("\(appt.date.timeString) – \(appt.therapist)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                .onTapGesture { onTapAppointment(appt) }
+                            }
+                        }
+                    }
      
      Spacer()
      
@@ -64,13 +67,12 @@ struct SelectedDateInfoView: View {
 struct SelectedDateInfoView_Previews: PreviewProvider {
     
     // ✅ Mock IDs definieren
-      private static let mockUserId = UUID()
-      private static let mockPraxisId = UUID()
+    private static let mockUserId = UUID()
+    private static let mockPraxisId = UUID()
     
     
     static var previews: some View {
         VStack(spacing: 16) {
-            // Mit Termin
             SelectedDateInfoView(
                 selectedDate: Date(),
                 appointments: [
@@ -81,14 +83,15 @@ struct SelectedDateInfoView_Previews: PreviewProvider {
                                 praxisId: mockPraxisId
                                )
                 ],
-                onAddAppointment: { print("Add appointment") }
+                onAddAppointment: { print("Add appointment") },
+                onTapAppointment: { _ in print("Tapped") }  // ← NEU
             )
-
-            // Ohne Termin
+            
             SelectedDateInfoView(
                 selectedDate: Date(),
                 appointments: [],
-                onAddAppointment: { print("Add appointment") }
+                onAddAppointment: { print("Add appointment") },
+                onTapAppointment: { _ in print("Tapped") }  // ← NEU
             )
         }
         .padding()

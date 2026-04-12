@@ -3,31 +3,31 @@
 //  Agil10.0
 //
 //  Created by Christiane Roth on 31.12.25.
-//
 
-
-// Features/Appointments/Presentation/Views/Components/AppointmentsList.swift
 import SwiftUI
+
+
 struct AppointmentsList: View {
     
-    let appointments: [Appointment]  // ✅ Parameter statt ViewModel
-       @ObservedObject var viewModel: AppointmentViewModel
-
+    let appointments: [Appointment]
+    @ObservedObject var viewModel: AppointmentViewModel
+    @State private var selectedAppointment: Appointment? = nil
     
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                
                 // ✅ Next Appointment Card
-                             if let next = viewModel.nextAppointment(from: appointments) {
-                                 NextAppointmentSection(
-                                     appointment: next,
-                                     onDelete: {
-                                         Task {
-                                             await viewModel.deleteAppointment(next)
-                                         }
-                                     }
-                                 )
-                             }
+                if let next = viewModel.nextAppointment(from: appointments) {
+                                  NextAppointmentSection(
+                                      appointment: next,
+                                      onDelete: {
+                                          Task { await viewModel.deleteAppointment(next)
+                                          }
+                                      },
+                                      onTap: { selectedAppointment = next }
+                                  )
+                              }
                 
                 // ✅ Upcoming Appointments
                             let otherUpcoming = viewModel.otherUpcomingAppointments(from: appointments)
@@ -39,7 +39,8 @@ struct AppointmentsList: View {
                                             await viewModel.deleteAppointment(appointment)
                                         }
                                        
-                                    }
+                                    },
+                                    onTap: { selectedAppointment = $0 }
                                 )
                             }
                 
@@ -52,7 +53,8 @@ struct AppointmentsList: View {
                                          Task {
                                              await viewModel.deleteAppointment(appointment)
                                          }
-                                     }
+                                     },
+                                     onTap: { selectedAppointment = $0 }
                                  )
                              }
                              
@@ -60,6 +62,9 @@ struct AppointmentsList: View {
                 Spacer(minLength: 40)
             }
         }
+        .sheet(item: $selectedAppointment) { appointment in  // ← NEU
+                    AppointmentDetailView(appointment: appointment)
+                }
     }
 }
 // MARK: - Preview

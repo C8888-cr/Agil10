@@ -11,6 +11,7 @@ import SwiftUI
 struct PastAppointmentsSection: View {
     let appointments: [Appointment]
     let onDelete: (Appointment) -> Void
+    let onTap: (Appointment) -> Void
     @EnvironmentObject var viewModel: AppointmentViewModel
     
     
@@ -40,6 +41,7 @@ struct PastAppointmentsSection: View {
                     }
                 )
                 .opacity(0.6)
+                .onTapGesture { onTap(appointment) }
             }
         }
         .padding()
@@ -74,7 +76,8 @@ struct PastAppointmentsSection: View {
     
     PastAppointmentsSection(
         appointments: appointments,
-        onDelete: { _ in print("Delete tapped") }
+        onDelete: { _ in print("Delete tapped") },
+        onTap: { _ in print("Tapped") }
     )
     .environmentObject(AppDependencies.shared.appointmentViewModel)
 }

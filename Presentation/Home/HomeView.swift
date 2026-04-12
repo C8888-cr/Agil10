@@ -11,7 +11,7 @@ struct HomeView: View {
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var profileVM: ProfileViewModel
-
+    @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     
     @State private var pendingVideo: Video?
     @State private var pendingDate: Date = Date()
@@ -37,6 +37,8 @@ struct HomeView: View {
     @State private var playbackSettings = PlaybackSettings()
     
     @State private var showPlayAllSession = false
+    
+    @State private var selectedAppointment: Appointment? = nil
 
     enum SheetType: Identifiable {
         case
@@ -248,7 +250,13 @@ struct HomeView: View {
             )
             .environmentObject(progressVM)
         }
-
+        
+        
+        .sheet(item: $selectedAppointment) { appointment in
+            AppointmentDetailView(appointment: appointment)
+                .environmentObject(session)
+                .environmentObject(appointmentViewModel)
+        }
         
         // In HomeView nach dem letzten .sheet
         .confirmationDialog(

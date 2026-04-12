@@ -11,6 +11,7 @@ import SwiftUI
 struct NextAppointmentSection: View {
     let appointment: Appointment
     let onDelete: () -> Void
+    let onTap: () -> Void
     @EnvironmentObject var viewModel: AppointmentViewModel
     
     var body: some View {
@@ -28,9 +29,7 @@ struct NextAppointmentSection: View {
                 isNext: true,
                 onDelete: onDelete
             )
-            .onTapGesture {
-                // Navigation zur Detail-Ansicht
-            }
+            .onTapGesture { onTap() }
         }
         .padding()
         .background(Color(.systemBackground))
@@ -62,7 +61,9 @@ struct NextAppointmentSection: View {
     
     NextAppointmentSection(
         appointment: appointment,
-        onDelete: { print("Delete tapped") }
+        onDelete: { print("Delete tapped") },
+        onTap: {  print("Tapped") }
+        
     )
     .environmentObject(AppDependencies.shared.appointmentViewModel)
 }
