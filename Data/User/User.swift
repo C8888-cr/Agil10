@@ -64,7 +64,7 @@ final class User {
     var appointmentReminderTime: Date = Calendar.current.date(
         bySettingHour: 8, minute: 0, second: 0, of: Date()
     ) ?? Date()
-            
+    var appointmentReminderMode: String = "morgens"
             init(
                 id: UUID = UUID(),
                 firstName: String = "",

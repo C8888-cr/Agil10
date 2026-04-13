@@ -24,8 +24,9 @@ struct AppointmentReminderSection: View {
                             user.appointmentReminderEnabled = false
                             AppointmentNotificationService.scheduleReminders(
                                 for: appointments,
-                                enabled: false,
-                                reminderTime: user.appointmentReminderTime
+                                enabled: true,
+                                reminderTime: user.appointmentReminderTime,
+                                mode: user.appointmentReminderMode    // NEU
                             )
                         }
                     }
@@ -48,7 +49,8 @@ struct AppointmentReminderSection: View {
                                 AppointmentNotificationService.scheduleReminders(
                                     for: appointments,
                                     enabled: true,
-                                    reminderTime: newTime
+                                    reminderTime: user.appointmentReminderTime,
+                                    mode: user.appointmentReminderMode    // NEU
                                 )
                             }
                         ),
@@ -84,7 +86,8 @@ struct AppointmentReminderSection: View {
                     AppointmentNotificationService.scheduleReminders(
                         for: appointments,
                         enabled: true,
-                        reminderTime: user.appointmentReminderTime
+                        reminderTime: user.appointmentReminderTime,
+                        mode: user.appointmentReminderMode    // NEU
                     )
                 } else {
                     user.appointmentReminderEnabled = false

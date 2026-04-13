@@ -17,13 +17,21 @@ struct AppointmentToolbar: ToolbarContent {
     var body: some ToolbarContent {
         // LINKS: Plus-Menü
         ToolbarItem(placement: .navigationBarLeading) {
-            Menu {
-                Button("Manuell eintragen", action: showingManualEntry)
-                Button("Aus Email importieren", action: showingEmailImport)
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .foregroundColor(.accent)
-                    .font(.title3)
+            HStack(spacing: 4) {
+                Menu {
+                    Button("Manuell eintragen", action: showingManualEntry)
+                    Button("Aus Email importieren", action: showingEmailImport)
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.accent)
+                        .font(.title3)
+                }
+
+                Button(action: showingReminders) {
+                    Image(systemName: notificationsEnabled ? "bell.fill" : "bell.slash")
+                        .foregroundStyle(notificationsEnabled ? .accent : .secondary)
+                        .font(.title3)
+                }
             }
         }
         

@@ -64,7 +64,7 @@ final class UserPreferences {
     
     init(
         userId: UUID,
-        notificationsEnabled: Bool = true,
+        notificationsEnabled: Bool = false,
         reminderTime: Date = Calendar.current.date(
             bySettingHour: 18,
             minute: 0,

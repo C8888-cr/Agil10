@@ -94,9 +94,13 @@ struct AppointmentView: View {
             SettingsView()
         }
         .sheet(isPresented: $showReminderSettings) {
-            NotificationSettingsSheet()
-                .environmentObject(settingsVM)
-                .environmentObject(session)
+            if let user = session.currentUser {
+                AppointmentReminderSheet(
+                    user: user,
+                    appointments: appointments
+                )
+            }
+        
         }
     }
 }

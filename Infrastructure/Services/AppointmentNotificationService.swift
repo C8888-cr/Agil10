@@ -1,16 +1,4 @@
-//
-//  AppointmentNotificationService.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 03.04.26.
-//
 
-
-//
-//  AppointmentNotificationService.swift
-//  Agil
-//
-//  Plant Erinnerungen für alle zukünftigen Termine
 
 import Foundation
 import UserNotifications
@@ -19,15 +7,14 @@ struct AppointmentNotificationService {
 
     static let identifierPrefix = "appointment_reminder_"
 
-    // Alle Termin-Notifications neu planen
     static func scheduleReminders(
         for appointments: [Appointment],
         enabled: Bool,
-        reminderTime: Date
+        reminderTime: Date,
+        mode: String = "morgens"    // NEU
     ) {
         let center = UNUserNotificationCenter.current()
 
-        // Erst alle alten Termin-Notifications löschen
         center.getPendingNotificationRequests { requests in
             let ids = requests
                 .map { $0.identifier }
@@ -42,24 +29,33 @@ struct AppointmentNotificationService {
             let now = Date()
             let calendar = Calendar.current
 
-            let hour = calendar.component(.hour, from: reminderTime)
-            let minute = calendar.component(.minute, from: reminderTime)
-
             for appointment in appointments {
-                // Nur zukünftige, nicht abgesagte Termine
                 guard appointment.date > now,
                       appointment.status != .cancelled else { continue }
 
-                // Erinnerungszeit = heute Morgen um gewählte Uhrzeit
-                guard let fireDate = calendar.date(
-                    bySettingHour: hour,
-                    minute: minute,
-                    second: 0,
-                    of: appointment.date
-                ) else { continue }
+                // Feuerzeitpunkt je nach Modus berechnen
+                let fireDate: Date?
+                switch mode {
+                case "morgens":
+                    let hour = calendar.component(.hour, from: reminderTime)
+                    let minute = calendar.component(.minute, from: reminderTime)
+                    fireDate = calendar.date(
+                        bySettingHour: hour,
+                        minute: minute,
+                        second: 0,
+                        of: appointment.date
+                    )
+                case "1h":
+                    fireDate = calendar.date(byAdding: .hour, value: -1, to: appointment.date)
+                case "2h":
+                    fireDate = calendar.date(byAdding: .hour, value: -2, to: appointment.date)
+                case "3h":
+                    fireDate = calendar.date(byAdding: .hour, value: -3, to: appointment.date)
+                default:
+                    fireDate = nil
+                }
 
-                // Nur planen wenn Feuerzeitpunkt noch in der Zukunft liegt
-                guard fireDate > now else { continue }
+                guard let fireDate, fireDate > now else { continue }
 
                 let content = UNMutableNotificationContent()
                 content.title = "Termin heute"
