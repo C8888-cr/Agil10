@@ -131,4 +131,18 @@ class VideoScheduleRepository: VideoScheduleRepositoryProtocol {
         let all = try modelContext.fetch(descriptor)
         return all.filter { $0.user?.id == userId }
     }
+    // VideoScheduleRepository.swift — implementieren
+    func deleteAllSchedules(for userId: UUID) throws {
+        let all = try fetchAllSchedules(userId: userId)
+        all.forEach { modelContext.delete($0) }
+        try modelContext.save()
+    }
+
+    func deleteAllTemplates(for userId: UUID) throws {
+        let dailyTemplates = try fetchTemplates(for: userId, isWeekly: false)
+        let weeklyTemplates = try fetchTemplates(for: userId, isWeekly: true)
+        (dailyTemplates + weeklyTemplates).forEach { modelContext.delete($0) }
+        try modelContext.save()
+    }
+    
 }

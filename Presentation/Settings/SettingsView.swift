@@ -10,7 +10,7 @@ struct SettingsView: View {
     @State private var weekPlannerRule: RecurrenceRule = .daily
     @State private var weekPlannerRuleToShow: RecurrenceRule? = nil
     
- 
+    
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var progressVM: ProgressViewModel 
     
@@ -33,14 +33,14 @@ struct SettingsView: View {
             daySelectionSection
             if currentDayGoal != nil {
                 trainingSection
-             //   recurrenceSection
+                //   recurrenceSection
                 notificationsSection
             }
-            appInfoSection
-            dangerZoneSection
+            
+            
         }
         .navigationTitle("Einstellungen")
-
+        
         .sheet(item: $weekPlannerRuleToShow) { rule in
             WeekPlannerSheet(
                 rule: rule,  // ← kommt direkt aus dem item, kein State-Timing-Problem
@@ -68,24 +68,19 @@ struct SettingsView: View {
             .environmentObject(videoLibraryVM)
             .environmentObject(session)
         }
-
-          .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
-              Button("Abbrechen", role: .cancel) { }
-              Button("Löschen", role: .destructive) { resetAllData() }
-          } message: {
-              Text("Diese Aktion kann nicht rückgängig gemacht werden.")
-          }
-          .alert("Benachrichtigungen deaktiviert", isPresented: $showNotificationDeniedAlert) {
-              Button("Zu den Einstellungen") {
-                  if let url = URL(string: UIApplication.openSettingsURLString) {
-                      UIApplication.shared.open(url)
-                  }
-              }
-              Button("Abbrechen", role: .cancel) { }
-          } message: {
-              Text("Um Erinnerungen zu erhalten, aktiviere Benachrichtigungen für Agil unter Einstellungen → Agil → Mitteilungen.")
-          }
-      }
+        
+        
+        .alert("Benachrichtigungen deaktiviert", isPresented: $showNotificationDeniedAlert) {
+            Button("Zu den Einstellungen") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Abbrechen", role: .cancel) { }
+        } message: {
+            Text("Um Erinnerungen zu erhalten, aktiviere Benachrichtigungen für Agil unter Einstellungen → Agil → Mitteilungen.")
+        }
+    }
     
     // MARK: - Sections
     
@@ -126,7 +121,7 @@ struct SettingsView: View {
                     .font(.caption2)
                     .foregroundColor(
                         isSelected ? .white.opacity(0.8) :
-                        isActive ? .accent : .secondary
+                            isActive ? .accent : .secondary
                     )
                 
                 Circle()
@@ -136,7 +131,7 @@ struct SettingsView: View {
                         Circle()
                             .stroke(
                                 isSelected ? Color.white.opacity(0.8) :
-                                Color.gray.opacity(0.3),
+                                    Color.gray.opacity(0.3),
                                 lineWidth: 1
                             )
                     )
@@ -148,8 +143,8 @@ struct SettingsView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(
                         isSelected ? Color.accent :
-                        isActive ? Color.gray.opacity(0.1) :
-                        Color.gray.opacity(0.05)
+                            isActive ? Color.gray.opacity(0.1) :
+                            Color.gray.opacity(0.05)
                     )
             )
             .overlay(
@@ -200,7 +195,7 @@ struct SettingsView: View {
         }
     }
     
-
+    
     private var recurrenceSection: some View {
         Section {
             if let dayGoal = currentDayGoal {
@@ -293,11 +288,11 @@ struct SettingsView: View {
             )
         } footer: {
             recurrenceFooterText
-        
-    
+            
+            
         }
     }
-
+    
     private func recurrenceButton(
         rule: RecurrenceRule,
         currentRule: RecurrenceRule,
@@ -387,15 +382,15 @@ struct SettingsView: View {
                         }
                     } else {
                         settingsVM.preferences.notificationsEnabled = false
-                           showNotificationDeniedAlert = true  // ← neu
-                           settingsVM.saveGoal(forDayIndex: selectedDay)
+                        showNotificationDeniedAlert = true  // ← neu
+                        settingsVM.saveGoal(forDayIndex: selectedDay)
                     }
                 }
             )) {
                 Label("Erinnerungen aktiv", systemImage: "bell.fill")
             }
             .tint(.accent)
-
+            
             if settingsVM.preferences.notificationsEnabled {
                 // Standard-Uhrzeit — nur sichtbar wenn mind. ein Tag KEINEN individuellen Wert hat
                 if settingsVM.preferences.weeklyGoals.contains(where: {
@@ -411,7 +406,7 @@ struct SettingsView: View {
                     )
                     .datePickerStyle(.compact)
                 }
-
+                
                 // Alle Tage als Liste
                 ForEach(WeekDay.allCases, id: \.self) { day in
                     if let goal = settingsVM.preferences.getGoalFor(dayOfWeek: day.dayNumber) {
@@ -426,10 +421,10 @@ struct SettingsView: View {
                 .font(.caption)
         }
     }
-
+    
     private func reminderRow(for day: WeekDay, goal: DayGoal) -> some View {
         let hasTraining = goal.targetMinutes > 0 && goal.isActive
-
+        
         return HStack(spacing: 12) {
             // Tagesname
             Text(day.shortName)
@@ -437,7 +432,7 @@ struct SettingsView: View {
                 .fontWeight(.medium)
                 .frame(width: 28, alignment: .leading)
                 .foregroundColor(hasTraining ? .primary : .secondary)
-
+            
             if hasTraining {
                 if goal.hasIndividualReminderTime {
                     // Individuelle Zeit + Zurücksetzen
@@ -446,39 +441,39 @@ struct SettingsView: View {
                         selection: Binding(
                             get: { goal.reminderTime },
                             set: {
-                                       goal.reminderTime = $0
-                                       goal.reminderEnabled = true          // ← NEU: sicherstellen dass aktiv
-                                       settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
-                                       settingsVM.scheduleAllReminders()    // ← NEU
-                                   }
+                                goal.reminderTime = $0
+                                goal.reminderEnabled = true          // ← NEU: sicherstellen dass aktiv
+                                settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                                settingsVM.scheduleAllReminders()    // ← NEU
+                            }
                         ),
                         displayedComponents: .hourAndMinute
                     )
                     .datePickerStyle(.compact)
                     .labelsHidden()
-
+                    
                     Button {
                         goal.hasIndividualReminderTime = false
-                          goal.reminderTime = settingsVM.preferences.reminderTime
-                          settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
-                          settingsVM.scheduleAllReminders()                           } label: {
-                        Text("Standard")
-                            .font(.caption)
-                            .foregroundColor(.accent)
-                    }
-                    .buttonStyle(.plain)
-
+                        goal.reminderTime = settingsVM.preferences.reminderTime
+                        settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                        settingsVM.scheduleAllReminders()                           } label: {
+                            Text("Standard")
+                                .font(.caption)
+                                .foregroundColor(.accent)
+                        }
+                        .buttonStyle(.plain)
+                    
                 } else {
                     // Standard greift — Tipp aktiviert individuelle Zeit
                     Spacer()
                     Text(settingsVM.preferences.reminderTime.formatted(date: .omitted, time: .shortened))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-
+                    
                     Button {
                         goal.hasIndividualReminderTime = true
-                          settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
-                          settingsVM.scheduleAllReminders()
+                        settingsVM.saveGoal(forDayIndex: goal.dayOfWeek)  // ← statt saveDayGoal()
+                        settingsVM.scheduleAllReminders()
                     } label: {
                         Image(systemName: "pencil.circle")
                             .foregroundColor(.accent)
@@ -495,7 +490,7 @@ struct SettingsView: View {
         }
         .padding(.vertical, 2)
     }
-
+    
     private var reminderFooterText: some View {
         Group {
             if let dayGoal = currentDayGoal,
@@ -503,8 +498,8 @@ struct SettingsView: View {
                dayGoal.isActive,
                dayGoal.reminderEnabled {
                 let time = dayGoal.hasIndividualReminderTime
-                    ? dayGoal.reminderTime
-                    : settingsVM.preferences.reminderTime
+                ? dayGoal.reminderTime
+                : settingsVM.preferences.reminderTime
                 let suffix = dayGoal.hasIndividualReminderTime ? " (individuell)" : " (Standard)"
                 Text("\(WeekDay.allCases[selectedDay].fullName): Erinnerung um \(time.formatted(date: .omitted, time: .shortened))\(suffix)")
             } else {
@@ -522,46 +517,8 @@ struct SettingsView: View {
         print("💾 Speichere Tag \(selectedDay): \(currentDayGoal?.targetMinutes ?? 0) Min")
         settingsVM.saveGoal(forDayIndex: selectedDay)
     }
-    
-    private var appInfoSection: some View {
-        Section {
-            HStack {
-                Text("Version")
-                Spacer()
-                Text("1.0.0")
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack {
-                Text("Build")
-                Spacer()
-                Text("2025.01")
-                    .foregroundColor(.secondary)
-            }
-        } header: {
-            Label("App Info", systemImage: "info.circle")
-        }
-    }
-    
-    private var dangerZoneSection: some View {
-        Section {
-            Button(role: .destructive) {
-                showResetAlert = true
-            } label: {
-                Label("Alle Daten zurücksetzen", systemImage: "trash.fill")
-            }
-        } header: {
-            Label("Daten", systemImage: "exclamationmark.triangle")
-        } footer: {
-            Text("Löscht alle Trainingsdaten und Einstellungen")
-                .font(.caption)
-        }
-    }
-    
-    private func resetAllData() {
-        // Implementieren Sie Ihre Reset-Logik hier
-    }
 }
+
 // MARK: - WeekDay Enum
 enum WeekDay: String, CaseIterable, Identifiable {
     case monday = "Mo"

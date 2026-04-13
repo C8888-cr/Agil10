@@ -16,6 +16,7 @@ struct AppointmentView: View {
     @State private var importResults: AppointmentChanges? = nil
     @State private var showProfile = false
     @State private var showSettings = false
+    @State private var showReminderSettings = false
 
     @Query private var allAppointments: [Appointment]
         
@@ -51,7 +52,9 @@ struct AppointmentView: View {
                 showingEmailImport: { showingEmailImport = true },
                 showingProfile: { showProfile = true },
                 showingSettings: { showSettings = true },
-                session: session  
+                showingReminders: { showReminderSettings = true },  
+                notificationsEnabled: settingsVM.preferences.notificationsEnabled,
+                session: session
             )
         }
         .sheet(isPresented: $showingManualEntry) {
@@ -89,6 +92,11 @@ struct AppointmentView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showReminderSettings) {
+            NotificationSettingsSheet()
+                .environmentObject(settingsVM)
+                .environmentObject(session)
         }
     }
 }

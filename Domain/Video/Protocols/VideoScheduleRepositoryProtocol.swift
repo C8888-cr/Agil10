@@ -23,4 +23,7 @@ protocol VideoScheduleRepositoryProtocol {
     func fetchUserPreferences(for userId: UUID) throws -> UserPreferences?
     func fetchTemplates(for userId: UUID, isWeekly: Bool) throws -> [VideoSchedule]
     func fetchAutoSchedules(from date: Date, dayOfWeek: Int, userId: UUID) throws -> [VideoSchedule]
+    // VideoScheduleRepositoryProtocol.swift — ergänzen
+    func deleteAllSchedules(for userId: UUID) throws
+    func deleteAllTemplates(for userId: UUID) throws
 }

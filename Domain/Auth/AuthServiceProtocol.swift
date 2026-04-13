@@ -7,4 +7,5 @@ protocol AuthServiceProtocol {
                 lastName: String, praxisId: UUID?) async throws -> AuthUser
     func signOut() throws
     func resetPassword(email: String) async throws
+    func deleteAccount() async throws
 }

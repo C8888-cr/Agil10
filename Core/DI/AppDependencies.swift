@@ -21,7 +21,9 @@ class AppDependencies: ObservableObject {
             loginUseCase: LoginUseCase(authService: authServiceProtocol),
             signUpUseCase: SignUpUseCase(authService: authServiceProtocol),
             signOutUseCase: SignOutUseCase(authService: authServiceProtocol),
-            resetPasswordUseCase: ResetPasswordUseCase(authService: authServiceProtocol)
+            resetPasswordUseCase: ResetPasswordUseCase(authService: authServiceProtocol),
+            deleteAccountUseCase: deleteAccountUseCase,
+            resetUserDataUseCase: resetUserDataUseCase
         )
     }
 
@@ -101,6 +103,18 @@ class AppDependencies: ObservableObject {
     )
     lazy var calculateLifetimeProgressUseCase = CalculateLifetimeProgressUseCase(
         repository: videoScheduleRepository
+    )
+    
+    // MARK: - AccountUseCases
+    lazy var resetUserDataUseCase = ResetUserDataUseCase(
+        scheduleRepository: videoScheduleRepository,
+        userRepository: userRepository
+    )
+    lazy var deleteAccountUseCase = DeleteAccountUseCase(
+        authService: authServiceProtocol,
+        scheduleRepository: videoScheduleRepository,
+        userRepository: userRepository,
+        session: sessionManager
     )
     
     // MARK: - ViewModels

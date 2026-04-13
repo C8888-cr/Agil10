@@ -9,6 +9,8 @@ struct AppointmentToolbar: ToolbarContent {
     let showingEmailImport: () -> Void
     let showingProfile: () -> Void
     let showingSettings: () -> Void
+    let showingReminders: () -> Void          // NEU
+    let notificationsEnabled: Bool
     
     let session: SessionManager
     
@@ -68,6 +70,8 @@ struct AppointmentToolbar: ToolbarContent {
                     showingEmailImport: { print("Email Import") },
                     showingProfile: { print("Profile") },
                     showingSettings: { print("Settings") },
+                    showingReminders: { print("Reminder")},
+                    notificationsEnabled: true,
                     session: sessionManager
                 )
             }

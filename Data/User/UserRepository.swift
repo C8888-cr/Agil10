@@ -57,4 +57,11 @@ final class UserRepository {
         user.lastName = lastName
         try modelContext.save()
     }
+    
+    // UserRepository.swift — delete Methode ergänzen
+    func delete(userId: UUID) throws {
+        guard let user = fetchUser(by: userId) else { return }
+        modelContext.delete(user)
+        try modelContext.save()
+    }
 }

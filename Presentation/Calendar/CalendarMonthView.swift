@@ -25,6 +25,7 @@ struct CalendarMonthView: View {
   
     @State private var showDailyPlan = false
     @State private var showWeeklyPlan = false
+    @State private var showSettingsView = false
     
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     private let weekDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -140,38 +141,53 @@ struct CalendarMonthView: View {
                     .environmentObject(progressVM)  // ← NEU
                     .environmentObject(videoLibraryVM)  // ← auch das
             }
+            .navigationDestination(isPresented: $showSettingsView) {
+                SettingsView()
+                    .environmentObject(settingsVM)
+                    .environmentObject(session)
+                    .environmentObject(videoLibraryVM)
+                    .environmentObject(progressVM)
+            }
             
             .overlay(alignment: .bottomTrailing) {
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
+
                     // Tagesplan — nur bei D
                     if settingsVM.preferences.activePlanMode == .daily {
-                        Button {
-                            showDailyPlan = true
-                        } label: {
+                        Button { showDailyPlan = true } label: {
                             Label("Tagesplan", systemImage: "sun.max.fill")
-                                .font(.caption)
+                                .font(.caption2)
                                 .fontWeight(.semibold)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, 11)
+                                .padding(.vertical, 6)
                                 .glassEffect(in: Capsule())
                         }
                         .buttonStyle(.borderless)
                     }
-                    
+
                     // Wochenplan — nur bei W
                     if settingsVM.preferences.activePlanMode == .weekly {
-                        Button {
-                            showWeeklyPlan = true
-                        } label: {
+                        Button { showWeeklyPlan = true } label: {
                             Label("Wochenplan", systemImage: "calendar.badge.plus")
-                                .font(.caption)
+                                .font(.caption2)
                                 .fontWeight(.semibold)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, 11)
+                                .padding(.vertical, 6)
                                 .glassEffect(in: Capsule())
                         }
                         .buttonStyle(.borderless)
                     }
+
+                    // Einstellungen — immer rechts
+                    Button { showSettingsView = true } label: {
+                        Label("Einstellungen", systemImage: "target")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 6)
+                            .glassEffect(in: Capsule())
+                    }
+                    .buttonStyle(.borderless)
                 }
                 .padding(.bottom, 16)
                 .padding(.trailing, 16)

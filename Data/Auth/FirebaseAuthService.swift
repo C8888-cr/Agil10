@@ -45,4 +45,8 @@ final class FirebaseAuthService: AuthServiceProtocol {
     func resetPassword(email: String) async throws {
         try await Auth.auth().sendPasswordReset(withEmail: email)
     }
+    func deleteAccount() async throws {
+            try await Auth.auth().currentUser?.delete()
+        }
+    
 }

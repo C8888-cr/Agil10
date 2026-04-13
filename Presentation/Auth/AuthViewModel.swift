@@ -11,19 +11,25 @@ final class AuthViewModel: ObservableObject {
     private let signUpUseCase: SignUpUseCase
     private let signOutUseCase: SignOutUseCase
     private let resetPasswordUseCase: ResetPasswordUseCase
+    private let deleteAccountUseCase: DeleteAccountUseCase
+    private let resetUserDataUseCase: ResetUserDataUseCase
 
     init(
         session: SessionManager,
         loginUseCase: LoginUseCase,
         signUpUseCase: SignUpUseCase,
         signOutUseCase: SignOutUseCase,
-        resetPasswordUseCase: ResetPasswordUseCase
+        resetPasswordUseCase: ResetPasswordUseCase,
+        deleteAccountUseCase: DeleteAccountUseCase,
+        resetUserDataUseCase: ResetUserDataUseCase
     ) {
         self.session = session
         self.loginUseCase = loginUseCase
         self.signUpUseCase = signUpUseCase
         self.signOutUseCase = signOutUseCase
         self.resetPasswordUseCase = resetPasswordUseCase
+        self.deleteAccountUseCase = deleteAccountUseCase
+        self.resetUserDataUseCase = resetUserDataUseCase
     }
 
     func login(email: String, password: String) async {
@@ -62,6 +68,27 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             try await resetPasswordUseCase.execute(email: email)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    func deleteAccount() async {
+        guard let userId = session.currentUser?.id else { return }
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await deleteAccountUseCase.execute(userId: userId)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func resetAllData() async {
+        guard let userId = session.currentUser?.id else { return }
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try resetUserDataUseCase.execute(userId: userId)
         } catch {
             errorMessage = error.localizedDescription
         }

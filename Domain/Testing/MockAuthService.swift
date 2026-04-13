@@ -42,4 +42,9 @@ final class MockAuthService: AuthServiceProtocol {
     }
     
     func resetPassword(email: String) async throws {}
+    
+    
+    func deleteAccount() async throws {
+        currentUser = nil  // Mock löscht einfach den aktuellen User
+    }
 }
