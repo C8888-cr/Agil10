@@ -22,7 +22,7 @@ struct ContentView: View {
                 .tabItem { Label("Appointments", systemImage: "person.fill") }
                 
                 NavigationStack {
-                    CalendarView()
+                    CalendarMonthView()
                 }
                 .tabItem { Label("Calendar", systemImage: "calendar") }
                 

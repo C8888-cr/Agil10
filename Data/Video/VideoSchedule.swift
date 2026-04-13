@@ -45,7 +45,8 @@ final class VideoSchedule {
     
     var isTemplate: Bool = false
     var templateUserId: UUID?
-    
+    var isWeeklyTemplate: Bool = false
+    var planMode: String = "single"
     
     // Relationships
     // ✅ Relationships - CASCADE DELETE funktioniert!

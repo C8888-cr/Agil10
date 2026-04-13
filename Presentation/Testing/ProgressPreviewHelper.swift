@@ -17,9 +17,10 @@ struct ProgressPreviewHelper {
             userRepository: UserRepository(modelContext: context)
         )
         return ProgressViewModel(
-            session: sessionManager,
-            getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),
-            addScheduleUseCase: AddScheduleUseCase(repository: repository),
+            session: SessionManager(userRepository: UserRepository(modelContext: context)),
+                   getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),
+                   addVideoToPlanUseCase: AddVideoToPlanUseCase(repository: repository),  // ← NEU
+                   addScheduleUseCase: AddScheduleUseCase(repository: repository),
             removeScheduleUseCase: RemoveScheduleUseCase(repository: repository),
             toggleCompletionUseCase: ToggleScheduleCompletionUseCase(repository: repository),
             reorderSchedulesUseCase: ReorderSchedulesUseCase(repository: repository),

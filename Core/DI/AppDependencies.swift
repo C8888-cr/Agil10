@@ -87,6 +87,11 @@ class AppDependencies: ObservableObject {
         repository: videoScheduleRepository
     )
     
+    // MARK: - VideoUseCases
+    lazy var addVideoToPlanUseCase = AddVideoToPlanUseCase(
+        repository: videoScheduleRepository
+    )
+    
     // MARK: - ProgressUseCases
     lazy var calculateDailyProgressUseCase = CalculateDailyProgressUseCase(
         repository: videoScheduleRepository
@@ -102,7 +107,9 @@ class AppDependencies: ObservableObject {
     lazy var progressViewModel = ProgressViewModel(
         session: sessionManager,
         getSchedulesUseCase: getSchedulesForDateUseCase,
+        addVideoToPlanUseCase: addVideoToPlanUseCase, 
         addScheduleUseCase: addScheduleUseCase,
+       
         removeScheduleUseCase: removeScheduleUseCase,
         toggleCompletionUseCase: toggleScheduleCompletionUseCase,
         reorderSchedulesUseCase: reorderSchedulesUseCase,

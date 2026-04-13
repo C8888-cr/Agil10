@@ -21,4 +21,6 @@ protocol VideoScheduleRepositoryProtocol {
     func fetchVideo(by id: UUID) throws -> Video?
     func fetchUser(by id: UUID) throws -> User?
     func fetchUserPreferences(for userId: UUID) throws -> UserPreferences?
+    func fetchTemplates(for userId: UUID, isWeekly: Bool) throws -> [VideoSchedule]
+    func fetchAutoSchedules(from date: Date, dayOfWeek: Int, userId: UUID) throws -> [VideoSchedule]
 }

@@ -19,6 +19,7 @@ final class AddScheduleUseCase {
         video: Video,
         date: Date,
         user: User,
+        planMode: String? = nil,
         startTime: Date = Date(),
         customRepetitions: Int? = nil,
         customPauseSeconds: Int? = nil,
@@ -50,6 +51,14 @@ final class AddScheduleUseCase {
             reps: reps
         )
         schedule.notes = notes
+
+        if let planMode {
+               schedule.planMode = planMode
+           } else {
+               let preferences = try repository.fetchUserPreferences(for: user.id)
+               schedule.planMode = preferences?.activeMode ?? "single"
+           }
+
 
         try repository.save(schedule)
     }

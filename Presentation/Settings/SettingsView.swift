@@ -10,7 +10,7 @@ struct SettingsView: View {
     @State private var weekPlannerRule: RecurrenceRule = .daily
     @State private var weekPlannerRuleToShow: RecurrenceRule? = nil
     
-    @State private var showDailyTemplate = false
+ 
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var progressVM: ProgressViewModel 
     
@@ -33,7 +33,7 @@ struct SettingsView: View {
             daySelectionSection
             if currentDayGoal != nil {
                 trainingSection
-                recurrenceSection 
+             //   recurrenceSection
                 notificationsSection
             }
             appInfoSection
@@ -68,13 +68,7 @@ struct SettingsView: View {
             .environmentObject(videoLibraryVM)
             .environmentObject(session)
         }
-        .sheet(isPresented: $showDailyTemplate) {
-            DailyTemplateView(rule: currentDayGoal?.recurrenceRule ?? .daily)
-                .environmentObject(settingsVM)
-                .environmentObject(videoLibraryVM)
-                .environmentObject(session)
-                .environmentObject(progressVM)
-        }
+
           .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
               Button("Abbrechen", role: .cancel) { }
               Button("Löschen", role: .destructive) { resetAllData() }
@@ -247,7 +241,7 @@ struct SettingsView: View {
                     // Daily-Vorlage Button — nur bei .daily sichtbar
                     if dayGoal.recurrenceRule == .daily || dayGoal.recurrenceRule == .weekly {
                         Button {
-                            showDailyTemplate = true
+                            weekPlannerRuleToShow = dayGoal.recurrenceRule
                         } label: {
                             HStack {
                                 Label(

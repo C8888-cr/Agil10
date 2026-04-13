@@ -96,4 +96,10 @@ extension Date {
             return calendar.date(from: components)
         }
     }
+    
+    func firstDayOfMonth() -> Date {
+           let calendar = Calendar.current
+           let components = calendar.dateComponents([.year, .month], from: self)
+           return calendar.date(from: components) ?? self
+       }
 }

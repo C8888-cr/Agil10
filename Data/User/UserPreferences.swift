@@ -15,7 +15,8 @@ final class UserPreferences {
     
     // ✅ Pro Tag einzeln konfigurierbar
     var weeklyGoals: [DayGoal] = []  // Mo-So mit Minuten & Pause
-    
+    // In UserPreferences - nach activeDaysRaw:
+    var activeMode: String = "single"  // "single", "daily", "weekly"
     // Notifications
     var notificationsEnabled: Bool
     var reminderTime: Date
@@ -49,6 +50,17 @@ final class UserPreferences {
               activeDaysRaw = newValue.joined(separator: ",")
           }
       }
+    var activePlanMode: RecurrenceRule {
+        get {
+            switch activeMode {
+            case "daily":   return .daily
+            case "weekly":  return .weekly
+            case "monthly": return .monthly
+            default:        return .single
+            }
+        }
+        set { activeMode = newValue.planMode }
+    }
     
     init(
         userId: UUID,

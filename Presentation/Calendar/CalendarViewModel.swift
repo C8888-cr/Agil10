@@ -12,6 +12,7 @@ final class CalendarViewModel: ObservableObject {
     // MARK: - Published
     @Published var selectedDate: Date
     @Published private(set) var currentWeekOffset: Int = 0
+    @Published var currentMonth: Date = Date()
 
     // MARK: - Private
     private let anchorDate: Date
@@ -95,6 +96,39 @@ final class CalendarViewModel: ObservableObject {
                 completion: completionPercentage(for: date)
             )
         }
+    }
+    
+    
+
+    func previousMonth() {
+        withAnimation {
+            currentMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+        }
+    }
+
+    func nextMonth() {
+        withAnimation {
+            currentMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+        }
+    }
+
+    func daysInMonth(for month: Date) -> [(date: Date, hasSchedules: Bool, hasAppointments: Bool, completion: Double)] {
+        month.daysInMonth().map { date in
+            (
+                date: date,
+                hasSchedules: hasSchedules(on: date),
+                hasAppointments: false, // ← kommt von außen via appointments Array
+                completion: completionPercentage(for: date)
+            )
+        }
+    }
+
+    func monthTitle(for month: Date) -> String {
+        month.formatted(.dateTime.month(.wide).year())
+    }
+
+    var isCurrentMonth: Bool {
+        calendar.isDate(currentMonth, equalTo: Date(), toGranularity: .month)
     }
 
     // MARK: - Helpers

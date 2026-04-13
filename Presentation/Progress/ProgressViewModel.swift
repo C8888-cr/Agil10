@@ -908,11 +908,12 @@ final class ProgressViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var debounceSubject = PassthroughSubject<Void, Never>()
-
+    private let addVideoToPlanUseCase: AddVideoToPlanUseCase
     // MARK: - Init
     init(
         session: SessionManager,
         getSchedulesUseCase: GetSchedulesForDateUseCase,
+        addVideoToPlanUseCase: AddVideoToPlanUseCase,
         addScheduleUseCase: AddScheduleUseCase,
         removeScheduleUseCase: RemoveScheduleUseCase,
         toggleCompletionUseCase: ToggleScheduleCompletionUseCase,
@@ -923,6 +924,7 @@ final class ProgressViewModel: ObservableObject {
     ) {
         self.session = session
         self.getSchedulesUseCase = getSchedulesUseCase
+        self.addVideoToPlanUseCase = addVideoToPlanUseCase
         self.addScheduleUseCase = addScheduleUseCase
         self.removeScheduleUseCase = removeScheduleUseCase
         self.toggleCompletionUseCase = toggleCompletionUseCase
@@ -944,9 +946,11 @@ final class ProgressViewModel: ObservableObject {
         let targetDate = date ?? Date()
         selectedDate = targetDate
         isLoading = true
+        print("🔄 loadToday für: \(targetDate)")
 
         do {
             todaysSchedules = try getSchedulesUseCase.execute(date: targetDate, userId: user.id)
+            print("📋 Schedules geladen: \(todaysSchedules.count)")
             calculateProgress(for: user)
         } catch {
             self.error = error
@@ -965,6 +969,7 @@ final class ProgressViewModel: ObservableObject {
         _ video: Video,
         to date: Date,
         for user: User,
+        planMode: String? = nil,
         startTime: Date = Date(),
         customRepetitions: Int? = nil,
         customPauseSeconds: Int? = nil,
@@ -974,18 +979,39 @@ final class ProgressViewModel: ObservableObject {
         notes: String? = nil
     ) {
         do {
-            try addScheduleUseCase.execute(
-                video: video,
-                date: date,
-                user: user,
-                startTime: startTime,
-                customRepetitions: customRepetitions,
-                customPauseSeconds: customPauseSeconds,
-                customLoopDuration: customLoopDuration,
-                sets: sets,
-                reps: reps,
-                notes: notes
-            )
+            let resolvedPlanMode = planMode ?? "single"
+
+            if resolvedPlanMode != "single" {
+                let calendar = Calendar.current
+                let weekday = calendar.component(.weekday, from: date)
+                let dayIndex = weekday == 1 ? 6 : weekday - 2
+                try addVideoToPlanUseCase.execute(
+                    video: video,
+                    date: date,
+                    user: user,
+                    planMode: resolvedPlanMode,
+                    dayIndex: dayIndex,
+                    customRepetitions: customRepetitions,
+                    customPauseSeconds: customPauseSeconds,
+                    customLoopDuration: customLoopDuration
+                )
+          
+            } else {
+                try addScheduleUseCase.execute(
+                    video: video,
+                    date: date,
+                    user: user,
+                    planMode: resolvedPlanMode,
+                    startTime: startTime,
+                    customRepetitions: customRepetitions,
+                    customPauseSeconds: customPauseSeconds,
+                    customLoopDuration: customLoopDuration,
+                    sets: sets,
+                    reps: reps,
+                    notes: notes
+                )
+            }
+
             if Calendar.current.isDate(date, inSameDayAs: selectedDate) {
                 loadToday(for: user, date: date)
             }
@@ -993,7 +1019,8 @@ final class ProgressViewModel: ObservableObject {
             self.error = error
         }
     }
-
+    
+    
     func removeSchedule(_ schedule: VideoSchedule, for user: User) {
         do {
             try removeScheduleUseCase.execute(schedule, userId: user.id)
@@ -1135,7 +1162,14 @@ final class ProgressViewModel: ObservableObject {
             .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, let user = session.currentUser else { return }
-                loadHome(for: user)
+                let calendar = Calendar.current
+                let todayStart = calendar.startOfDay(for: Date())
+                let selectedStart = calendar.startOfDay(for: selectedDate)
+                if selectedStart == todayStart {
+                    loadHome(for: user)
+                } else {
+                    loadToday(for: user, date: selectedDate)
+                }
             }
             .store(in: &cancellables)
 

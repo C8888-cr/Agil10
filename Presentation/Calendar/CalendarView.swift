@@ -216,7 +216,7 @@ struct CalendarView: View {
                            initialRepetitions: playbackSettings.repetitions,
                            initialLoopDuration: playbackSettings.loopDurationSeconds,
                            initialPause: playbackSettings.pauseSeconds,
-                           onAdd: { reps, loopDuration, pause in
+                           onAdd: { reps, loopDuration, pause, planMode in
                                if let scheduleId = editingScheduleId,
                                   let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
                                    schedule.customRepetitions = reps

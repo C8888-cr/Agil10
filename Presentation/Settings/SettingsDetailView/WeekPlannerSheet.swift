@@ -130,7 +130,7 @@ struct WeekPlannerSheet: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
-                    onAdd: { reps, loopDuration, pause in
+                    onAdd: { reps, loopDuration, pause, planMode in
                         let planned = PlannedVideo(
                             video: video,
                             repetitions: reps,
@@ -323,17 +323,17 @@ struct WeekPlannerSheet: View {
                 DatePicker(
                     "",
                     selection: $startDate,
-                    in: Date()...,
+                    in: Calendar.current.startOfDay(for: Date())...,
                     displayedComponents: .date
                 )
                 .datePickerStyle(.graphical)
                 .padding(.horizontal)
                 .tint(.accent)
                 .onChange(of: startDate) { _, newDate in
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    print("📅 Datum gewählt: \(newDate)")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         showStartDatePicker = false
                     }
-                    checkExistingSchedules(from: newDate)
                 }
             }
         }
@@ -426,7 +426,7 @@ struct WeekPlannerSheet: View {
         existingScheduleCount = all.filter { $0.user?.id == user.id }.count
         
         if existingScheduleCount > 0 {
-            showMergeDialog = true
+          //  showMergeDialog = true
         }
     }
     
@@ -636,7 +636,9 @@ struct WeekPlannerSheet: View {
             }
             
             Button {
-                onSave(startDate, weekPlan, mergeStrategy)
+                print("💾 onSave startDate: \(startDate)")
+                  checkExistingSchedules(from: startDate)
+                  onSave(startDate, weekPlan, mergeStrategy)
             } label: {
                 Label("Plan speichern", systemImage: "checkmark.circle.fill")
                     .frame(maxWidth: .infinity)

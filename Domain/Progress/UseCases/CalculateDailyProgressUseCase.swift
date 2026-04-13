@@ -15,9 +15,14 @@ final class CalculateDailyProgressUseCase {
     }
 
     func execute(for user: User, on date: Date) throws -> DailyProgressResult {
-        let schedules = try repository.fetchSchedules(for: date, userId: user.id)
+        let allSchedules = try repository.fetchSchedules(for: date, userId: user.id)  // ← "all" statt "schedules"
         let preferences = try repository.fetchUserPreferences(for: user.id)
 
+        // ✅ NEU
+        let activeMode = preferences?.activeMode ?? "single"
+        let schedules = allSchedules.filter { $0.planMode == activeMode }
+        
+        
         guard let preferences,
               let goal = preferences.getGoalFor(dayOfWeek: dayIndex(for: date)) else {
             let completed = schedules.filter { $0.isCompleted }.count

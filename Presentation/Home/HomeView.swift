@@ -13,17 +13,13 @@ struct HomeView: View {
     @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     
-    @State private var pendingVideo: Video?
+ 
     @State private var pendingDate: Date = Date()
-    @State private var showScopeDialog = false
-    @State private var pendingRecurrenceRule: RecurrenceRule = .single
+   
+ 
     @State private var pendingDeleteSchedule: VideoSchedule?
     @State private var showDeleteScopeDialog = false
     
-
-    @State private var pendingReps: Int = 1
-    @State private var pendingPause: Int = 30
-    @State private var pendingLoopDuration: Int = 120
     
     @State private var videoPlayerItem: VideoPlayerItem?
     
@@ -186,44 +182,32 @@ struct HomeView: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
+                    activeMode: settingsVM.preferences.activeMode,  // ← NEU
                     initialRepetitions: playbackSettings.repetitions,
                     initialLoopDuration: playbackSettings.loopDurationSeconds,
                     initialPause: playbackSettings.pauseSeconds,
-                    onAdd: { reps, loopDuration, pause in
+                    onAdd: { reps, loopDuration, pause, planMode in  // ← planMode NEU
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
-                            // Bestehendes Schedule bearbeiten
                             schedule.customRepetitions = reps
                             schedule.customPauseSeconds = pause
                             schedule.customLoopDurationSeconds = loopDuration
                             progressVM.updateSchedule(schedule, for: session.currentUser!)
                             progressVM.loadToday(for: session.currentUser!)
                         } else {
-                            // ✅ Neues Video hinzufügen
-                            let rule = settingsVM.recurrenceRule(for: pendingDate)
-                            print("🔍 HomeView onAdd: rule=\(rule.rawValue), pendingDate=\(pendingDate)")
-                            if rule == .single {
-                                progressVM.addVideo(
-                                    video,
-                                    to: pendingDate,
-                                    for: session.currentUser!,
-                                    customRepetitions: reps,
-                                    customPauseSeconds: pause,
-                                    customLoopDuration: loopDuration
-                                )
-                                progressVM.loadToday(for: session.currentUser!)
-                            } else {
-                                pendingVideo = video
-                                pendingRecurrenceRule = rule
-                                pendingReps = reps
-                                   pendingPause = pause
-                                   pendingLoopDuration = loopDuration
-                                showScopeDialog = true
-                            }
+                            progressVM.addVideo(
+                                video,
+                                to: pendingDate,
+                                for: session.currentUser!,
+                                planMode: planMode,  // ← NEU
+                                customRepetitions: reps,
+                                customPauseSeconds: pause,
+                                customLoopDuration: loopDuration
+                            )
+                            progressVM.loadToday(for: session.currentUser!)
                         }
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
-                    
                     },
                     onCancel: {
                         selectedVideoForConfig = nil
@@ -258,83 +242,7 @@ struct HomeView: View {
                 .environmentObject(appointmentViewModel)
         }
         
-        // In HomeView nach dem letzten .sheet
-        .confirmationDialog(
-            "Video einplanen",
-            isPresented: $showScopeDialog,
-            titleVisibility: .visible
-        ) {
-            Button("Nur für diesen Tag") {
-      
-                if let video = pendingVideo {
-                    print("🎯 Scope: onlyToday, date: \(pendingDate), video: \(video.title)")
-                    settingsVM.addVideoWithScope(
-                        video,
-                        to: pendingDate,
-                        for: session.currentUser!,
-                        scope: .onlyToday,
-                        customRepetitions: pendingReps,
-                        customPauseSeconds: pendingPause,
-                        customLoopDuration: pendingLoopDuration
-                    )
-                    progressVM.loadToday(for: session.currentUser!) 
-
-                }
-                pendingVideo = nil
-            }
-            Button("Für alle \(pendingRecurrenceRule.rawValue) Termine") {
-                if let video = pendingVideo {
-                    settingsVM.addVideoWithScope(
-                        video,
-                        to: pendingDate,
-                        for: session.currentUser!,
-                        scope: .allFuture,
-                        customRepetitions: pendingReps,
-                        customPauseSeconds: pendingPause,
-                        customLoopDuration: pendingLoopDuration
-                    )
-                    progressVM.loadToday(for: session.currentUser!)
-                }
-                pendingVideo = nil
-            }
-    
-            Button("Abbrechen", role: .cancel) { pendingVideo = nil }
-        } message: {
-            Text("Soll \"\(pendingVideo?.title ?? "")\" nur heute oder für alle \(pendingRecurrenceRule.rawValue.lowercased()) Termine eingeplant werden?")
-        }
-        .confirmationDialog(
-            "Video entfernen",
-            isPresented: $showDeleteScopeDialog,
-            titleVisibility: .visible
-        ) {
-            Button("Nur diesen Tag", role: .destructive) {
-                if let schedule = pendingDeleteSchedule {
-                    settingsVM.removeScheduleWithScope(
-                        schedule,
-                        for: session.currentUser!,
-                        scope: .onlyToday
-    
-                    )
-                    progressVM.loadToday(for: session.currentUser!)
-                }
-                pendingDeleteSchedule = nil
-            }
-            Button("Alle zukünftigen Termine", role: .destructive) {
-                if let schedule = pendingDeleteSchedule {
-                    settingsVM.removeScheduleWithScope(
-                        schedule,
-                        for: session.currentUser!,
-                        scope: .allFuture
-                    )
-                    progressVM.loadToday(for: session.currentUser!)
-                }
-                pendingDeleteSchedule = nil
-            }
-            Button("Abbrechen", role: .cancel) { pendingDeleteSchedule = nil }
-        } message: {
-            Text("Soll \"\(pendingDeleteSchedule?.video?.title ?? "")\" nur heute oder für alle zukünftigen Termine entfernt werden?")
-        }
-
+       
             .onAppear {
                       guard let user = currentUser else {
                           print("⚠️ HomeView: Kein User eingeloggt")

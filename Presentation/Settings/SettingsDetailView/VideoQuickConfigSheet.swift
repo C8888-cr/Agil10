@@ -11,28 +11,33 @@ import SwiftData
 
 struct VideoQuickConfigSheet: View {
     let video: Video
+    let activeMode: String
     
     @State private var repetitions: Int
     @State private var loopDurationSeconds: Int
     @State private var pauseSeconds: Int
-    
-    let onAdd: (Int, Int, Int) -> Void // reps, loopDuration, pause
+    @State private var selectedPlanMode: String
+       
+    let onAdd: (Int, Int, Int, String) -> Void
     let onCancel: () -> Void
     
     init(
         video: Video,
+        activeMode: String = "single",
         initialRepetitions: Int? = nil,
         initialLoopDuration: Int? = nil,
         initialPause: Int? = nil,
-        onAdd: @escaping (Int, Int, Int) -> Void,
+        onAdd: @escaping (Int, Int, Int, String) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.video = video
+        self.activeMode = activeMode
         self.onAdd = onAdd
         self.onCancel = onCancel
         _repetitions = State(initialValue: initialRepetitions ?? video.defaultRepetitions)
         _loopDurationSeconds = State(initialValue: max(10, initialLoopDuration ?? video.loopDurationSeconds))
         _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds)
+        _selectedPlanMode = State(initialValue: activeMode)
     }
     
     var totalSeconds: Int {
@@ -155,7 +160,38 @@ struct VideoQuickConfigSheet: View {
                 } header: {
                     Text("Pause")
                 }
+                // Plan-Auswahl – nur bei D oder W
+                if activeMode != "single" {
+                    Section {
+                        Button {
+                            selectedPlanMode = "single"
+                        } label: {
+                            HStack {
+                                Image(systemName: selectedPlanMode == "single" ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(.accent)
+                                Text("Nur heute")
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button {
+                            selectedPlanMode = activeMode
+                        } label: {
+                            HStack {
+                                Image(systemName: selectedPlanMode == activeMode ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(.accent)
+                                Text(activeMode == "daily" ? "Zum Tagesplan hinzufügen" : "Zum Wochenplan hinzufügen")
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    } header: {
+                        Text("Einplanen als")
+                    }
+                    
+                }
             }
+           
+            
             .navigationTitle("Video konfigurieren")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -164,7 +200,7 @@ struct VideoQuickConfigSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Hinzufügen") {
-                        onAdd(repetitions, loopDurationSeconds, pauseSeconds)
+                        onAdd(repetitions, loopDurationSeconds, pauseSeconds, selectedPlanMode)
                     }
                     .fontWeight(.semibold)
                     .foregroundColor(.accent)
@@ -199,9 +235,9 @@ struct VideoQuickConfigSheet: View {
 
     VideoQuickConfigSheet(
         video: video,
-        onAdd: { reps, loop, pause in
-            print("✅ reps: \(reps), loop: \(loop), pause: \(pause)")
-        },
+        onAdd: { reps, loop, pause, planMode in
+                   print("✅ reps: \(reps), loop: \(loop), pause: \(pause), planMode: \(planMode)")
+               },
         onCancel: {
             print("❌ Abgebrochen")
         }

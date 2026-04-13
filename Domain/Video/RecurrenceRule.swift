@@ -17,3 +17,13 @@ enum RecurrenceRule: String, Codable, CaseIterable, Identifiable {
         }
     }
 }
+extension RecurrenceRule {
+    var planMode: String {
+        switch self {
+        case .single:  return "single"
+        case .daily:   return "daily"
+        case .weekly:  return "weekly"
+        case .monthly: return "monthly"
+        }
+    }
+}
