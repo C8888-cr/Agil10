@@ -28,7 +28,10 @@ struct WeekPlannerSheet: View {
     @State private var startDate: Date = Date()
     @State private var selectedDayIndex: Int = 0
     @State private var showStartDatePicker = false
-    @State private var showLibrary = false
+    @State private var showVideoPickerSheet = false
+    
+    @State private var editingScheduleId: UUID?  // ← Für EDIT!
+    @State private var playbackSettings = PlaybackSettings()
     @State private var selectedVideoForConfig: Video?
     @State private var showWarning = false
     
@@ -38,6 +41,11 @@ struct WeekPlannerSheet: View {
         for i in 0..<7 { plan[i] = [] }
         return plan
     }()
+    
+    
+    @State private var pendingDate: Date = Date()
+   
+    
     
     struct PlannedVideo: Identifiable {
         let id = UUID()
@@ -111,20 +119,23 @@ struct WeekPlannerSheet: View {
                     Button("Abbrechen") { onCancel() }
                 }
             }
-            .sheet(isPresented: $showLibrary) {
+            .sheet(isPresented: $showVideoPickerSheet) {
                 NavigationStack {
-                    LibraryView(
-                        onVideoSelected: { video in
-                            guard selectedVideoForConfig == nil else { return }
-                            showLibrary = false
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                                selectedVideoForConfig = video
-                            }
+                    VideoPickerSheet { video in
+                     
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            pendingDate = Date()
+                            editingScheduleId = nil
+                            playbackSettings = PlaybackSettings(
+                                repetitions: video.defaultRepetitions,
+                                pauseSeconds: video.defaultPauseSeconds,
+                                loopDurationSeconds: video.loopDurationSeconds
+                            )
+                            selectedVideoForConfig = video
                         }
-                    )
-                    .environmentObject(session)
+                    }
                     .environmentObject(videoLibraryVM)
-                    .environmentObject(settingsVM)
+                    .environmentObject(session)
                 }
             }
             .sheet(item: $selectedVideoForConfig) { video in
@@ -227,7 +238,7 @@ struct WeekPlannerSheet: View {
                 
                 // + Hinzufügen
                 Button {
-                    showLibrary = true
+                    showVideoPickerSheet = true
                 } label: {
                     Label("Video hinzufügen", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
@@ -552,7 +563,7 @@ struct WeekPlannerSheet: View {
                 
                 // + Video hinzufügen
                 Button {
-                    showLibrary = true
+                    showVideoPickerSheet = true
                 } label: {
                     Label("Video hinzufügen", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
