@@ -165,12 +165,6 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            // MARK: - Termine
-                            AppointmentReminderSection(
-                                user: user,
-                                appointments: allAppointments.filter { $0.userId == user.id }
-                            )
-                            
                             // MARK: - App Info
                             InfoCard {
                                 VStack(spacing: 0) {
