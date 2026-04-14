@@ -26,6 +26,7 @@ struct CalendarMonthView: View {
     @State private var showDailyPlan = false
     @State private var showWeeklyPlan = false
     @State private var showSettingsView = false
+    @State private var showProfile = false
     
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     private let weekDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -149,6 +150,43 @@ struct CalendarMonthView: View {
                     .environmentObject(progressVM)
             }
             
+            
+            
+          
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button("Profil") { showProfile = true }
+                  
+                    } label: {
+                        if let user = session.currentUser,
+                           let imageData = user.profileImage,
+                           let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 35, height: 35)
+                                .clipShape(Circle())
+                        } else {
+                            Circle()
+                                .fill(Color.accentColor.opacity(0.3))
+                                .frame(width: 35, height: 35)
+                                .overlay(
+                                    Text(session.currentUser?.initials ?? "?")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(Color.accentColor)
+                                )
+                        }
+                    }
+                }
+            }
+            // Sheets ergänzen
+            .sheet(isPresented: $showProfile) {
+                ProfileView()
+                  
+                
+            }
+
             .overlay(alignment: .bottomTrailing) {
                 HStack(spacing: 8) {
 
