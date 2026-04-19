@@ -90,9 +90,7 @@ struct LibraryView: View {
                     .environmentObject(session)
                     .environment(\.modelContext, profileVM.modelContext)
             }
-            .sheet(isPresented: $showSettings) {
-                settingsSheet
-            }
+           
     }
     
     
@@ -125,12 +123,7 @@ struct LibraryView: View {
     }
     
     
-    private var settingsSheet: some View {
-        SettingsView()
-            .environmentObject(settingsVM)
-            .environment(\.modelContext, modelContext)
-    }
-    
+ 
     
     
     private func setupView() async {
@@ -374,13 +367,11 @@ struct LibraryView: View {
         
         // RECHTS: Profile-Menü
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                Button("Profil") {
+          
+                Button {
                     showProfile = true
-                }
-                Button("Einstellungen") {
-                   showSettings = true
-                }
+                
+        
             } label: {
                 // ✅ PROFILBILD STATT ICON
                            if let user = session.currentUser,

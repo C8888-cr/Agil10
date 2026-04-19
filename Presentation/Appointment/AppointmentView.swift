@@ -51,9 +51,9 @@ struct AppointmentView: View {
                 showingManualEntry: { showingManualEntry = true },
                 showingEmailImport: { showingEmailImport = true },
                 showingProfile: { showProfile = true },
-                showingSettings: { showSettings = true },
-                showingReminders: { showReminderSettings = true },  
-                notificationsEnabled: settingsVM.preferences.notificationsEnabled,
+            
+                showingReminders: { showReminderSettings = true },
+                notificationsEnabled: session.currentUser?.appointmentReminderEnabled ?? false,  
                 session: session
             )
         }
@@ -90,9 +90,7 @@ struct AppointmentView: View {
         .sheet(isPresented: $showProfile) {
             ProfileView()
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-        }
+
         .sheet(isPresented: $showReminderSettings) {
             if let user = session.currentUser {
                 AppointmentReminderSheet(

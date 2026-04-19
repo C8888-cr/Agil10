@@ -18,8 +18,7 @@ struct ProgressTabView: View {
 
     enum SheetType: Identifiable {
         case
-        profile,
-        settings
+        profile
         var id: Self { self }
     }
 
@@ -48,9 +47,10 @@ struct ProgressTabView: View {
             .navigationTitle("Fortschritt")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button("Profil") { activeSheet = .profile }
-                            Button("Einstellungen") { activeSheet = .settings }
+               
+                        Button {
+                            activeSheet = .profile
+                 
                     } label: {
                         // ✅ PROFILBILD STATT ICON
                                    if let user = session.currentUser,
@@ -76,14 +76,7 @@ struct ProgressTabView: View {
             }
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
-                case .settings:
-                    SettingsView() // ← user Parameter
-                        .environmentObject(settingsVM)   // ← VM injizieren!
-                        .environment(\.modelContext, settingsVM.modelContext)
-                        .onDisappear {
-                            progressVM.loadToday(for: session.currentUser!)
-                        }
-                    
+
                 case .profile:
                     ProfileView()
                         .environmentObject(session)

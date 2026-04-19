@@ -27,6 +27,7 @@ struct CalendarMonthView: View {
     @State private var showWeeklyPlan = false
     @State private var showSettingsView = false
     @State private var showProfile = false
+    @State private var showReminders = false
     
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
     private let weekDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -151,13 +152,33 @@ struct CalendarMonthView: View {
             }
             
             
-            
-          
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    HStack(spacing: 12) {
+                        // Einstellungen (Zahnrad)
+                        Button {
+                            showSettingsView = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .foregroundColor(.accent)
+                                               .font(.title3)
+                        }
+                        
+                        // Glocke (Erinnerungen)
+                        Button {
+                            showReminders = true
+                        } label: {
+                            Image(systemName: settingsVM.preferences.notificationsEnabled ? "bell.fill" : "bell.slash")
+                                           .foregroundStyle(settingsVM.preferences.notificationsEnabled ? .accent : .secondary)
+                                           .font(.title3)
+                                
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button("Profil") { showProfile = true }
-                  
+                    Button {
+                          showProfile = true
                     } label: {
                         if let user = session.currentUser,
                            let imageData = user.profileImage,
@@ -180,6 +201,8 @@ struct CalendarMonthView: View {
                     }
                 }
             }
+            
+            
             // Sheets ergänzen
             .sheet(isPresented: $showProfile) {
                 ProfileView()
@@ -216,16 +239,6 @@ struct CalendarMonthView: View {
                         .buttonStyle(.borderless)
                     }
 
-                    // Einstellungen — immer rechts
-                    Button { showSettingsView = true } label: {
-                        Label("Einstellungen", systemImage: "target")
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 11)
-                            .padding(.vertical, 6)
-                            .glassEffect(in: Capsule())
-                    }
-                    .buttonStyle(.borderless)
                 }
                 .padding(.bottom, 16)
                 .padding(.trailing, 16)
@@ -269,6 +282,19 @@ struct CalendarMonthView: View {
                 .environmentObject(settingsVM)
                 .environmentObject(videoLibraryVM)
                 .environmentObject(session)
+            }
+            
+            .sheet(isPresented: $showReminders) {
+                NavigationStack {
+                    RemindersView()
+                        .environmentObject(settingsVM)
+                        .environmentObject(session)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button("Fertig") { showReminders = false }
+                            }
+                        }
+                }
             }
         }
     }

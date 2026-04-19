@@ -39,8 +39,7 @@ struct HomeView: View {
     enum SheetType: Identifiable {
         case
         videoPicker,
-        profile,
-        settings
+        profile
         var id: Self { self }
     }
 
@@ -120,9 +119,9 @@ struct HomeView: View {
             .navigationTitle("Heute")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button("Profil") { activeSheet = .profile }
-                            Button("Einstellungen") { activeSheet = .settings }
+        
+                    Button {
+                           activeSheet = .profile
                     } label: {
                         // ✅ PROFILBILD STATT ICON
                                    if let user = session.currentUser,
@@ -150,15 +149,6 @@ struct HomeView: View {
 
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
-                case .settings:
-                    SettingsView()
-                        .environmentObject(settingsVM)
-                        .environmentObject(videoLibraryVM)  // ← NEU
-                        .environmentObject(progressVM)       // ← NEU
-                        .environment(\.modelContext, settingsVM.modelContext)
-                        .onDisappear {
-                            progressVM.loadToday(for: session.currentUser!)
-                        }
                     
                 case .profile:
                     ProfileView()
