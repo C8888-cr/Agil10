@@ -41,7 +41,7 @@ struct LibraryView: View {
         
         contentView
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Video-Bibliothek")
+            .navigationTitle("")
             .toolbar {
                 toolbarContent
             }
@@ -55,7 +55,7 @@ struct LibraryView: View {
             .searchable(
                 text: $viewModel.searchText,
                 placement: .navigationBarDrawer(displayMode: .always),
-                prompt: "Videos suchen..."
+                prompt: "Übungen suchen..."
             )
             .onChange(of: viewModel.searchText) {
                 viewModel.applyFilters()
@@ -108,8 +108,8 @@ struct LibraryView: View {
     private var loadingView: some View {
         VStack(spacing: 12) {
             ProgressView()
-            Text("Lade Videos...")
-            Text("Debug: \(viewModel.filteredVideos.count) Videos geladen")
+            Text("Lade Übungen...")
+            Text("Debug: \(viewModel.filteredVideos.count) Übungen geladen")
                 .font(.caption)
                 .foregroundStyle(.gray)
         }
@@ -220,12 +220,12 @@ struct LibraryView: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.gray)
             
-            Text("Keine Videos vorhanden")
+            Text("Keine Übungen vorhanden")
                 .font(.title2)
                 .fontWeight(.semibold)
             
             Text(viewModel.hasActiveFilters ?
-                 "Keine Videos entsprechen den Filtern" :
+                 "Keine Übungen entsprechen den Filtern" :
                     "Lade dein erstes Übungsvideo hoch")
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -237,7 +237,7 @@ struct LibraryView: View {
                 .buttonStyle(.bordered)
             } else {
                 Button(action: { pickerPresented = true }) {
-                    Label("Video hochladen", systemImage: "plus.circle.fill")
+                    Label("Übung hochladen", systemImage: "plus.circle.fill")
                         .font(.headline)
                 }
                 .buttonStyle(.borderedProminent)
@@ -312,7 +312,7 @@ struct LibraryView: View {
             
             Spacer()
             
-            Text("\(viewModel.filteredVideos.count) Videos")
+            Text("\(viewModel.filteredVideos.count) Übungen")
                 .font(.headline)
                 .foregroundStyle(.accent)
         }
@@ -336,13 +336,13 @@ struct LibraryView: View {
                         Button {
                             showCamera = true
                         } label: {
-                            Label("Video aufnehmen", systemImage: "camera.fill")
+                            Label("Übung aufnehmen", systemImage: "camera.fill")
                         }
                     }
                     Button {
                         pickerPresented = true
                     } label: {
-                        Label("Aus Bibliothek", systemImage: "photo.on.rectangle")
+                        Label("Aus Mediathek", systemImage: "photo.on.rectangle")
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")

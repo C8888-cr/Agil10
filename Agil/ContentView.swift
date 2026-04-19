@@ -14,27 +14,27 @@ struct ContentView: View {
                 NavigationStack {
                     HomeView()
                 }
-                .tabItem { Label("Home", systemImage: "house.fill") }
+                .tabItem { Label("Heute", systemImage: "house.fill") }
                 
                 NavigationStack {
                     AppointmentView()
                 }
-                .tabItem { Label("Appointments", systemImage: "person.fill") }
+                .tabItem { Label("Termine", systemImage: "person.fill") }
                 
                 NavigationStack {
                     CalendarMonthView()
                 }
-                .tabItem { Label("Calendar", systemImage: "calendar") }
+                .tabItem { Label("Kalender", systemImage: "calendar") }
                 
                 NavigationStack {
                     ProgressTabView()
                 }
-                .tabItem { Label("Progress", systemImage: "chart.bar.xaxis") }
+                .tabItem { Label("Fortschritt", systemImage: "chart.bar.xaxis") }
                 
                 NavigationStack {
                     LibraryView()
                 }
-                .tabItem { Label("Library", systemImage: "book.fill") }
+                .tabItem { Label("Mediathek", systemImage: "book.fill") }
                 
             }
             .task {

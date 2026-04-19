@@ -20,7 +20,7 @@ struct VideoPickerSheet: View {
         NavigationStack {
             contentView
                 .background(Color(.systemGroupedBackground))
-                .navigationTitle("Video auswählen")
+                .navigationTitle("Übung auswählen")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
@@ -41,7 +41,7 @@ struct VideoPickerSheet: View {
                 .searchable(
                     text: $viewModel.searchText,
                     placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Videos suchen..."
+                    prompt: "Übung suchen..."
                 )
                 .onChange(of: viewModel.searchText) {
                     viewModel.applyFilters()
@@ -63,7 +63,7 @@ struct VideoPickerSheet: View {
         if viewModel.isLoading && viewModel.filteredVideos.isEmpty {
             VStack(spacing: 12) {
                 ProgressView()
-                Text("Lade Videos...")
+                Text("Lade Übungen...")
             }
         } else if viewModel.filteredVideos.isEmpty {
             emptyStateView
@@ -110,13 +110,13 @@ struct VideoPickerSheet: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.gray)
             
-            Text("Keine Videos vorhanden")
+            Text("Keine Übungen vorhanden")
                 .font(.title2)
                 .fontWeight(.semibold)
             
             Text(viewModel.hasActiveFilters ?
-                 "Keine Videos entsprechen den Filtern" :
-                 "Lade zuerst Videos in deine Bibliothek hoch")
+                 "Keine Übungen entsprechen den Filtern" :
+                 "Lade zuerst Übungen in deine Mediathek hoch")
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             

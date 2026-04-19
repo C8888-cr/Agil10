@@ -45,7 +45,7 @@ struct AppointmentView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Termine")
+        .navigationTitle("")
         .toolbar {
             AppointmentToolbar(
                 showingManualEntry: { showingManualEntry = true },

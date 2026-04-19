@@ -198,7 +198,7 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            // MARK: - Buttons
+                      
                             // MARK: - Buttons
                             VStack(spacing: 12) {
                                 if isEditing {
@@ -264,7 +264,7 @@ struct ProfileView: View {
                     } // VStack
                 } // ScrollView
             } // ZStack
-            .navigationTitle("Profil")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear { debugUserInDatabase() }
             .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
