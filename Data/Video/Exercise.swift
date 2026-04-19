@@ -1,4 +1,4 @@
-
+/*
 
 // Core/Domain/Models/Exercise.swift
 import SwiftData
@@ -43,3 +43,4 @@ final class Exercise {
         self.isCompleted = false
     }
 }
+*/

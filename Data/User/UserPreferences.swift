@@ -13,6 +13,15 @@ import Foundation
 final class UserPreferences {
     @Attribute(.unique) var id: UUID
     
+    // NEU: Expertenmodus
+    var expertModeEnabled: Bool = false
+    var videoDuringTrainingRaw: String = VideoDuringTrainingMode.alwaysOn.rawValue
+
+    var videoDuringTraining: VideoDuringTrainingMode {
+        get { VideoDuringTrainingMode(rawValue: videoDuringTrainingRaw) ?? .alwaysOn }
+        set { videoDuringTrainingRaw = newValue.rawValue }
+    }
+    
     // ✅ Pro Tag einzeln konfigurierbar
     var weeklyGoals: [DayGoal] = []  // Mo-So mit Minuten & Pause
     // In UserPreferences - nach activeDaysRaw:

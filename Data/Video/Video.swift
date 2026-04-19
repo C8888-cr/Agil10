@@ -16,6 +16,9 @@ final class Video {
     // ✅ CASCADE DELETE: Wenn Video gelöscht wird
     @Relationship(deleteRule: .cascade)
         var schedules: [VideoSchedule]?
+    // NEU: Tempo-Protokoll für Expertenmodus (nur bei category == .strength)
+    @Relationship(deleteRule: .cascade)
+    var tempoProtocol: TempoProtocol?
 
     @Attribute(.unique) var id: UUID = UUID()
     var title: String

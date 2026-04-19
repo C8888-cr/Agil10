@@ -6,6 +6,8 @@ import Foundation
 final class VideoSchedule {
     @Attribute(.unique) var id: UUID = UUID()
     
+    var weightKg: Int?
+    
     var scheduledDate: Date             // Für welchen Tag
     var orderIndex: Int                 // Reihenfolge (0, 1, 2...)
     

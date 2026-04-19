@@ -21,7 +21,8 @@ class PersistenceController: ObservableObject {
             DayGoal.self,
             Video.self,
             VideoSchedule.self,
-            Exercise.self
+            TempoProtocol.self
+         //   Exercise.self
         ])
         
         let config = ModelConfiguration(
