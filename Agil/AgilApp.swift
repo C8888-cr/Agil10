@@ -23,7 +23,7 @@ struct AgilApp: App {
                 .environmentObject(dependencies.profileViewModel)
                 .environmentObject(dependencies.videoLibraryVM)
                 .environment(\.modelContext, dependencies.modelContext)
-                
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
         }
     }
 }

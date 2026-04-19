@@ -29,7 +29,7 @@ struct ExercisesSection: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             
             HStack {
                       Spacer()

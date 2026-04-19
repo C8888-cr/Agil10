@@ -22,20 +22,19 @@ struct SelectedDateInfoView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         
-                        Text(selectedDate.formatted(date: .complete, time: .omitted))
-                            .font(.headline)
+                        Text("")
      
                         if appointments.isEmpty {
                             Text("Keine Termine")
-                                .font(.subheadline)
+                                .font(.headline)
                                 .foregroundColor(.secondary)
                         } else {
                             ForEach(appointments) { appt in
                                 HStack(spacing: 6) {
-                                    Image(systemName: "calendar.badge.clock")
+                                    Image(systemName: "")
                                         .foregroundColor(.accentColor)
                                     Text("\(appt.date.timeString) – \(appt.therapist)")
-                                        .font(.subheadline)
+                                        .font(.headline)
                                         .foregroundColor(.secondary)
                                     
                                     if let notes = appt.notes, !notes.isEmpty {
@@ -54,11 +53,7 @@ struct SelectedDateInfoView: View {
      
      Spacer()
      
-     Button(action: onAddAppointment) {
-     Image(systemName: "plus.circle.fill")
-     .font(.title2)
-     .foregroundColor(.accent)
-     }
+
      }
      }
      .padding()

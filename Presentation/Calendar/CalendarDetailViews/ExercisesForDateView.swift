@@ -18,10 +18,7 @@ struct ExercisesForDateView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack {
-                Image(systemName: "figure.strengthtraining.traditional")
-                    .foregroundColor(.accent)
-                Text("Training \(selectedDate, format: .dateTime.day().month())")
-                    .font(.headline)
+    
                 Spacer()
                 // ✅ "Fertig!" bleibt, aber kein "Noch X Min" mehr hier
                 if remainingSeconds == 0 && !schedulesForDate.isEmpty {
@@ -38,7 +35,7 @@ struct ExercisesForDateView: View {
                     VideoScheduleRow(
                         schedule: schedule,
                         video: video,
-                        onToggleCompletion: {  },  // ← AUS!
+              
                         onDelete: {
                             if let onDelete = onDelete {
                                      onDelete(schedule)
@@ -52,13 +49,7 @@ struct ExercisesForDateView: View {
                         },
                         onPlay: { video in
                             onPlay(schedule, video)
-                        },
-                        onRate: { rating in
-                                if let user = session.currentUser {
-                                    schedule.rating = rating
-                                    progressVM.updateSchedule(schedule, for: user)
-                                }
-                            }
+                        }
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
              //       Divider()

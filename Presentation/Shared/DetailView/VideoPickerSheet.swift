@@ -79,7 +79,7 @@ struct VideoPickerSheet: View {
                     activeFiltersBar
                 }
                 
-                LazyVStack(spacing: 4) {
+                LazyVStack(spacing: 8) {
                     ForEach(viewModel.filteredVideos) { video in
                         VideoListRow(
                             video: video,
@@ -96,6 +96,7 @@ struct VideoPickerSheet: View {
                             },
                             onDelete: nil
                         )
+                        .padding(.horizontal, 16) 
                     }
                 }
             }

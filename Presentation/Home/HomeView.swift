@@ -114,6 +114,8 @@ struct HomeView: View {
         }
                 .padding()
             }
+      
+        
         .background(Color(.systemGroupedBackground))
             .navigationTitle("Heute")
             .toolbar {
@@ -144,6 +146,7 @@ struct HomeView: View {
                     }
                 }
             }
+        
 
             .sheet(item: $activeSheet) { sheet in
                 switch sheet {
@@ -255,6 +258,7 @@ struct HomeView: View {
 
             
     }
+    
 }
 
 #Preview {
