@@ -1178,3 +1178,39 @@ final class ProgressViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 }
+extension ProgressViewModel {
+    
+    func moveSchedule(_ source: VideoSchedule, before target: VideoSchedule, for user: User) {
+        guard let sourceIndex = todaysSchedules.firstIndex(where: { $0.id == source.id }),
+              var destinationIndex = todaysSchedules.firstIndex(where: { $0.id == target.id })
+        else { return }
+        
+        if sourceIndex < destinationIndex {
+            destinationIndex += 1
+        }
+        
+        reorderSchedules(
+            from: IndexSet(integer: sourceIndex),
+            to: destinationIndex,
+            for: user
+        )
+    }
+    
+    func moveSchedule(_ source: VideoSchedule, after target: VideoSchedule, for user: User) {
+        guard let sourceIndex = todaysSchedules.firstIndex(where: { $0.id == source.id }),
+              let targetIndex = todaysSchedules.firstIndex(where: { $0.id == target.id })
+        else { return }
+        
+        // "after" heißt: an Position targetIndex + 1
+        let destinationIndex = targetIndex + 1
+        
+        // Nichts zu tun, wenn Source schon direkt danach ist
+        if sourceIndex == destinationIndex { return }
+        
+        reorderSchedules(
+            from: IndexSet(integer: sourceIndex),
+            to: destinationIndex,
+            for: user
+        )
+    }
+}

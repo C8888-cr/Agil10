@@ -1,26 +1,26 @@
-//
-//  ExercisesSection.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 16.12.25.
-//
-
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 
 struct ExercisesSection: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var session: SessionManager
     
-    // NUR CALLBACKS nach oben!
+    
+    @State private var draggedScheduleId: UUID? = nil
+    @State private var dropTargetId: UUID? = nil
+    @State private var dropIndicator: ScheduleDropIndicator? = nil
+    
     let onToggleCompletion: (VideoSchedule) -> Void
     let onDelete: (VideoSchedule) -> Void
     let onConfig: (VideoSchedule) -> Void
     let onPlay: (VideoSchedule, Video) -> Void
     let onAddVideo: () -> Void
     let onRate: (VideoSchedule, Int) -> Void
-    
     let onPlayAll: () -> Void
+    
+        
     
     private var remainingSeconds: Int {
         let targetSeconds = progressVM.targetMinutes * 60
@@ -32,44 +32,69 @@ struct ExercisesSection: View {
         VStack(spacing: 12) {
             
             HStack {
-                      Spacer()
-                      if progressVM.todaysSchedules.count > 1 {
-                          Button {
-                              onPlayAll()
-                          } label: {
-                              Label("Alle abspielen", systemImage: "play.circle.fill")
-                                  .font(.subheadline)
-                                  .foregroundStyle(.accent)
-                          }
-                      }
-                  }
+                Spacer()
+                if progressVM.todaysSchedules.count > 1 {
+                    Button {
+                        onPlayAll()
+                    } label: {
+                        Label("Alle abspielen", systemImage: "play.circle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(.accent)
+                    }
+                }
+            }
             
             ForEach(progressVM.todaysSchedules, id: \.id) { schedule in
                 let video = schedule.video ?? Video.previewMobility
                 
-                VideoScheduleRow(
-                    schedule: schedule,
-                    video: video,
-                    onToggleCompletion: {
-                        onToggleCompletion(schedule)  // ← CALLBACK statt direkt!
-                    },
-                    onDelete: {
-                        onDelete(schedule)  // ← CALLBACK!
-                    },
-                    onConfig: {
-                        onConfig(schedule)  // ← CALLBACK!
-                    },
-                    onPlay: { video in
-                        onPlay(schedule, video)
-                    },
-                    onRate: { rating in onRate(schedule, rating) }
-                )
-            //    Divider()
+                VStack(spacing: 0) {
+                    // Linie OBEN (vor der Row)
+                    dropLine(visible: dropIndicator == ScheduleDropIndicator(targetId: schedule.id, position: .above))
+                    
+                    VideoScheduleRow(
+                        schedule: schedule,
+                        video: video,
+                        onToggleCompletion: { onToggleCompletion(schedule) },
+                        onDelete: { onDelete(schedule) },
+                        onConfig: { onConfig(schedule) },
+                        onPlay: { video in onPlay(schedule, video) },
+                        onRate: { rating in onRate(schedule, rating) }
+                    )
+                    .opacity(draggedScheduleId == schedule.id ? 0.4 : 1.0)
+                    .onDrag {
+                        draggedScheduleId = schedule.id
+                        return NSItemProvider(object: schedule.id.uuidString as NSString)
+                    }
+                    .onDrop(
+                        of: [.text],
+                        delegate: ScheduleDropDelegate(
+                            target: schedule,
+                            draggedScheduleId: $draggedScheduleId,
+                            dropIndicator: $dropIndicator,
+                            onMove: { draggedId, targetSchedule, position in
+                                guard let user = session.currentUser,
+                                      let sourceSchedule = progressVM.todaysSchedules.first(where: { $0.id == draggedId })
+                                else { return }
+                                
+                                switch position {
+                                case .above:
+                                    progressVM.moveSchedule(sourceSchedule, before: targetSchedule, for: user)
+                                case .below:
+                                    progressVM.moveSchedule(sourceSchedule, after: targetSchedule, for: user)
+                                }
+                            }
+                        )
+                    )
+                    
+                    // Linie UNTEN (nach der Row)
+                    dropLine(visible: dropIndicator == ScheduleDropIndicator(targetId: schedule.id, position: .below))
+                }
+                .animation(.easeInOut(duration: 0.15), value: dropIndicator)
             }
             
             if progressVM.canAddMoreVideos {
                 Button {
-                    onAddVideo()  // ← CALLBACK!
+                    onAddVideo()
                 } label: {
                     Label("Video hinzufügen", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
@@ -81,10 +106,23 @@ struct ExercisesSection: View {
                 .padding(.top, 8)
             }
             if remainingSeconds > 0 {
-                           RemainingTimeCard(remainingSeconds: remainingSeconds)
-                       }
+                RemainingTimeCard(remainingSeconds: remainingSeconds)
+            }
         }
- 
+    }
+}
+
+@ViewBuilder
+private func dropLine(visible: Bool) -> some View {
+    if visible {
+        RoundedRectangle(cornerRadius: 2)
+            .fill(Color.accentColor)
+            .frame(height: 3)
+            .padding(.vertical, 3)
+            .transition(.opacity.combined(with: .scale(scale: 0.5)))
+    } else {
+        Color.clear
+            .frame(height: 0)
     }
 }
 
@@ -138,4 +176,5 @@ struct ExercisesSection: View {
     .environmentObject(progressVM)
     .environmentObject(settingsVM)
     .modelContainer(container)
+    .environmentObject(sessionManager)
 }
