@@ -1,10 +1,6 @@
-
 import SwiftUI
 import PhotosUI
 import SwiftData
-
-
-
 
 
 struct VideoLibraryUploadSheet: View {
@@ -18,10 +14,7 @@ struct VideoLibraryUploadSheet: View {
     @State private var selectedCategory: ExerciseCategory = .mobility
     @State private var selectedBodyRegion: BodyRegion = .fullBody
     @State private var selectedEquipment: Equipment = .noEquipment
- //   @State private var defaultRepetitions = 3
-  //  @State private var defaultPauseSeconds = 30
- //   @State private var loopDurationSeconds: Int?
-  //  @State private var useLoopDuration = false
+    @State private var selectedSubtype: ExerciseSubtype = .dynamic   // NEU
     
     @State private var isUploading = false
     @State private var uploadError: String?
@@ -45,6 +38,22 @@ struct VideoLibraryUploadSheet: View {
                     .pickerStyle(.navigationLink)
                 }
                 
+                // NEU: Ausführung nur bei Kraft
+                if selectedCategory == .strength {
+                    Section {
+                        Picker("Ausführung", selection: $selectedSubtype) {
+                            ForEach(ExerciseSubtype.allCases) { subtype in
+                                Text(subtype.rawValue).tag(subtype)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    } header: {
+                        Text("Ausführung")
+                    } footer: {
+                        Text(subtypeFooterText)
+                    }
+                }
+                
                 // Body Region
                 Section("Körperregion") {
                     Picker("Region", selection: $selectedBodyRegion) {
@@ -64,8 +73,6 @@ struct VideoLibraryUploadSheet: View {
                     }
                     .pickerStyle(.navigationLink)
                 }
-          
-          
                 
                 // Upload Button
                 Section {
@@ -103,6 +110,17 @@ struct VideoLibraryUploadSheet: View {
         }
     }
     
+    // MARK: - Computed
+    
+    private var subtypeFooterText: String {
+        switch selectedSubtype {
+        case .dynamic:
+            return "Mit Tempo-Vorgabe (konzentrisch/exzentrisch). Expertenmodus nutzbar."
+        case .isometric:
+            return "Statisches Halten. Wird ohne Expertenmodus abgespielt."
+        }
+    }
+    
     // MARK: - Upload Logic
     
     func uploadVideo() {
@@ -116,14 +134,11 @@ struct VideoLibraryUploadSheet: View {
         
         Task { @MainActor in
             do {
-                // ✅ Entweder Kamera-URL oder PhotosPicker
                 let sourceURL: URL
                 
                 if let cameraURL = viewModel.pendingVideoURL {
-                    // Kamera-Video
                     sourceURL = cameraURL
                 } else if let videoItem = viewModel.selectedVideoItem {
-                    // PhotosPicker-Video
                     guard let movie = try await videoItem.loadTransferable(type: VideoTransferable.self) else {
                         throw VideoStorageError.invalidURL
                     }
@@ -135,7 +150,9 @@ struct VideoLibraryUploadSheet: View {
                     return
                 }
                 
-                // Upload – gleich für beide Quellen
+                // NEU: Subtype nur mitgeben wenn Kategorie Kraft ist
+                let subtypeForUpload: ExerciseSubtype? = (selectedCategory == .strength) ? selectedSubtype : nil
+                
                 let repository = viewModel.repository as? VideoRepository
                 _ = try await repository?.uploadVideo(
                     from: sourceURL,
@@ -143,10 +160,10 @@ struct VideoLibraryUploadSheet: View {
                     category: selectedCategory,
                     bodyRegion: selectedBodyRegion,
                     equipment: selectedEquipment,
+                    exerciseSubtype: subtypeForUpload,
                     for: user
                 )
                 
-                // Aufräumen
                 viewModel.pendingVideoURL = nil
                 viewModel.selectedVideoItem = nil
                 

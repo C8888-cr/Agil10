@@ -1,4 +1,4 @@
-
+/*
 
 import SwiftUI
 import SwiftData
@@ -216,12 +216,14 @@ struct CalendarView: View {
                            initialRepetitions: playbackSettings.repetitions,
                            initialLoopDuration: playbackSettings.loopDurationSeconds,
                            initialPause: playbackSettings.pauseSeconds,
-                           onAdd: { reps, loopDuration, pause, planMode in
+                           onAdd: { reps, loopDuration, pause, planMode, weightKg in
+                               print("🏋️ CalendarView onAdd erhält weightKg=\(String(describing: weightKg))")
                                if let scheduleId = editingScheduleId,
                                   let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
                                    schedule.customRepetitions = reps
                                    schedule.customPauseSeconds = pause
                                    schedule.customLoopDurationSeconds = loopDuration
+                                   schedule.weightKg = weightKg 
                                    progressVM.updateSchedule(schedule, for: session.currentUser!)
                                } else {
                                    // ✅ Neues Video hinzufügen
@@ -407,3 +409,6 @@ struct CalendarView: View {
     CalendarView()
         .modelContainer(container)
 }
+*/
+
+

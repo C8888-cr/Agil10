@@ -39,6 +39,9 @@ struct CalendarDayView: View {
     @State private var selectedAppointment: Appointment? = nil
     
     @State private var swipeDirection: SwipeDirection? = nil
+    @State private var pendingEditWeightKg: Int? = nil
+    
+    
     
     enum SwipeDirection { case horizontal, vertical }
     
@@ -72,12 +75,20 @@ struct CalendarDayView: View {
     private func handleConfig(_ schedule: VideoSchedule) {
         editingScheduleId = schedule.id
         selectedVideoForConfig = schedule.video
+        
+        let video = schedule.video
         playbackSettings = PlaybackSettings(
-            repetitions: schedule.customRepetitions ?? 3,
-            pauseSeconds: schedule.customPauseSeconds ?? 30,
+            repetitions: schedule.customRepetitions
+                ?? video?.defaultRepetitions
+                ?? 3,
+            pauseSeconds: schedule.customPauseSeconds
+                ?? video?.defaultPauseSeconds
+                ?? 30,
             loopDurationSeconds: schedule.customLoopDurationSeconds
-            ?? schedule.video?.loopDurationSeconds ?? 120
+                ?? video?.loopDurationSeconds
+                ?? 120
         )
+        pendingEditWeightKg = schedule.weightKg
     }
     
     private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
@@ -204,12 +215,15 @@ struct CalendarDayView: View {
                 initialRepetitions: playbackSettings.repetitions,
                 initialLoopDuration: playbackSettings.loopDurationSeconds,
                 initialPause: playbackSettings.pauseSeconds,
-                onAdd: { reps, loopDuration, pause, planMode in  // ← planMode NEU
+                initialWeightKg: pendingEditWeightKg,
+                onAdd: { reps, loopDuration, pause, planMode, weightKg in
+                    print("🏋️ CalendarDayView onAdd erhält weightKg=\(String(describing: weightKg))")
                     if let scheduleId = editingScheduleId,
                        let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
                         schedule.customRepetitions = reps
                         schedule.customPauseSeconds = pause
                         schedule.customLoopDurationSeconds = loopDuration
+                        schedule.weightKg = weightKg 
                         progressVM.updateSchedule(schedule, for: session.currentUser!)
                     } else {
                         // planMode direkt nutzen – kein confirmationDialog mehr nötig
@@ -217,19 +231,23 @@ struct CalendarDayView: View {
                             video,
                             to: pendingDate,
                             for: session.currentUser!,
-                            planMode: planMode,  // ← NEU
+                            planMode: planMode,
+                          
                             customRepetitions: reps,
                             customPauseSeconds: pause,
-                            customLoopDuration: loopDuration
+                            customLoopDuration: loopDuration,
+                            weightKg: weightKg
                         )
                         progressVM.loadToday(for: session.currentUser!, date: pendingDate)
                     }
                     selectedVideoForConfig = nil
                     editingScheduleId = nil
+                    pendingEditWeightKg = nil
                 },
                 onCancel: {
                     selectedVideoForConfig = nil
                     editingScheduleId = nil
+                    pendingEditWeightKg = nil  
                 }
             )
         }

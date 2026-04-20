@@ -17,8 +17,10 @@ struct VideoQuickConfigSheet: View {
     @State private var loopDurationSeconds: Int
     @State private var pauseSeconds: Int
     @State private var selectedPlanMode: String
-       
-    let onAdd: (Int, Int, Int, String) -> Void
+    @State private var weightKgText: String
+    
+    
+    let onAdd: (Int, Int, Int, String, Int?) -> Void
     let onCancel: () -> Void
     
     init(
@@ -27,7 +29,8 @@ struct VideoQuickConfigSheet: View {
         initialRepetitions: Int? = nil,
         initialLoopDuration: Int? = nil,
         initialPause: Int? = nil,
-        onAdd: @escaping (Int, Int, Int, String) -> Void,
+        initialWeightKg: Int? = nil,
+        onAdd: @escaping (Int, Int, Int, String, Int?) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.video = video
@@ -38,7 +41,19 @@ struct VideoQuickConfigSheet: View {
         _loopDurationSeconds = State(initialValue: max(10, initialLoopDuration ?? video.loopDurationSeconds))
         _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds)
         _selectedPlanMode = State(initialValue: activeMode)
-    }
+        _weightKgText = State(initialValue: initialWeightKg.map { "\($0)" } ?? "")
+           }
+    
+    // Zeigt die Gewicht-Section nur bei Kraft mit TempoProtocol (= Dynamisch)
+       private var showsWeightSection: Bool {
+           video.category == .strength && video.tempoProtocol != nil
+       }
+       
+       private var parsedWeight: Int? {
+           let trimmed = weightKgText.trimmingCharacters(in: .whitespaces)
+           guard !trimmed.isEmpty else { return nil }
+           return Int(trimmed)
+       }
     
     var totalSeconds: Int {
         (loopDurationSeconds * repetitions) + (pauseSeconds * max(0, repetitions - 1))
@@ -71,6 +86,29 @@ struct VideoQuickConfigSheet: View {
                     }
                     .padding(.vertical, 4)
                 }
+                
+                // NEU: Gewicht-Section (nur bei Kraft-Dynamisch)
+                              if showsWeightSection {
+                                  Section {
+                                      HStack {
+                                          Label("Gewicht", systemImage: "scalemass")
+                                          Spacer()
+                                          TextField("—", text: $weightKgText)
+                                              .keyboardType(.numberPad)
+                                              .multilineTextAlignment(.trailing)
+                                              .frame(maxWidth: 80)
+                                          Text("kg")
+                                              .foregroundColor(.secondary)
+                                      }
+                                      .padding(.vertical, 4)
+                                  } header: {
+                                      Text("Gewicht")
+                                  } footer: {
+                                      Text("Optional — kann auch später beim Training eingegeben werden.")
+                                  }
+                              }
+                
+                
                 
                 // Wiederholungen
                 Section {
@@ -200,7 +238,8 @@ struct VideoQuickConfigSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Hinzufügen") {
-                        onAdd(repetitions, loopDurationSeconds, pauseSeconds, selectedPlanMode)
+                        print("🏋️ Sheet sendet: weightKgText='\(weightKgText)', parsedWeight=\(String(describing: parsedWeight))")
+                        onAdd(repetitions, loopDurationSeconds, pauseSeconds, selectedPlanMode, parsedWeight)
                     }
                     .fontWeight(.semibold)
                     .foregroundColor(.accent)
@@ -218,7 +257,7 @@ struct VideoQuickConfigSheet: View {
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
-        for: Video.self, VideoSchedule.self,
+        for: Video.self, VideoSchedule.self, TempoProtocol.self,
         configurations: config
     )
     
@@ -235,9 +274,9 @@ struct VideoQuickConfigSheet: View {
 
     VideoQuickConfigSheet(
         video: video,
-        onAdd: { reps, loop, pause, planMode in
-                   print("✅ reps: \(reps), loop: \(loop), pause: \(pause), planMode: \(planMode)")
-               },
+        onAdd: { reps, loop, pause, planMode, weight in
+            print("✅ reps: \(reps), loop: \(loop), pause: \(pause), planMode: \(planMode), weight: \(String(describing: weight))")
+        },
         onCancel: {
             print("❌ Abgebrochen")
         }

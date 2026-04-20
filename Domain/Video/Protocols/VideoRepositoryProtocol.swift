@@ -34,9 +34,7 @@ protocol VideoRepositoryProtocol {
         category: ExerciseCategory,
         bodyRegion: BodyRegion,
         equipment: Equipment,
-    //    defaultRepetitions: Int,
-    //    defaultPauseSeconds: Int,
-    //    loopDurationSeconds: Int?,
+        exerciseSubtype: ExerciseSubtype?,
         for user: User
     ) async throws -> Video
 }

@@ -81,12 +81,12 @@ final class VideoRepository: VideoRepositoryProtocol {
         category: ExerciseCategory,
         bodyRegion: BodyRegion,
         equipment: Equipment,
+        exerciseSubtype: ExerciseSubtype? = nil,   // NEU: nur relevant bei Kraft
         for user: User
     ) async throws -> Video {
         
         print("🔍 uploadVideo START for user: \(user.email) (ID: \(user.id))")
         
-        // ✅ Direkt fetchen – kein MainActor.run nötig, wir sind bereits @MainActor
         let userID = user.persistentModelID
         let userDescriptor = FetchDescriptor<User>(
             predicate: #Predicate { $0.persistentModelID == userID }
@@ -111,7 +111,7 @@ final class VideoRepository: VideoRepositoryProtocol {
         let thumbnailFileName = try await thumbnailService.generateThumbnail(from: videoURL)
         print("✅ Thumbnail saved: \(thumbnailFileName)")
         
-        // 3. Create & save – direkt, kein MainActor.run nötig
+        // 3. Create Video object
         print("📝 Creating Video object...")
         let video = Video(
             id: UUID(),
@@ -129,6 +129,22 @@ final class VideoRepository: VideoRepositoryProtocol {
             rating: 0
         )
         video.thumbnailFileName = thumbnailFileName
+        
+        // NEU: TempoProtocol nur bei Kraft + Dynamisch erstellen
+        if category == .strength, exerciseSubtype == .dynamic {
+            let tempoProtocol = TempoProtocol(
+                concentricSec: 2,
+                holdSec: 0,
+                eccentricSec: 3,
+                sets: 3,
+                reps: 12,
+                restBetweenSetsSec: 60,
+                subtype: .dynamic
+            )
+            modelContext.insert(tempoProtocol)
+            video.tempoProtocol = tempoProtocol
+            print("🏋️ TempoProtocol erstellt: 2-0-3, 3×12, 60s Pause")
+        }
         
         print("💾 Inserting & Saving...")
         modelContext.insert(video)

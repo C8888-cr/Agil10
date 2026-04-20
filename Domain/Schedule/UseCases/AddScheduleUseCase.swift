@@ -2,8 +2,7 @@
 //  AddScheduleUseCase.swift
 //  Agil10.0
 //
-//  Created by Christiane Roth on 12.04.26.
-//
+
 import Foundation
 
 
@@ -26,6 +25,7 @@ final class AddScheduleUseCase {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
+        weightKg: Int? = nil,       // NEU
         notes: String? = nil
     ) throws {
         guard let videoInContext = try repository.fetchVideo(by: video.id) else {
@@ -51,14 +51,15 @@ final class AddScheduleUseCase {
             reps: reps
         )
         schedule.notes = notes
+        schedule.weightKg = weightKg
+        print("🏋️ AddScheduleUseCase: schedule.weightKg gesetzt auf \(String(describing: schedule.weightKg))")
 
         if let planMode {
-               schedule.planMode = planMode
-           } else {
-               let preferences = try repository.fetchUserPreferences(for: user.id)
-               schedule.planMode = preferences?.activeMode ?? "single"
-           }
-
+            schedule.planMode = planMode
+        } else {
+            let preferences = try repository.fetchUserPreferences(for: user.id)
+            schedule.planMode = preferences?.activeMode ?? "single"
+        }
 
         try repository.save(schedule)
     }

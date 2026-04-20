@@ -141,7 +141,7 @@ struct WeekPlannerSheet: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
-                    onAdd: { reps, loopDuration, pause, planMode in
+                    onAdd: { reps, loopDuration, pause, planMode, weightKg in
                         let planned = PlannedVideo(
                             video: video,
                             repetitions: reps,

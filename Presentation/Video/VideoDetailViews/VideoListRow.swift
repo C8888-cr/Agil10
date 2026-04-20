@@ -301,7 +301,7 @@ struct VideoListRow: View {
                     .lineLimit(2)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    MetaChip(label: "Dauer", value: video.formattedDuration)
+                    MetaChip(label: "Art", value: categoryLabel)
                     MetaChip(label: "Bereich", value: video.bodyRegion.rawValue)
                     if video.equipment != .noEquipment {
                         MetaChip(label: "Gerät", value: video.equipment.rawValue)
@@ -368,5 +368,19 @@ struct VideoListRow: View {
                     .aspectRatio(contentMode: .fill)
             }
         }
+    }
+    // NEU: Zeigt statt der Dauer den Subtyp oder die Kategorie
+    private var categoryLabel: String {
+        if video.category == .strength,
+           let subtype = video.tempoProtocol?.subtype {
+            // Kraft + Dynamisch: zeigt den Subtyp
+            return subtype.rawValue   // "Dynamisch"
+        }
+        if video.category == .strength {
+            // Kraft ohne TempoProtocol = Isometrisch
+            return ExerciseSubtype.isometric.rawValue   // "Isometrisch"
+        }
+        // Alles andere: einfach die Kategorie
+        return video.category.rawValue   // "Mobilisation", "Dehnung", etc.
     }
 }

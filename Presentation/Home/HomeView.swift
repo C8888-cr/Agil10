@@ -35,6 +35,8 @@ struct HomeView: View {
     @State private var showPlayAllSession = false
     
     @State private var selectedAppointment: Appointment? = nil
+    
+    @State private var pendingEditWeightKg: Int? = nil
 
     enum SheetType: Identifiable {
         case
@@ -78,13 +80,20 @@ struct HomeView: View {
                     onConfig: { schedule in
                         editingScheduleId = schedule.id
                         selectedVideoForConfig = schedule.video ?? Video.previewMobility
+                        
+                        let video = schedule.video
                         playbackSettings = PlaybackSettings(
-                            repetitions: schedule.customRepetitions ?? 3,
-                            pauseSeconds: schedule.customPauseSeconds ?? 30,
+                            repetitions: schedule.customRepetitions
+                                ?? video?.defaultRepetitions
+                                ?? 3,
+                            pauseSeconds: schedule.customPauseSeconds
+                                ?? video?.defaultPauseSeconds
+                                ?? 30,
                             loopDurationSeconds: schedule.customLoopDurationSeconds
-                                ?? schedule.video?.loopDurationSeconds
+                                ?? video?.loopDurationSeconds
                                 ?? 120
                         )
+                        pendingEditWeightKg = schedule.weightKg
                     },
                     
                     
@@ -175,16 +184,19 @@ struct HomeView: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
-                    activeMode: settingsVM.preferences.activeMode,  // ← NEU
+                    activeMode: settingsVM.preferences.activeMode,
                     initialRepetitions: playbackSettings.repetitions,
                     initialLoopDuration: playbackSettings.loopDurationSeconds,
                     initialPause: playbackSettings.pauseSeconds,
-                    onAdd: { reps, loopDuration, pause, planMode in  // ← planMode NEU
+                    initialWeightKg: pendingEditWeightKg,       // ← NEU
+                    onAdd: { reps, loopDuration, pause, planMode, weightKg in
+                        print("🏋️ HomeView onAdd erhält weightKg=\(String(describing: weightKg))")
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
                             schedule.customRepetitions = reps
                             schedule.customPauseSeconds = pause
                             schedule.customLoopDurationSeconds = loopDuration
+                            schedule.weightKg = weightKg
                             progressVM.updateSchedule(schedule, for: session.currentUser!)
                             progressVM.loadToday(for: session.currentUser!)
                         } else {
@@ -192,23 +204,25 @@ struct HomeView: View {
                                 video,
                                 to: pendingDate,
                                 for: session.currentUser!,
-                                planMode: planMode,  // ← NEU
+                                planMode: planMode,
                                 customRepetitions: reps,
                                 customPauseSeconds: pause,
-                                customLoopDuration: loopDuration
+                                customLoopDuration: loopDuration,
+                                weightKg: weightKg           // ← NEU
                             )
                             progressVM.loadToday(for: session.currentUser!)
                         }
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
+                        pendingEditWeightKg = nil            // ← NEU
                     },
                     onCancel: {
                         selectedVideoForConfig = nil
                         editingScheduleId = nil
+                        pendingEditWeightKg = nil            // ← NEU
                     }
                 )
-            }
-        // ⭐️ VIDEO PLAYER SHEET
+            }        // ⭐️ VIDEO PLAYER SHEET
         // ✅ Neu
         .sheet(item: $videoPlayerItem) { item in
             VideoPlayerView(
