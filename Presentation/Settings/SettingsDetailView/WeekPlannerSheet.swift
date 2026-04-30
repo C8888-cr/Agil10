@@ -141,12 +141,13 @@ struct WeekPlannerSheet: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
-                    onAdd: { reps, loopDuration, pause, planMode, weightKg in
+                    onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet in
                         let planned = PlannedVideo(
                             video: video,
                             repetitions: reps,
                             loopDurationSeconds: loopDuration,
                             pauseSeconds: pause
+                       
                         )
                         if rule == .daily {
                             guard !(weekPlan[0]?.contains { $0.video.id == video.id } ?? false) else {

@@ -13,12 +13,19 @@ final class ExpertModeViewModel: ObservableObject {
     @Published private(set) var state: WorkoutSessionState = .idle
     @Published private(set) var totalWeightKg: Int = 0
     @Published private(set) var showPlusPopup: Bool = false
+    @Published var weightKg: Int
+    @Published var showRatingSheet: Bool = false
     
     // MARK: - Context
     let videoTitle: String
     let modus: WorkoutModus
-    let weightKg: Int
     let lastTrainingTotalKg: Int?
+    
+    //  Für Completion-Tracking
+    private let scheduleId: UUID?
+    private weak var progressViewModel: ProgressViewModel?
+    private let session: SessionManager?
+    var onWorkoutCompleted: (() -> Void)?
     
     // MARK: - Dependencies
     private let useCase: WorkoutSessionUseCase
@@ -26,6 +33,7 @@ final class ExpertModeViewModel: ObservableObject {
     
     private var lastProcessedTotalReps: Int = 0
     private var popupDismissTask: Task<Void, Never>?
+    private var hasMarkedComplete: Bool = false
     
     // MARK: - Convenience
     var totalSets: Int { useCase.protocolSnapshot.sets }
@@ -35,14 +43,30 @@ final class ExpertModeViewModel: ObservableObject {
         videoTitle: String,
         tempoProtocol: TempoProtocol,
         weightKg: Int = 0,
-        lastTrainingTotalKg: Int? = nil
+        lastTrainingTotalKg: Int? = nil,
+        setsOverride: Int? = nil,
+        repsOverride: Int? = nil,
+        restOverride: Int? = nil,
+        scheduleId: UUID? = nil,
+        progressViewModel: ProgressViewModel? = nil,
+        session: SessionManager? = nil,
+        onComplete: (() -> Void)? = nil
     ) {
         self.videoTitle = videoTitle
         self.weightKg = weightKg
         self.lastTrainingTotalKg = lastTrainingTotalKg
         self.modus = WorkoutModus.matching(tempoProtocol)
+        self.scheduleId = scheduleId
+        self.progressViewModel = progressViewModel
+        self.session = session
+        self.onWorkoutCompleted = onComplete
         self.useCase = WorkoutSessionUseCase(
-            protocolSnapshot: TempoProtocolSnapshot(from: tempoProtocol)
+            protocolSnapshot: TempoProtocolSnapshot(
+                from: tempoProtocol,
+                setsOverride: setsOverride,
+                repsOverride: repsOverride,
+                restOverride: restOverride
+            )
         )
         
         bindUseCase()
@@ -77,7 +101,47 @@ final class ExpertModeViewModel: ObservableObject {
             lastProcessedTotalReps = 0
         }
         
+        //  Workout abgeschlossen
+        if case .done = newState, !hasMarkedComplete {
+            handleWorkoutCompleted()
+        }
+        
         state = newState
+    }
+    
+    //  Wird gefeuert, wenn alle Sätze durch sind
+    private func handleWorkoutCompleted() {
+        hasMarkedComplete = true
+        
+        // Schedule als completed markieren
+        if let scheduleId,
+           let progressVM = progressViewModel,
+           let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+           let user = session?.currentUser {
+            print("✅ Markiere Expert-Schedule '\(schedule.video?.title ?? "?")' als completed")
+            progressVM.markCompletedSchedule(schedule, for: user)
+        }
+        
+        // PlayAll-Modus: direkt weiter, kein Rating
+        if onWorkoutCompleted != nil {
+            onWorkoutCompleted?()
+        } else {
+            // Einzel-Modus: Rating-Sheet zeigen
+            showRatingSheet = true
+        }
+    }
+    
+    //  Rating speichern
+    func saveRating(_ rating: Int) {
+        if let scheduleId,
+           let progressVM = progressViewModel,
+           let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+           let user = session?.currentUser {
+            schedule.rating = rating
+            progressVM.updateSchedule(schedule, for: user)
+            print("⭐️ Expert-Rating gespeichert: \(rating)")
+        }
+        showRatingSheet = false
     }
     
     private func triggerPlusPopup() {
@@ -102,6 +166,7 @@ final class ExpertModeViewModel: ObservableObject {
         case .done:    break
         }
     }
+
     
     // MARK: - Display Helpers
     

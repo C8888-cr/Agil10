@@ -6,6 +6,68 @@ import Foundation
 final class VideoSchedule {
     @Attribute(.unique) var id: UUID = UUID()
     
+    
+    
+    // MARK: - Expertenmodus erkennen
+
+    /// True, wenn dieser Schedule im Expertenmodus ist (dynamisches TempoProtocol)
+    var isExpertDynamicMode: Bool {
+        video?.category == .strength
+        && video?.tempoProtocol?.subtype == .dynamic
+    }
+
+    // MARK: - Computed Properties (überschrieben für Expertenmodus)
+
+    /// Anzahl Sätze (im Expertenmodus aus schedule.sets, sonst aus tempoProtocol)
+    var effectiveSets: Int {
+        sets ?? video?.tempoProtocol?.sets ?? 1
+    }
+
+    /// Wiederholungen pro Satz (im Expertenmodus aus schedule.reps)
+    var effectiveRepsPerSet: Int {
+        reps ?? video?.tempoProtocol?.reps ?? 1
+    }
+
+    /// Dauer einer einzelnen Wiederholung in Sekunden (nur sinnvoll im Expertenmodus)
+    var effectiveCycleDurationSec: Int {
+        video?.tempoProtocol?.cycleDurationSec ?? 0
+    }
+
+    /// Pause zwischen Sätzen (Expertenmodus) — fällt auf customPauseSeconds zurück
+    var effectiveRestBetweenSetsSec: Int {
+        customPauseSeconds ?? video?.tempoProtocol?.restBetweenSetsSec ?? 60
+    }
+
+    // MARK: - Anzeige
+
+    /// Gesamtdauer in Sekunden (modusabhängig)
+    var totalDurationSeconds: Int {
+        if isExpertDynamicMode {
+            let workPerSet = effectiveRepsPerSet * effectiveCycleDurationSec
+            let totalWork = workPerSet * effectiveSets
+            let totalRest = effectiveRestBetweenSetsSec * max(0, effectiveSets - 1)
+            return totalWork + totalRest
+        } else {
+            let totalExerciseTime = effectiveLoopDurationSeconds * effectiveRepetitions
+            let pauseBetweenReps = effectivePauseSeconds * max(0, effectiveRepetitions - 1)
+            return totalExerciseTime + pauseBetweenReps
+        }
+    }
+
+    var totalDurationMinutes: Int {
+        totalDurationSeconds / 60
+    }
+
+    var formattedDuration: String {
+        let minutes = totalDurationSeconds / 60
+        let seconds = totalDurationSeconds % 60
+        
+        if seconds > 0 {
+            return "\(minutes):\(String(format: "%02d", seconds))"
+        }
+        return "\(minutes)"
+    }
+    
     var weightKg: Int?
     
     var scheduledDate: Date             // Für welchen Tag
@@ -72,36 +134,8 @@ final class VideoSchedule {
     var effectiveLoopDurationSeconds: Int {
         customLoopDurationSeconds ?? video?.loopDurationSeconds ?? 0
     }
-    
-    /// Gesamtdauer dieser Übung (Übungszeit + Pausen zwischen Wiederholungen)
-    /// ⚠️ Inter-Video Pause ist NICHT enthalten - wird auf Tagesebene berechnet
-    var totalDurationSeconds: Int {
-        let singleDuration = effectiveLoopDurationSeconds
-        let totalExerciseTime = singleDuration * effectiveRepetitions
-        
-        // Pausen zwischen Wiederholungen
-        // Beispiel: 3 Wiederholungen → 2 Pausen (zwischen 1-2 und 2-3)
-        let pauseBetweenReps = effectivePauseSeconds * max(0, effectiveRepetitions - 1)
-        
-        return totalExerciseTime + pauseBetweenReps
-    }
-    
-    /// Gesamtdauer in Minuten
-    var totalDurationMinutes: Int {
-        totalDurationSeconds / 60
-    }
-    
-    /// Formatierte Zeitangabe (z.B. "7:30 Min" oder "5 Min")
-    var formattedDuration: String {
-        let minutes = totalDurationSeconds / 60
-        let seconds = totalDurationSeconds % 60
-        
-        if seconds > 0 {
-            return "\(minutes):\(String(format: "%02d", seconds))"
-        }
-        return "\(minutes)"
-    }
-    
+
+
     // MARK: - Init
     
     init(

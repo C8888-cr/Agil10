@@ -251,4 +251,20 @@ extension TempoProtocolSnapshot {
         self.restBetweenSetsSec = model.restBetweenSetsSec
         self.subtype = model.subtype
     }
+    
+    /// 🆕 Snapshot mit User-Overrides aus dem Schedule
+    init(
+        from model: TempoProtocol,
+        setsOverride: Int?,
+        repsOverride: Int?,
+        restOverride: Int?
+    ) {
+        self.concentricSec = model.concentricSec
+        self.holdSec = model.holdSec
+        self.eccentricSec = model.eccentricSec
+        self.sets = setsOverride ?? model.sets
+        self.reps = repsOverride ?? model.reps
+        self.restBetweenSetsSec = restOverride ?? model.restBetweenSetsSec
+        self.subtype = model.subtype
+    }
 }

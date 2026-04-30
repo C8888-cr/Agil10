@@ -40,7 +40,12 @@ struct CalendarDayView: View {
     
     @State private var swipeDirection: SwipeDirection? = nil
     @State private var pendingEditWeightKg: Int? = nil
+    @State private var expertSession: ExpertSessionItem?
     
+    private var editingSchedule: VideoSchedule? {
+        guard let id = editingScheduleId else { return nil }
+        return progressVM.todaysSchedules.first(where: { $0.id == id })
+    }
     
     
     enum SwipeDirection { case horizontal, vertical }
@@ -92,7 +97,17 @@ struct CalendarDayView: View {
     }
     
     private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
-        videoPlayerItem = VideoPlayerItem(video: video, scheduleId: schedule.id)
+        let expertEnabled = settingsVM.preferences.expertModeEnabled
+        
+        if expertEnabled, let tempo = video.tempoProtocol {
+            expertSession = ExpertSessionItem(
+                schedule: schedule,
+                video: video,
+                tempoProtocol: tempo
+            )
+        } else {
+            videoPlayerItem = VideoPlayerItem(video: video, scheduleId: schedule.id)
+        }
     }
     
     var body: some View {
@@ -211,35 +226,44 @@ struct CalendarDayView: View {
         .sheet(item: $selectedVideoForConfig) { video in
             VideoQuickConfigSheet(
                 video: video,
-                activeMode: settingsVM.preferences.activeMode,  // ← NEU
+                activeMode: settingsVM.preferences.activeMode,
                 initialRepetitions: playbackSettings.repetitions,
                 initialLoopDuration: playbackSettings.loopDurationSeconds,
                 initialPause: playbackSettings.pauseSeconds,
                 initialWeightKg: pendingEditWeightKg,
-                onAdd: { reps, loopDuration, pause, planMode, weightKg in
-                    print("🏋️ CalendarDayView onAdd erhält weightKg=\(String(describing: weightKg))")
+                initialSets: editingSchedule?.sets,
+                initialRepsPerSet: editingSchedule?.reps,
+                onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet in
+                    print("🏋️ CalendarDayView onAdd erhält weight=\(String(describing: weight))")
+                    
                     if let scheduleId = editingScheduleId,
                        let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                        // Bestehenden Schedule editieren
                         schedule.customRepetitions = reps
                         schedule.customPauseSeconds = pause
                         schedule.customLoopDurationSeconds = loopDuration
-                        schedule.weightKg = weightKg 
+                        schedule.weightKg = weight
+                        schedule.sets = sets             // 🆕
+                        schedule.reps = repsPerSet       // 🆕
                         progressVM.updateSchedule(schedule, for: session.currentUser!)
                     } else {
-                        // planMode direkt nutzen – kein confirmationDialog mehr nötig
+                        // Neuen Schedule anlegen
                         progressVM.addVideo(
                             video,
                             to: pendingDate,
                             for: session.currentUser!,
-                            planMode: planMode,
-                          
+                            planMode: mode,
+                            activeMode: settingsVM.preferences.activeMode, 
                             customRepetitions: reps,
                             customPauseSeconds: pause,
                             customLoopDuration: loopDuration,
-                            weightKg: weightKg
+                            sets: sets,
+                            reps: repsPerSet,
+                            weightKg: weight
                         )
                         progressVM.loadToday(for: session.currentUser!, date: pendingDate)
                     }
+                    
                     selectedVideoForConfig = nil
                     editingScheduleId = nil
                     pendingEditWeightKg = nil
@@ -247,7 +271,7 @@ struct CalendarDayView: View {
                 onCancel: {
                     selectedVideoForConfig = nil
                     editingScheduleId = nil
-                    pendingEditWeightKg = nil  
+                    pendingEditWeightKg = nil
                 }
             )
         }
@@ -259,6 +283,23 @@ struct CalendarDayView: View {
                 session: session
             )
         }
+        
+        .sheet(item: $expertSession) { item in
+            ExpertModePlayerView(
+                video: item.video,
+                tempoProtocol: item.tempoProtocol,
+                weightKg: item.schedule.weightKg,
+                setsOverride: item.schedule.sets,
+                repsOverride: item.schedule.reps,
+                restOverride: item.schedule.customPauseSeconds,
+                lastTrainingTotalKg: nil,
+                videoDuringTraining: settingsVM.preferences.videoDuringTraining,
+                scheduleId: item.schedule.id,
+                progressViewModel: progressVM,
+                session: session                            
+            )
+        }
+        
         .sheet(item: $selectedAppointment) { appointment in
             AppointmentDetailView(appointment: appointment)
                 .environmentObject(session)

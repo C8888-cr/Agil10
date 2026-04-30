@@ -358,10 +358,21 @@ struct VideoScheduleRow: View {
 
                 // Meta – einheitlich als Chips
                 VStack(alignment: .leading, spacing: 4) {
-                    MetaChip(label: "Wdh", value: "\(schedule.effectiveRepetitions)")
-                    MetaChip(label: "Dauer", value: schedule.formattedDuration)
-                    if schedule.effectivePauseSeconds > 0 {
-                        MetaChip(label: "Pause", value: "\(schedule.effectivePauseSeconds)s")
+                    if schedule.isExpertDynamicMode {
+                        MetaChip(label: "Sätze", value: "\(schedule.effectiveSets) × \(schedule.effectiveRepsPerSet)")
+                        MetaChip(label: "Dauer", value: schedule.formattedDuration)
+                        if schedule.effectiveRestBetweenSetsSec > 0 {
+                            MetaChip(label: "Pause", value: "\(schedule.effectiveRestBetweenSetsSec)s")
+                        }
+                        if let weight = schedule.weightKg {
+                            MetaChip(label: "Gewicht", value: "\(weight) kg")
+                        }
+                    } else {
+                        MetaChip(label: "Wdh", value: "\(schedule.effectiveRepetitions)")
+                        MetaChip(label: "Dauer", value: schedule.formattedDuration)
+                        if schedule.effectivePauseSeconds > 0 {
+                            MetaChip(label: "Pause", value: "\(schedule.effectivePauseSeconds)s")
+                        }
                     }
                 }
             }

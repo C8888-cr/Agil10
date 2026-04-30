@@ -165,6 +165,72 @@ struct ProfileView: View {
                                 }
                             }
                             
+                            
+                            // MARK: - Training / Expertenmodus
+
+                            if let prefs = user.preferences {
+                                InfoCard {
+                                    VStack(spacing: 0) {
+                                        // Toggle: Expertenmodus an/aus
+                                        HStack {
+                                            Label {
+                                                Text("Expertenmodus").foregroundStyle(.secondary)
+                                            } icon: {
+                                                Image(systemName: "dumbbell.fill")
+                                                    .foregroundStyle(Color.accentColor.opacity(0.7))
+                                            }
+                                            Spacer()
+                                            Toggle("", isOn: Binding(
+                                                get: { prefs.expertModeEnabled },
+                                                set: { newValue in
+                                                    prefs.expertModeEnabled = newValue
+                                                    try? modelContext.save()
+                                                }
+                                            ))
+                                            .labelsHidden()
+                                        }
+                                        
+                                        if prefs.expertModeEnabled {
+                                            Text("Bei Krafttraining wird der Trainingsmodus mit Tempo-Vorgabe und Gewichts-Tracking angezeigt.")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .padding(.top, 8)
+                                            
+                                            Divider().padding(.vertical, 12)
+                                            
+                                            // Picker: Video während Training
+                                            HStack {
+                                                Label {
+                                                    Text("Video während Training").foregroundStyle(.secondary)
+                                                } icon: {
+                                                    Image(systemName: "play.rectangle")
+                                                        .foregroundStyle(Color.accentColor.opacity(0.7))
+                                                }
+                                                Spacer()
+                                                Picker("", selection: Binding(
+                                                    get: { prefs.videoDuringTraining },
+                                                    set: { newValue in
+                                                        prefs.videoDuringTraining = newValue
+                                                        try? modelContext.save()
+                                                    }
+                                                )) {
+                                                    ForEach(VideoDuringTrainingMode.allCases) { mode in
+                                                        Text(mode.displayName).tag(mode)
+                                                    }
+                                                }
+                                                .labelsHidden()
+                                                .pickerStyle(.menu)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            
+                            
+                            
+                            
                             // MARK: - App Info
                             InfoCard {
                                 VStack(spacing: 0) {

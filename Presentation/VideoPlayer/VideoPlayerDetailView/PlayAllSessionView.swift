@@ -1,3 +1,4 @@
+
 import SwiftUI
 import SwiftData
 
@@ -6,7 +7,9 @@ struct PlayAllSessionView: View {
     let session: SessionManager
     let progressVM: ProgressViewModel
     
+    @EnvironmentObject var settingsVM: SettingsViewModel    // 🆕
     @Environment(\.dismiss) private var dismiss
+    
     @State private var currentIndex: Int = 0
     @State private var phase: Phase = .playing
     @State private var countdown: Int = 60
@@ -19,6 +22,12 @@ struct PlayAllSessionView: View {
         return schedules[currentIndex]
     }
     
+    // 🆕 Soll der Schedule im Expertenmodus laufen?
+    private func isExpertMode(for schedule: VideoSchedule) -> Bool {
+        return settingsVM.preferences.expertModeEnabled
+            && schedule.video?.tempoProtocol?.subtype == .dynamic
+    }
+    
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -26,17 +35,39 @@ struct PlayAllSessionView: View {
             switch phase {
             case .playing:
                 if let schedule = currentSchedule, let video = schedule.video {
-                    VideoPlayerView(
-                        video: video,
-                        scheduleId: schedule.id,
-                        progressViewModel: progressVM,
-                        session: session,
-                        onComplete: {
-                            goToNext()
-                        }
-                    )
-                    .environmentObject(progressVM)
-                    .id(currentIndex)
+                    if isExpertMode(for: schedule), let tempo = video.tempoProtocol {
+                        // 🆕 Expertenmodus
+                        ExpertModePlayerView(
+                            video: video,
+                            tempoProtocol: tempo,
+                            weightKg: schedule.weightKg,
+                            setsOverride: schedule.sets,
+                            repsOverride: schedule.reps,
+                            restOverride: schedule.customPauseSeconds,
+                            lastTrainingTotalKg: nil,
+                            videoDuringTraining: settingsVM.preferences.videoDuringTraining,
+                            scheduleId: schedule.id,
+                            progressViewModel: progressVM,
+                            session: session,
+                            onComplete: {
+                                goToNext()
+                            }
+                        )
+                        .id(currentIndex)
+                    } else {
+                        // Standard-Player
+                        VideoPlayerView(
+                            video: video,
+                            scheduleId: schedule.id,
+                            progressViewModel: progressVM,
+                            session: session,
+                            onComplete: {
+                                goToNext()
+                            }
+                        )
+                        .environmentObject(progressVM)
+                        .id(currentIndex)
+                    }
                 }
                 
             case .countdown:
@@ -71,14 +102,15 @@ struct PlayAllSessionView: View {
                     self.countdown -= 1
                 } else {
                     self.countdownTimer?.invalidate()
-                    // ← Delay damit SwiftUI VideoPlayerView komplett neu erstellt
-                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+                    try? await Task.sleep(nanoseconds: 300_000_000)
                     self.phase = .playing
                 }
             }
         }
     }
 }
+
+// CountdownBetweenVideosView, AllDoneView, Array-Extension bleiben unverändert
 
 // MARK: - Countdown View
 struct CountdownBetweenVideosView: View {
