@@ -206,7 +206,7 @@ struct CalendarMonthView: View {
             // Sheets ergänzen
             .sheet(isPresented: $showProfile) {
                 ProfileView()
-                  
+                    .environmentObject(settingsVM) 
                 
             }
 
@@ -246,6 +246,7 @@ struct CalendarMonthView: View {
             .sheet(isPresented: $showDailyPlan) {
                 WeekPlannerSheet(
                     rule: .daily,
+                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                     onSave: { startDate, plan, strategy in
                         guard let user = session.currentUser else { return }
                         settingsVM.applyWeekPlan(
@@ -266,6 +267,7 @@ struct CalendarMonthView: View {
             .sheet(isPresented: $showWeeklyPlan) {
                 WeekPlannerSheet(
                     rule: .weekly,
+                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                     onSave: { startDate, plan, strategy in
                         guard let user = session.currentUser else { return }
                         settingsVM.applyWeekPlan(

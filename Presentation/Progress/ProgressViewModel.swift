@@ -126,63 +126,59 @@ final class ProgressViewModel: ObservableObject {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
+        expertPauseSeconds: Int? = nil,        // 🆕
         weightKg: Int? = nil,
         notes: String? = nil
     ) {
         do {
-              let resolvedPlanMode = planMode ?? "single"
+            let resolvedPlanMode = planMode ?? "single"
+            let isRecurring = (resolvedPlanMode == "daily" || resolvedPlanMode == "weekly")
 
-              // 🆕 Drei Fälle, nicht zwei
-              let isRecurring = (resolvedPlanMode == "daily" || resolvedPlanMode == "weekly")
+            if isRecurring {
+                let calendar = Calendar.current
+                let weekday = calendar.component(.weekday, from: date)
+                let dayIndex = weekday == 1 ? 6 : weekday - 2
+                try addVideoToPlanUseCase.execute(
+                    video: video,
+                    date: date,
+                    user: user,
+                    planMode: resolvedPlanMode,
+                    dayIndex: dayIndex,
+                    customRepetitions: customRepetitions,
+                    customPauseSeconds: customPauseSeconds,
+                    customLoopDuration: customLoopDuration,
+                    sets: sets,
+                    reps: reps,
+                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    weightKg: weightKg
+                )
+            } else {
+                let effectivePlanMode = (activeMode == "single") ? "single" : activeMode
+                
+                try addScheduleUseCase.execute(
+                    video: video,
+                    date: date,
+                    user: user,
+                    planMode: effectivePlanMode,
+                    startTime: startTime,
+                    customRepetitions: customRepetitions,
+                    customPauseSeconds: customPauseSeconds,
+                    customLoopDuration: customLoopDuration,
+                    sets: sets,
+                    reps: reps,
+                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    weightKg: weightKg,
+                    notes: notes
+                )
+            }
 
-              if isRecurring {
-                  // Wiederkehrend für alle Folgewochen anlegen
-                  let calendar = Calendar.current
-                  let weekday = calendar.component(.weekday, from: date)
-                  let dayIndex = weekday == 1 ? 6 : weekday - 2
-                  try addVideoToPlanUseCase.execute(
-                      video: video,
-                      date: date,
-                      user: user,
-                      planMode: resolvedPlanMode,
-                      dayIndex: dayIndex,
-                      customRepetitions: customRepetitions,
-                      customPauseSeconds: customPauseSeconds,
-                      customLoopDuration: customLoopDuration,
-                      sets: sets,
-                      reps: reps,
-                      weightKg: weightKg
-                  )
-              } else {
-                  // 🆕 Einzelner Schedule — entweder echter "single"-Modus
-                  //     ODER "Nur heute" aus weekly/daily
-                  //     In letzterem Fall: planMode = activeMode (damit Filter ihn zeigt)
-                  let effectivePlanMode = (activeMode == "single") ? "single" : activeMode
-                  
-                  try addScheduleUseCase.execute(
-                      video: video,
-                      date: date,
-                      user: user,
-                      planMode: effectivePlanMode,        // 🆕 abhängig vom activeMode
-                      startTime: startTime,
-                      customRepetitions: customRepetitions,
-                      customPauseSeconds: customPauseSeconds,
-                      customLoopDuration: customLoopDuration,
-                      sets: sets,
-                      reps: reps,
-                      weightKg: weightKg,
-                      notes: notes
-                  )
-              }
-
-              if Calendar.current.isDate(date, inSameDayAs: selectedDate) {
-                  loadToday(for: user, date: date)
-              }
-          } catch {
-              self.error = error
-          }
-      }
-    
+            if Calendar.current.isDate(date, inSameDayAs: selectedDate) {
+                loadToday(for: user, date: date)
+            }
+        } catch {
+            self.error = error
+        }
+    }
     
     func removeSchedule(_ schedule: VideoSchedule, for user: User) {
         do {

@@ -8,6 +8,7 @@ struct ProfileView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var settingsVM: SettingsViewModel
     
     @Query var users: [User]
     @Query private var allAppointments: [Appointment]
@@ -168,7 +169,8 @@ struct ProfileView: View {
                             
                             // MARK: - Training / Expertenmodus
 
-                            if let prefs = user.preferences {
+                            if user.preferences != nil {
+                   
                                 InfoCard {
                                     VStack(spacing: 0) {
                                         // Toggle: Expertenmodus an/aus
@@ -180,17 +182,25 @@ struct ProfileView: View {
                                                     .foregroundStyle(Color.accentColor.opacity(0.7))
                                             }
                                             Spacer()
-                                            Toggle("", isOn: Binding(
-                                                get: { prefs.expertModeEnabled },
-                                                set: { newValue in
-                                                    prefs.expertModeEnabled = newValue
-                                                    try? modelContext.save()
-                                                }
-                                            ))
-                                            .labelsHidden()
+                                 
+                                                Toggle("", isOn: Binding(
+                                                    get: {
+                                                        let val = settingsVM.preferences.expertModeEnabled
+                                                        print("📱 Toggle GET: \(val)")
+                                                        return val
+                                                    },
+                                                    set: { newValue in
+                                                        print("📱 Toggle SET: \(newValue)")
+                                                        settingsVM.preferences.expertModeEnabled = newValue
+                                                        print("📱 Nach SET: \(settingsVM.preferences.expertModeEnabled)")
+                                                        try? settingsVM.modelContext.save()
+                                                        settingsVM.objectWillChange.send()
+                                                    }
+                                                ))
+                                                .labelsHidden()
                                         }
                                         
-                                        if prefs.expertModeEnabled {
+                                        if settingsVM.preferences.expertModeEnabled {
                                             Text("Bei Krafttraining wird der Trainingsmodus mit Tempo-Vorgabe und Gewichts-Tracking angezeigt.")
                                                 .font(.caption)
                                                 .foregroundStyle(.secondary)
@@ -199,7 +209,6 @@ struct ProfileView: View {
                                             
                                             Divider().padding(.vertical, 12)
                                             
-                                            // Picker: Video während Training
                                             HStack {
                                                 Label {
                                                     Text("Video während Training").foregroundStyle(.secondary)
@@ -209,10 +218,11 @@ struct ProfileView: View {
                                                 }
                                                 Spacer()
                                                 Picker("", selection: Binding(
-                                                    get: { prefs.videoDuringTraining },
+                                                    get: { settingsVM.preferences.videoDuringTraining },
                                                     set: { newValue in
-                                                        prefs.videoDuringTraining = newValue
-                                                        try? modelContext.save()
+                                                        settingsVM.preferences.videoDuringTraining = newValue
+                                                        try? settingsVM.modelContext.save()
+                                                        settingsVM.objectWillChange.send()
                                                     }
                                                 )) {
                                                     ForEach(VideoDuringTrainingMode.allCases) { mode in

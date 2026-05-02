@@ -54,6 +54,7 @@ struct ExercisesSection: View {
                     VideoScheduleRow(
                         schedule: schedule,
                         video: video,
+                        expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                         onToggleCompletion: { onToggleCompletion(schedule) },
                         onDelete: { onDelete(schedule) },
                         onConfig: { onConfig(schedule) },

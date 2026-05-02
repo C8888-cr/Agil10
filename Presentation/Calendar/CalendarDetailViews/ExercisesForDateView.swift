@@ -41,6 +41,7 @@ struct ExercisesForDateView: View {
                         VideoScheduleRow(
                             schedule: schedule,
                             video: video,
+                            expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                             onDelete: {
                                 if let onDelete = onDelete {
                                     onDelete(schedule)

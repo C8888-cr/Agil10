@@ -18,8 +18,11 @@ struct WeekPlannerSheet: View {
     @State private var weekPlannerRuleToShow: RecurrenceRule? = nil
     
     let rule: RecurrenceRule // .daily oder .weekly
+    let expertModeEnabled: Bool
     let onSave: (Date, [Int: [PlannedVideo]], MergeStrategy) -> Void
     let onCancel: () -> Void
+  
+    
     
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
@@ -53,6 +56,11 @@ struct WeekPlannerSheet: View {
         var repetitions: Int
         var loopDurationSeconds: Int
         var pauseSeconds: Int
+        // 🆕 Expert-Felder
+        var sets: Int?
+        var reps: Int?
+        var expertPauseSeconds: Int?
+        var weightKg: Int?
     }
     
     // Aktive Trainingstage
@@ -72,14 +80,30 @@ struct WeekPlannerSheet: View {
     private func plannedMinutes(for dayIndex: Int) -> Int {
         let videos = rule == .daily ? (weekPlan[0] ?? []) : (weekPlan[dayIndex] ?? [])
         return videos.reduce(0) { total, planned in
-            let reps = planned.repetitions
-            let loop = planned.loopDurationSeconds
-            let pause = planned.pauseSeconds
-            let seconds = (loop * reps) + (pause * max(0, reps - 1))
-            return total + (seconds / 60)
+            let isExpert = expertModeEnabled
+                && planned.video.category == .strength
+                && planned.video.tempoProtocol?.subtype == .dynamic
+            
+            if isExpert,
+               let sets = planned.sets,
+               let reps = planned.reps,
+               let cycle = planned.video.tempoProtocol?.cycleDurationSec {
+                // Expert: sets × (reps × cycleDur) + (sets-1) × pause
+                let pause = planned.expertPauseSeconds ?? 60
+                let workPerSet = reps * cycle
+                let totalWork = workPerSet * sets
+                let totalRest = pause * max(0, sets - 1)
+                return total + ((totalWork + totalRest) / 60)
+            } else {
+                // Standard
+                let seconds = (planned.loopDurationSeconds * planned.repetitions)
+                    + (planned.pauseSeconds * max(0, planned.repetitions - 1))
+                return total + (seconds / 60)
+            }
         }
     }
-
+    
+    
     // Zielminuten für einen Tag
     private func targetMinutes(for dayIndex: Int) -> Int {
         settingsVM.preferences.weeklyGoals
@@ -141,13 +165,18 @@ struct WeekPlannerSheet: View {
             .sheet(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
-                    onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet in
+                    activeMode: "single",
+                    expertModeEnabled: expertModeEnabled,        // 🆕
+                    onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                         let planned = PlannedVideo(
                             video: video,
                             repetitions: reps,
                             loopDurationSeconds: loopDuration,
-                            pauseSeconds: pause
-                       
+                            pauseSeconds: pause,
+                            sets: sets,                          // 🆕
+                            reps: repsPerSet,                    // 🆕
+                            expertPauseSeconds: expertPause,     // 🆕
+                            weightKg: weight                     // 🆕
                         )
                         if rule == .daily {
                             guard !(weekPlan[0]?.contains { $0.video.id == video.id } ?? false) else {
@@ -171,6 +200,9 @@ struct WeekPlannerSheet: View {
                     }
                 )
             }
+            
+            
+            
             // ✅ confirmationDialog auf NavigationStack-Ebene
             .confirmationDialog(
                 "Bestehende Videos gefunden",
@@ -286,11 +318,26 @@ struct WeekPlannerSheet: View {
                 
             } else {
                 // Daily — einfacher Zähler
-                let totalPlanned = weekPlan[0]?.reduce(0) { total, p in
-                    let seconds = (p.loopDurationSeconds * p.repetitions) +
-                        (p.pauseSeconds * max(0, p.repetitions - 1))
-                    return total + (seconds / 60)
-                } ?? 0
+                let totalPlanned = (weekPlan[0] ?? []).reduce(0) { total, p in
+                      let isExpert = expertModeEnabled
+                          && p.video.category == .strength
+                          && p.video.tempoProtocol?.subtype == .dynamic
+                      
+                      if isExpert,
+                         let sets = p.sets,
+                         let reps = p.reps,
+                         let cycle = p.video.tempoProtocol?.cycleDurationSec {
+                          let pause = p.expertPauseSeconds ?? 60
+                          let workPerSet = reps * cycle
+                          let totalWork = workPerSet * sets
+                          let totalRest = pause * max(0, sets - 1)
+                          return total + ((totalWork + totalRest) / 60)
+                      } else {
+                          let seconds = (p.loopDurationSeconds * p.repetitions)
+                              + (p.pauseSeconds * max(0, p.repetitions - 1))
+                          return total + (seconds / 60)
+                      }
+                  }
                 
                 if totalPlanned > 0 {
                     HStack(spacing: 6) {
@@ -583,7 +630,11 @@ struct WeekPlannerSheet: View {
     }
     
     private func plannedVideoRow(_ planned: PlannedVideo, dayIndex: Int) -> some View {
-        HStack(spacing: 12) {
+        let isExpert = expertModeEnabled
+            && planned.video.category == .strength
+            && planned.video.tempoProtocol?.subtype == .dynamic
+        
+        return HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 6)
                 .fill(Color.accent.opacity(0.15))
                 .frame(width: 44, height: 44)
@@ -599,9 +650,21 @@ struct WeekPlannerSheet: View {
                     .fontWeight(.semibold)
                 
                 HStack(spacing: 8) {
-                    Label("\(planned.repetitions)×", systemImage: "repeat")
-                    Label("\(planned.loopDurationSeconds / 60) Min", systemImage: "timer")
-                    Label("\(planned.pauseSeconds)s Pause", systemImage: "pause.fill")
+                    if isExpert,
+                       let sets = planned.sets,
+                       let reps = planned.reps {
+                        Label("\(sets) × \(reps)", systemImage: "repeat")
+                        if let pause = planned.expertPauseSeconds {
+                            Label("\(pause)s Pause", systemImage: "pause.fill")
+                        }
+                        if let weight = planned.weightKg {
+                            Label("\(weight) kg", systemImage: "scalemass")
+                        }
+                    } else {
+                        Label("\(planned.repetitions)×", systemImage: "repeat")
+                        Label("\(planned.loopDurationSeconds / 60) Min", systemImage: "timer")
+                        Label("\(planned.pauseSeconds)s Pause", systemImage: "pause.fill")
+                    }
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -609,7 +672,6 @@ struct WeekPlannerSheet: View {
             
             Spacer()
             
-            // Löschen
             Button {
                 weekPlan[dayIndex]?.removeAll { $0.id == planned.id }
             } label: {
@@ -628,6 +690,8 @@ struct WeekPlannerSheet: View {
         )
         .padding(.horizontal, 16)
     }
+    
+    
     
     // MARK: - Save Button
     private var saveButton: some View {

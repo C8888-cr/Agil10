@@ -59,8 +59,8 @@ struct HomeView: View {
     
     
     var body: some View {
-     
-        ScrollView {
+        let _ = print("🔍 HomeView expertMode: \(settingsVM.preferences.expertModeEnabled)")
+                    ScrollView {
             VStack(spacing: 20) {
                 
                 // compactRingView
@@ -178,6 +178,7 @@ struct HomeView: View {
                 case .profile:
                     ProfileView()
                         .environmentObject(session)
+                        .environmentObject(settingsVM)  
                         .environment(\.modelContext, profileVM.modelContext)
                 case .videoPicker:
                     VideoPickerSheet { video in
@@ -202,38 +203,49 @@ struct HomeView: View {
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: settingsVM.preferences.activeMode,
+                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,        // 🆕
                     initialRepetitions: playbackSettings.repetitions,
                     initialLoopDuration: playbackSettings.loopDurationSeconds,
                     initialPause: playbackSettings.pauseSeconds,
                     initialWeightKg: pendingEditWeightKg,
                     initialSets: editingSchedule?.sets,
                     initialRepsPerSet: editingSchedule?.reps,
-                    onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet in
+                    initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,    // 🆕
+                    onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                         print("🏋️ HomeView onAdd erhält weight=\(String(describing: weight))")
                         
                         if let scheduleId = editingScheduleId,
                            let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
-                            // Bestehenden Schedule editieren
-                            schedule.customRepetitions = reps
-                            schedule.customPauseSeconds = pause
-                            schedule.customLoopDurationSeconds = loopDuration
+                            // Bestehenden Schedule editieren — nur die Werte des aktiven Modus überschreiben
+                            if settingsVM.preferences.expertModeEnabled,
+                               schedule.video?.tempoProtocol?.subtype == .dynamic {
+                                // 🆕 Expert: nur Expert-Felder überschreiben, Standard-Felder unangetastet
+                                schedule.sets = sets
+                                schedule.reps = repsPerSet
+                                schedule.expertPauseSeconds = expertPause
+                            } else {
+                                // Standard: nur Standard-Felder überschreiben, Expert-Felder unangetastet
+                                schedule.customRepetitions = reps
+                                schedule.customPauseSeconds = pause
+                                schedule.customLoopDurationSeconds = loopDuration
+                            }
                             schedule.weightKg = weight
-                            schedule.sets = sets             // 🆕
-                            schedule.reps = repsPerSet       // 🆕
                             progressVM.updateSchedule(schedule, for: session.currentUser!)
                         } else {
-                            // Neuen Schedule anlegen
+                            // Neuen Schedule anlegen — beide Werte-Sets durchreichen,
+                            // Sheet hat das jeweils nicht aktive auf nil gesetzt
                             progressVM.addVideo(
                                 video,
                                 to: pendingDate,
                                 for: session.currentUser!,
                                 planMode: mode,
-                                activeMode: settingsVM.preferences.activeMode, 
+                                activeMode: settingsVM.preferences.activeMode,
                                 customRepetitions: reps,
                                 customPauseSeconds: pause,
                                 customLoopDuration: loopDuration,
-                                sets: sets,                  // 🆕
-                                reps: repsPerSet,            // 🆕
+                                sets: sets,
+                                reps: repsPerSet,
+                                expertPauseSeconds: expertPause,                       // 🆕
                                 weightKg: weight
                             )
                             progressVM.loadToday(for: session.currentUser!, date: pendingDate)

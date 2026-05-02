@@ -626,6 +626,7 @@ struct SettingsView: View {
         .sheet(item: $weekPlannerRuleToShow) { rule in
             WeekPlannerSheet(
                 rule: rule,  // ← kommt direkt aus dem item, kein State-Timing-Problem
+                expertModeEnabled: settingsVM.preferences.expertModeEnabled, 
                 onSave: { startDate, plan, strategy in
                     if let user = session.currentUser {
                         if let goal = settingsVM.preferences.getGoalFor(dayOfWeek: selectedDay) {

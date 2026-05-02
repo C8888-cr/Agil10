@@ -175,6 +175,7 @@ import AVKit
 struct VideoScheduleRow: View {
     let schedule: VideoSchedule
     let video: Video
+    let expertModeEnabled: Bool
 
     var onToggleCompletion: (() -> Void)? = nil
     let onDelete: () -> Void
@@ -221,9 +222,7 @@ struct VideoScheduleRow: View {
                         .padding(.horizontal, 12)
                         .frame(width: leftWidth)
                         .frame(maxHeight: .infinity)
-                     //   .background(Color(.systemGray5))
-                     //   .clipShape(RoundedRectangle(cornerRadius: 16))
-                   //     .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .leading)))
+              
                     } else {
                         // Zugeklappt: Pünktchen-Button
                         Button {
@@ -237,7 +236,7 @@ struct VideoScheduleRow: View {
                                 .foregroundStyle(.white)
                                 .frame(width: leftWidth, height: 60)
                                 .glassEffect(in: RoundedRectangle(cornerRadius: 16))
-                             //   .background(Color.blue.opacity(0.8), in: RoundedRectangle(cornerRadius: 16))
+                    
                                 .padding(.vertical, 30)
                         }
                      
@@ -313,8 +312,8 @@ struct VideoScheduleRow: View {
                         }
                 )
         }
-        .frame(height: 120)                                  // ← NEU: explizite Höhe auf dem ZStack
-           .contentShape(RoundedRectangle(cornerRadius: 16))    // ← NEU: Hit-Area = Card-Form
+        .frame(height: 120)
+           .contentShape(RoundedRectangle(cornerRadius: 16))
            .clipShape(RoundedRectangle(cornerRadius: 16))
         .alert("Löschen?", isPresented: $showDeleteAlert) {
             Button("Löschen", role: .destructive) { onDelete() }
@@ -355,14 +354,14 @@ struct VideoScheduleRow: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-
+                
                 // Meta – einheitlich als Chips
                 VStack(alignment: .leading, spacing: 4) {
-                    if schedule.isExpertDynamicMode {
+                    if expertModeEnabled && schedule.isExpertDynamicCapable {
                         MetaChip(label: "Sätze", value: "\(schedule.effectiveSets) × \(schedule.effectiveRepsPerSet)")
-                        MetaChip(label: "Dauer", value: schedule.formattedDuration)
-                        if schedule.effectiveRestBetweenSetsSec > 0 {
-                            MetaChip(label: "Pause", value: "\(schedule.effectiveRestBetweenSetsSec)s")
+                        MetaChip(label: "Dauer", value: schedule.formattedDuration(expertModeEnabled: true))
+                        if schedule.effectiveExpertPauseSeconds > 0 {
+                            MetaChip(label: "Pause", value: "\(schedule.effectiveExpertPauseSeconds)s")
                         }
                         if let weight = schedule.weightKg {
                             MetaChip(label: "Gewicht", value: "\(weight) kg")
@@ -469,7 +468,7 @@ struct VideoScheduleRow: View {
     VStack(spacing: 20) {
         VideoScheduleRow(
             schedule: createMockSchedule(completed: false, rating: nil),
-            video: createMockVideo(),
+            video: createMockVideo(), expertModeEnabled: true,
             onToggleCompletion: { },
             onDelete: { },
             onConfig: { },
@@ -478,7 +477,7 @@ struct VideoScheduleRow: View {
         )
         VideoScheduleRow(
             schedule: createMockSchedule(completed: true, rating: 5),
-            video: createMockVideo(title: "Rücken Dehnung"),
+            video: createMockVideo(title: "Rücken Dehnung"), expertModeEnabled: false,
             onToggleCompletion: { },
             onDelete: { },
             onConfig: { },
