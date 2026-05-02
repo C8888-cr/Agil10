@@ -5,7 +5,6 @@
 
 import Foundation
 
-
 @MainActor
 final class AddScheduleUseCase {
     private let repository: VideoScheduleRepositoryProtocol
@@ -25,7 +24,8 @@ final class AddScheduleUseCase {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
-        weightKg: Int? = nil,       // NEU
+        expertPauseSeconds: Int? = nil,        
+        weightKg: Int? = nil,
         notes: String? = nil
     ) throws {
         guard let videoInContext = try repository.fetchVideo(by: video.id) else {
@@ -48,11 +48,11 @@ final class AddScheduleUseCase {
             customLoopDurationSeconds: customLoopDuration,
             user: userInContext,
             sets: sets,
-            reps: reps
+            reps: reps,
+            expertPauseSeconds: expertPauseSeconds
         )
         schedule.notes = notes
         schedule.weightKg = weightKg
-        print("🏋️ AddScheduleUseCase: schedule.weightKg gesetzt auf \(String(describing: schedule.weightKg))")
 
         if let planMode {
             schedule.planMode = planMode

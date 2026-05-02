@@ -1,8 +1,3 @@
-//
-//  AddVideoToPlanUseCase.swift
-//  Agil10.0
-//
-
 import Foundation
 
 @MainActor
@@ -24,6 +19,7 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
+        expertPauseSeconds: Int? = nil,        // 🆕
         weightKg: Int? = nil
     ) throws {
         guard let userInContext = try repository.fetchUser(by: user.id) else { return }
@@ -42,6 +38,7 @@ final class AddVideoToPlanUseCase {
                 customLoopDuration: customLoopDuration,
                 sets: sets,
                 reps: reps,
+                expertPauseSeconds: expertPauseSeconds,   // 🆕
                 weightKg: weightKg
             )
 
@@ -57,6 +54,7 @@ final class AddVideoToPlanUseCase {
                 customLoopDuration: customLoopDuration,
                 sets: sets,
                 reps: reps,
+                expertPauseSeconds: expertPauseSeconds,   // 🆕
                 weightKg: weightKg
             )
 
@@ -77,9 +75,9 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int?,
         sets: Int?,
         reps: Int?,
+        expertPauseSeconds: Int?,                        // 🆕
         weightKg: Int?
     ) throws {
-        // 1. Template erstellen
         let existing = try repository.fetchTemplates(for: user.id, isWeekly: false)
         let template = VideoSchedule(
             scheduledDate: Date(),
@@ -90,7 +88,8 @@ final class AddVideoToPlanUseCase {
             customLoopDurationSeconds: customLoopDuration,
             user: user,
             sets: sets,
-            reps: reps
+            reps: reps,
+            expertPauseSeconds: expertPauseSeconds       // 🆕
         )
         template.isTemplate = true
         template.isWeeklyTemplate = false
@@ -100,7 +99,6 @@ final class AddVideoToPlanUseCase {
         template.weightKg = weightKg
         try repository.save(template)
 
-        // 2. Schedules für alle aktiven Tage generieren
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let horizon = calendar.date(byAdding: .month, value: 3, to: today)!
@@ -128,6 +126,7 @@ final class AddVideoToPlanUseCase {
                     user: user,
                     sets: sets,
                     reps: reps,
+                    expertPauseSeconds: expertPauseSeconds,    // 🆕
                     recurrenceRule: .daily,
                     recurrenceGroupID: groupId
                 )
@@ -155,9 +154,9 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int?,
         sets: Int?,
         reps: Int?,
+        expertPauseSeconds: Int?,                        // 🆕
         weightKg: Int?
     ) throws {
-        // 1. Template erstellen
         let existing = try repository.fetchTemplates(for: user.id, isWeekly: true)
         let template = VideoSchedule(
             scheduledDate: Date(),
@@ -168,7 +167,8 @@ final class AddVideoToPlanUseCase {
             customLoopDurationSeconds: customLoopDuration,
             user: user,
             sets: sets,
-            reps: reps
+            reps: reps,
+            expertPauseSeconds: expertPauseSeconds       // 🆕
         )
         template.isTemplate = true
         template.isWeeklyTemplate = true
@@ -178,7 +178,6 @@ final class AddVideoToPlanUseCase {
         template.weightKg = weightKg
         try repository.save(template)
 
-        // 2. Schedules für diesen Wochentag generieren
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let horizon = calendar.date(byAdding: .month, value: 3, to: today)!
@@ -200,7 +199,8 @@ final class AddVideoToPlanUseCase {
                     customLoopDurationSeconds: customLoopDuration,
                     user: user,
                     sets: sets,
-                    reps: reps,                 
+                    reps: reps,
+                    expertPauseSeconds: expertPauseSeconds,    // 🆕
                     recurrenceRule: .weekly,
                     recurrenceGroupID: groupId
                 )
