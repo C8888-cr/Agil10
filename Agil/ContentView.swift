@@ -24,7 +24,7 @@ struct ContentView: View {
                 NavigationStack {
                     CalendarMonthView()
                 }
-                .tabItem { Label("Kalender", systemImage: "calendar") }
+                .tabItem { Label("Übungsplan", systemImage: "calendar") }
                 
                 NavigationStack {
                     ProgressTabView()
@@ -34,7 +34,7 @@ struct ContentView: View {
                 NavigationStack {
                     LibraryView()
                 }
-                .tabItem { Label("Mediathek", systemImage: "book.fill") }
+                .tabItem { Label("Übungen", systemImage: "book.fill") }
                 
             }
             .task {

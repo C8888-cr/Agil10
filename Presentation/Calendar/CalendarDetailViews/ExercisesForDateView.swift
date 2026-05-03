@@ -97,7 +97,7 @@ struct ExercisesForDateView: View {
                 Button {
                     onAddExercise()
                 } label: {
-                    Label("Video hinzufügen", systemImage: "plus.circle.fill")
+                    Label("Übung hinzufügen", systemImage: "plus.circle.fill")
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.accent)

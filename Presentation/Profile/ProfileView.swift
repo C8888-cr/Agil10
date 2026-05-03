@@ -208,7 +208,7 @@ struct ProfileView: View {
                                                 .padding(.top, 8)
                                             
                                             Divider().padding(.vertical, 12)
-                                            
+                                 /*
                                             HStack {
                                                 Label {
                                                     Text("Video während Training").foregroundStyle(.secondary)
@@ -231,7 +231,10 @@ struct ProfileView: View {
                                                 }
                                                 .labelsHidden()
                                                 .pickerStyle(.menu)
+                                  
+                                  
                                             }
+                                  */
                                         }
                                     }
                                 }
