@@ -58,11 +58,16 @@ struct DailyBreakdownCard: View {
             return 0.0
         }
         
-        let completedMinutes = completedSchedules.reduce(0) { $0 + $1.totalDurationMinutes }
+        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
+        
+        let completedMinutes = completedSchedules.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationMinutes(currentExpertModeEnabled: expertModeEnabled)    // 🆕
+        }
         let targetMinutes = goal.targetMinutes
         
         return targetMinutes > 0 ? min(1.0, Double(completedMinutes) / Double(targetMinutes)) : 0.0
     }
+    
     
     private func watchedMinutes(for dayIndex: Int) -> Int {
         let calendar = Calendar.current
@@ -79,9 +84,12 @@ struct DailyBreakdownCard: View {
         let schedules = progressVM.schedulesFor(date: targetDate)
         let completedSchedules = schedules.filter { $0.isCompleted }
         
-        // ✅ Sekunden sammeln, dann in Minuten umrechnen (aufgerundet)
-           let completedSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
-           return (completedSeconds + 59) / 60  // ← aufrunden
+        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
+        
+        let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)    // 🆕
+        }
+        return (completedSeconds + 59) / 60
     }
     
     private func targetMinutes(for dayIndex: Int) -> Int {

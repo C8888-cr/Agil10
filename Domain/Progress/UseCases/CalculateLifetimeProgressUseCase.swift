@@ -17,28 +17,35 @@ final class CalculateLifetimeProgressUseCase {
     func execute(for user: User) throws -> LifetimeProgressResult {
         let allSchedules = try repository.fetchAllSchedules(userId: user.id)
         let completed = allSchedules.filter { $0.isCompleted }
-
-        let totalSeconds = completed.reduce(0) { $0 + $1.totalDurationSeconds }
+        let preferences = try repository.fetchUserPreferences(for: user.id)
+        let expertModeEnabled = preferences?.expertModeEnabled ?? false   // 🆕
+        
+        // 🆕 modus-aware
+        let totalSeconds = completed.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
+        }
         let totalMinutes = (totalSeconds + 59) / 60
         let streak = calculateStreak(from: allSchedules)
-
-        let preferences = try repository.fetchUserPreferences(for: user.id)
+        
         let calendar = Calendar.current
         let uniqueDates = Set(allSchedules.map { calendar.startOfDay(for: $0.scheduledDate) })
-
+        
         let daysWithGoalReached = uniqueDates.filter { date in
             guard let preferences else { return false }
             let firstWeekday = calendar.firstWeekday
             let rawWeekday = calendar.component(.weekday, from: date)
             let dayOfWeek = (rawWeekday - firstWeekday + 7) % 7
             guard let goal = preferences.getGoalFor(dayOfWeek: dayOfWeek) else { return false }
-
+            
+            // 🆕 modus-aware
             let completedMinutes = allSchedules
                 .filter { $0.isCompleted && calendar.isDate($0.scheduledDate, inSameDayAs: date) }
-                .reduce(0) { $0 + $1.totalDurationMinutes }
+                .reduce(0) { sum, schedule in
+                    sum + schedule.effectiveDurationMinutes(currentExpertModeEnabled: expertModeEnabled)
+                }
             return completedMinutes >= goal.targetMinutes
         }
-
+        
         return LifetimeProgressResult(
             completedMinutes: totalMinutes,
             completedWorkouts: completed.count,

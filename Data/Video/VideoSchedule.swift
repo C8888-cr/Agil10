@@ -190,16 +190,17 @@ final class VideoSchedule {
     // Training Details (Expert Mode)
     var sets: Int?
     var reps: Int?
-    var expertPauseSeconds: Int?              // 🆕 Pause zwischen Sätzen (Expert)
+    var expertPauseSeconds: Int?
     
     // Standard-Modus Settings
     var customRepetitions: Int?
-    var customPauseSeconds: Int?              // Pause zwischen Wiederholungen (Standard)
+    var customPauseSeconds: Int?
     var customLoopDurationSeconds: Int?
     
     // Status
     var isCompleted: Bool = false
     var completedAt: Date?
+    var completedAsExpert: Bool? = nil 
     var rating: Int?
     var notes: String?
     
@@ -317,6 +318,28 @@ final class VideoSchedule {
             return "\(minutes):\(String(format: "%02d", secs))"
         }
         return "\(minutes)"
+    }
+    
+  
+    /// Liefert den Modus, in dem dieser Schedule berechnet werden soll.
+    /// - Wenn erledigt: damaliger Modus (eingefroren)
+    /// - Wenn nicht erledigt: aktueller globaler Modus
+    func effectiveExpertMode(currentExpertModeEnabled: Bool) -> Bool {
+        if isCompleted {
+            return completedAsExpert ?? false
+        } else {
+            return currentExpertModeEnabled
+        }
+    }
+
+    /// Gesamtdauer in Sekunden, automatisch im richtigen Modus
+    func effectiveDurationSeconds(currentExpertModeEnabled: Bool) -> Int {
+        let mode = effectiveExpertMode(currentExpertModeEnabled: currentExpertModeEnabled)
+        return totalDurationSeconds(expertModeEnabled: mode)
+    }
+
+    func effectiveDurationMinutes(currentExpertModeEnabled: Bool) -> Int {
+        effectiveDurationSeconds(currentExpertModeEnabled: currentExpertModeEnabled) / 60
     }
     
     // MARK: - Init

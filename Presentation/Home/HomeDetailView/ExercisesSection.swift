@@ -23,8 +23,11 @@ struct ExercisesSection: View {
         
     
     private var remainingSeconds: Int {
+        let expertModeEnabled = settingsVM.preferences.expertModeEnabled
         let targetSeconds = progressVM.targetMinutes * 60
-        let totalScheduled = progressVM.todaysSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
+        let totalScheduled = progressVM.todaysSchedules.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
+        }
         return max(0, targetSeconds - totalScheduled)
     }
     

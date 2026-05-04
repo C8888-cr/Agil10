@@ -84,17 +84,20 @@ struct WeeklyProgressCard: View {
         
         guard !schedules.isEmpty else { return 0.0 }
         
-        // Hole Tagesziel
         guard let goal = settingsVM.preferences.getGoalFor(dayOfWeek: dayIndex) else {
             return 0.0
         }
         
-        // ✅ Sekunden statt Minuten
-           let completedSeconds = completedSchedules.reduce(0) { $0 + $1.totalDurationSeconds }
-           let targetSeconds = goal.targetMinutes * 60
-           
-           return targetSeconds > 0 ? min(1.0, Double(completedSeconds) / Double(targetSeconds)) : 0.0
-       }
+        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
+        
+        let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)    // 🆕
+        }
+        let targetSeconds = goal.targetMinutes * 60
+        
+        return targetSeconds > 0 ? min(1.0, Double(completedSeconds) / Double(targetSeconds)) : 0.0
+    }
+    
     
     private func isToday(_ index: Int) -> Bool {
         let calendar = Calendar.current
