@@ -21,6 +21,7 @@ struct CancelAppointmentSheet: View {
        @State private var mailBody = ""                //
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var themeManager: ThemeManager
 /*
     // ✅ Welche Mail-Apps sind installiert?
     private var availableMailApps: [(name: String, scheme: String)] {
@@ -114,6 +115,8 @@ struct CancelAppointmentSheet: View {
     }
     // MARK: - Mail öffnen
     private func openMailApp() {
+        
+        
         let to = "christiane100385@web.de"
         let subject = "Terminabsage - \(appointment.dateString)"
         
@@ -161,17 +164,17 @@ struct CancelAppointmentSheet: View {
                 Section("Termin") {
                     HStack {
                         Image(systemName: "calendar")
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                         Text(appointment.dateString)
                     }
                     HStack {
                         Image(systemName: "clock")
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                         Text(appointment.timeString)
                     }
                     HStack {
                         Image(systemName: "person.fill")
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                         Text(appointment.therapist)
                     }
                 }

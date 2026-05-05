@@ -16,6 +16,7 @@ struct CalendarMonthView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
     
@@ -140,8 +141,8 @@ struct CalendarMonthView: View {
                     .environmentObject(calendarViewModel)
                     .environmentObject(settingsVM)
                     .environmentObject(session)
-                    .environmentObject(progressVM)  // ← NEU
-                    .environmentObject(videoLibraryVM)  // ← auch das
+                    .environmentObject(progressVM)
+                    .environmentObject(videoLibraryVM) 
             }
             .navigationDestination(isPresented: $showSettingsView) {
                 SettingsView()
@@ -160,7 +161,7 @@ struct CalendarMonthView: View {
                             showSettingsView = true
                         } label: {
                             Image(systemName: "gearshape.fill")
-                                .foregroundColor(.accent)
+                                .foregroundColor(themeManager.currentTheme.accentColor)
                                                .font(.title3)
                         }
                         
@@ -169,7 +170,7 @@ struct CalendarMonthView: View {
                             showReminders = true
                         } label: {
                             Image(systemName: settingsVM.preferences.notificationsEnabled ? "bell.fill" : "bell.slash")
-                                           .foregroundStyle(settingsVM.preferences.notificationsEnabled ? .accent : .secondary)
+                                           .foregroundStyle(settingsVM.preferences.notificationsEnabled ? themeManager.currentTheme.accentColor : .secondary)
                                            .font(.title3)
                                 
                         }
@@ -190,7 +191,7 @@ struct CalendarMonthView: View {
                                 .clipShape(Circle())
                         } else {
                             Circle()
-                                .fill(Color.accentColor.opacity(0.3))
+                                .fill(themeManager.currentTheme.accentColor.opacity(0.3))
                                 .frame(width: 35, height: 35)
                                 .overlay(
                                     Text(session.currentUser?.initials ?? "?")
@@ -322,7 +323,7 @@ struct CalendarMonthView: View {
                        .glassEffect(in: Capsule())
                         .overlay(
                             Capsule()
-                                .stroke(isActive ? Color.accent : Color.clear, lineWidth: 1.5)
+                                .stroke(isActive ? themeManager.currentTheme.accentColor : Color.clear, lineWidth: 1.5)
                                   )
             
                       

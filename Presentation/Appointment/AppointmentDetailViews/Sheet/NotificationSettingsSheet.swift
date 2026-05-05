@@ -14,7 +14,9 @@ struct NotificationSettingsSheet: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showNotificationDeniedAlert = false
-
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -40,7 +42,7 @@ struct NotificationSettingsSheet: View {
                     )) {
                         Label("Erinnerungen aktiv", systemImage: "bell.fill")
                     }
-                    .tint(.accent)
+                    .tint(themeManager.currentTheme.accentColor)
 
                     if settingsVM.preferences.notificationsEnabled {
                         if settingsVM.preferences.weeklyGoals.contains(where: {
@@ -129,7 +131,7 @@ struct NotificationSettingsSheet: View {
                     } label: {
                         Text("Standard")
                             .font(.caption)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                     }
                     .buttonStyle(.plain)
                 } else {
@@ -144,7 +146,7 @@ struct NotificationSettingsSheet: View {
                         settingsVM.scheduleAllReminders()
                     } label: {
                         Image(systemName: "pencil.circle")
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .font(.system(size: 18))
                     }
                     .buttonStyle(.plain)

@@ -12,6 +12,7 @@ import UserNotifications
 struct ProfileHeaderCard: View {
     let user: User
     @Binding var isEditing: Bool
+    @EnvironmentObject var themeManager: ThemeManager
 
     
     var body: some View {
@@ -22,15 +23,15 @@ struct ProfileHeaderCard: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.accentColor.opacity(0.3),
-                                Color.accentColor.opacity(0.1)
+                                themeManager.currentTheme.accentColor.opacity(0.3),
+                                themeManager.currentTheme.accentColor.opacity(0.1)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .frame(width: 100, height: 100)
-                    .shadow(color: Color.accentColor.opacity(0.3), radius: 10)
+                    .shadow(color: themeManager.currentTheme.accentColor.opacity(0.3), radius: 10)
                 
                 // ✅ BILD ODER INITIALEN
                                if let imageData = user.profileImage,
@@ -43,7 +44,7 @@ struct ProfileHeaderCard: View {
                                } else {
                                    Text(user.initials)
                                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                                       .foregroundStyle(Color.accentColor)
+                                       .foregroundStyle(themeManager.currentTheme.accentColor)
                                }
                            }
             // ✅ NAME mit PFEIL
@@ -101,6 +102,7 @@ struct InfoRow: View {
     let value: String
     let icon: String
     var valueColor: Color = .primary
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         HStack {
@@ -109,7 +111,7 @@ struct InfoRow: View {
                     .foregroundStyle(.secondary)
             } icon: {
                 Image(systemName: icon)
-                    .foregroundStyle(Color.accentColor.opacity(0.7))
+                    .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
             }
             
             Spacer()

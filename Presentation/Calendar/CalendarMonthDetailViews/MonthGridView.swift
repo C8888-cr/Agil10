@@ -14,6 +14,7 @@ struct MonthGridView: View {
     let hasSchedules: (Date) -> Bool
     let hasAppointments: (Date) -> Bool
     let onSelectDate: (Date) -> Void
+
     
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)

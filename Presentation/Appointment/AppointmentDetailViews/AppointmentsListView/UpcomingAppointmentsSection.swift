@@ -13,12 +13,14 @@ struct UpcomingAppointmentsSection: View {
     let onDelete: (Appointment) -> Void
     let onTap: (Appointment) -> Void
     @EnvironmentObject var viewModel: AppointmentViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "calendar")
-                    .foregroundColor(.accent)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                 Text("Kommende Termine")
                     .font(.headline)
                 Spacer()

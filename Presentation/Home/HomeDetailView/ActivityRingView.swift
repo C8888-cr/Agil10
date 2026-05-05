@@ -27,7 +27,8 @@ struct RingModifier: AnimatableModifier {
 // MARK: - ActivityRingView
 struct ActivityRingView: View {
     let progress: Double
-
+    let ringColor: Color
+    
     @State private var trimEnd: Double = 0
     @State private var completedRounds: Int = 0
     @State private var animationID: UUID = UUID()
@@ -44,7 +45,7 @@ struct ActivityRingView: View {
                 trimEnd: trimEnd,
                 completedRounds: completedRounds,
                 lineWidth: lineWidth,
-                color: mainColor
+                color: UIColor(ringColor)
             ))
             .onAppear {
                 guard !hasAppeared else { return }

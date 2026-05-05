@@ -146,7 +146,7 @@ struct WeekPlannerSheet: View {
             .sheet(isPresented: $showVideoPickerSheet) {
                 NavigationStack {
                     VideoPickerSheet { video in
-                     
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             pendingDate = Date()
                             editingScheduleId = nil
@@ -201,26 +201,18 @@ struct WeekPlannerSheet: View {
                 )
             }
             
-            
-            
-            // ✅ confirmationDialog auf NavigationStack-Ebene
-            .confirmationDialog(
-                "Bestehende Videos gefunden",
-                isPresented: $showMergeDialog,
-                titleVisibility: .visible
-            ) {
-                Button("Alles ersetzen", role: .destructive) {
-                    mergeStrategy = .replaceAll
-                }
-                Button("Plan hinzufügen") {
-                    mergeStrategy = .addToPlan
-                }
-                Button("Abbrechen", role: .cancel) {
-                    startDate = Date()
-                }
-            } message: {
-                Text("Ab dem \(startDate, format: .dateTime.day().month()) hast du bereits \(existingScheduleCount) Videos geplant. Was soll damit passieren?")
+            .sheet(isPresented: $showMergeDialog) {
+                MergeStrategyPicker(
+                    currentStrategy: $mergeStrategy,
+                    startDate: startDate,
+                    existingCount: existingScheduleCount,
+                    onClose: { showMergeDialog = false }
+                )
+                .presentationDetents([.height(320)])
+                .presentationDragIndicator(.visible)
             }
+            
+           
         }
     }
     private var dailyVideoList: some View {
@@ -274,12 +266,9 @@ struct WeekPlannerSheet: View {
                     showVideoPickerSheet = true
                 } label: {
                     Label("Übung hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+              
                 }
+                .buttonStyle(.primary)
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
@@ -401,6 +390,10 @@ struct WeekPlannerSheet: View {
     
     // MARK: - Warning Banner
     private var warningBanner: some View {
+        
+        let _ = print("🎨 Banner rendert. Strategy = \(mergeStrategy)")
+        
+        
         let formatter = DateFormatter()
         formatter.dateFormat = "d. MMM"
         let dateString = formatter.string(from: startDate)
@@ -438,6 +431,7 @@ struct WeekPlannerSheet: View {
             
             // ✅ Strategie ändern Button
             Button {
+                checkExistingSchedules(from: startDate)
                 showMergeDialog = true
             } label: {
                 Text("Ändern")
@@ -470,9 +464,14 @@ struct WeekPlannerSheet: View {
     }
     
     private func checkExistingSchedules(from date: Date) {
-        guard let user = session.currentUser else { return }
+        guard let user = session.currentUser else {
+               print("⚠️ Kein currentUser")
+               return
+           }
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: date)
+        
+        print("🔍 Suche Schedules ab: \(start), User: \(user.id)")
         
         let descriptor = FetchDescriptor<VideoSchedule>(
             predicate: #Predicate<VideoSchedule> { s in
@@ -482,11 +481,18 @@ struct WeekPlannerSheet: View {
         )
         
         let all = (try? settingsVM.modelContext.fetch(descriptor)) ?? []
-        existingScheduleCount = all.filter { $0.user?.id == user.id }.count
+        print("🔍 Gefunden (vor User-Filter): \(all.count)")
+            
+            for s in all {
+                print("   → date: \(s.scheduledDate), isTemplate: \(s.isTemplate), user: \(String(describing: s.user?.id))")
+            }
         
-        if existingScheduleCount > 0 {
-          //  showMergeDialog = true
-        }
+        
+        
+        
+        existingScheduleCount = all.filter { $0.user?.id == user.id }.count
+        print("🔍 Nach User-Filter: \(existingScheduleCount)")
+     
     }
     
     // dayTab — mit Minuten und ausgegraut wenn inaktiv:
@@ -614,12 +620,9 @@ struct WeekPlannerSheet: View {
                     showVideoPickerSheet = true
                 } label: {
                     Label("Übung hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+          
                 }
+                .buttonStyle(.primary)
                 .padding(.horizontal)
                 .padding(.top, 8)
                 
@@ -742,4 +745,66 @@ struct WeekPlannerSheet: View {
     }
     
     
+}
+struct MergeStrategyPicker: View {
+    @Binding var currentStrategy: MergeStrategy
+    let startDate: Date
+    let existingCount: Int
+    let onClose: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 8) {
+                Text("Ab dem \(startDate, format: .dateTime.day().month()) hast du bereits Übungen geplant. Was soll damit passieren?")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            .padding(.top, 24)
+            
+            VStack(spacing: 12) {
+                Button {
+                    print("🔴 BUTTON GETAPPT")
+                    currentStrategy = .replaceAll
+                    onClose()
+                } label: {
+                    Text("Alles ersetzen")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .foregroundColor(.red)
+                        .cornerRadius(12)
+                }
+                
+                Button {
+                    print("🔵 BUTTON GETAPPT")
+                    currentStrategy = .addToPlan
+                    onClose()
+                } label: {
+                    Text("Plan hinzufügen")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundColor(.blue)
+                        .cornerRadius(12)
+                }
+                
+                Button {
+                    onClose()
+                } label: {
+                    Text("Abbrechen")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .buttonStyle(.plain)
+    }
 }

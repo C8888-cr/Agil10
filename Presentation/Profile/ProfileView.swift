@@ -9,6 +9,7 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var themeManager: ThemeManager 
     
     @Query var users: [User]
     @Query private var allAppointments: [Appointment]
@@ -60,7 +61,7 @@ struct ProfileView: View {
                                         Text("Berechtigungen").foregroundStyle(.secondary)
                                     } icon: {
                                         Image(systemName: "shield.lefthalf.filled")
-                                            .foregroundStyle(Color.accentColor.opacity(0.7))
+                                           .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     }
                                     Spacer()
                                     HStack(spacing: 8) {
@@ -89,7 +90,7 @@ struct ProfileView: View {
                                         Text("E-Mail").foregroundStyle(.secondary)
                                     } icon: {
                                         Image(systemName: "envelope")
-                                            .foregroundStyle(Color.accentColor.opacity(0.7))
+                                            .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     }
                                     Spacer()
                                     HStack(spacing: 8) {
@@ -135,7 +136,7 @@ struct ProfileView: View {
                                             Text("Status").foregroundStyle(.secondary)
                                         } icon: {
                                             Image(systemName: user.isPremium ? "crown.fill" : "person")
-                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                                .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                         }
                                         Spacer()
                                         HStack(spacing: 8) {
@@ -179,7 +180,7 @@ struct ProfileView: View {
                                                 Text("Expertenmodus").foregroundStyle(.secondary)
                                             } icon: {
                                                 Image(systemName: "dumbbell.fill")
-                                                    .foregroundStyle(Color.accentColor.opacity(0.7))
+                                                    .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                             }
                                             Spacer()
                                  
@@ -194,7 +195,8 @@ struct ProfileView: View {
                                                         settingsVM.preferences.expertModeEnabled = newValue
                                                         print("📱 Nach SET: \(settingsVM.preferences.expertModeEnabled)")
                                                         try? settingsVM.modelContext.save()
-                                                        settingsVM.objectWillChange.send()
+                                                      //  settingsVM
+                                             //   .objectWillChange.send()
                                                     }
                                                 ))
                                                 .labelsHidden()
@@ -240,7 +242,47 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            
+                            // MARK: - Farbe
+                            InfoCard {
+                                VStack(spacing: 12) {
+                                    HStack {
+                                        Label {
+                                            Text("Farbe").foregroundStyle(.secondary)
+                                        } icon: {
+                                            Image(systemName: "paintpalette.fill")
+                                                .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
+                                        }
+                                        Spacer()
+                                    }
+                                    
+                                    HStack(spacing: 16) {
+                                        ForEach(AppTheme.allCases) { theme in
+                                            Button {
+                                                themeManager.currentTheme = theme
+                                            } label: {
+                                                ZStack {
+                                                    Circle()
+                                                        .fill(theme.accentColor)
+                                                        .frame(width: 36, height: 36)
+                                                    
+                                                    if themeManager.currentTheme == theme {
+                                                        Circle()
+                                                            .stroke(Color.primary, lineWidth: 2)
+                                                            .frame(width: 44, height: 44)
+                                                        
+                                                        Image(systemName: "checkmark")
+                                                            .foregroundStyle(.white)
+                                                            .font(.system(size: 14, weight: .bold))
+                                                    }
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                        Spacer()
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
                             
                             
                             
@@ -252,7 +294,7 @@ struct ProfileView: View {
                                             Text("Version").foregroundStyle(.secondary)
                                         } icon: {
                                             Image(systemName: "info.circle")
-                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                                .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                         }
                                         Spacer()
                                         Text("1.0.0")
@@ -267,7 +309,7 @@ struct ProfileView: View {
                                             Text("Build").foregroundStyle(.secondary)
                                         } icon: {
                                             Image(systemName: "hammer")
-                                                .foregroundStyle(Color.accentColor.opacity(0.7))
+                                                .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                         }
                                         Spacer()
                                         Text("2025.01")
@@ -295,7 +337,7 @@ struct ProfileView: View {
                                             .fontWeight(.semibold)
                                             .frame(maxWidth: .infinity)
                                             .padding()
-                                            .background(Color.accentColor)
+                                            .background(themeManager.currentTheme.accentColor.opacity(0.7))
                                             .foregroundStyle(.white)
                                             .cornerRadius(12)
                                     }

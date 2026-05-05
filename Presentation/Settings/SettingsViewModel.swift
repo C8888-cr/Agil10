@@ -576,6 +576,11 @@ class SettingsViewModel: ObservableObject {
             }
             
         case .addToPlan:
+            print("➕ Plan wird zusätzlich hinzugefügt, bestehende Schedules bleiben")
+            
+ /*
+        case .addToPlan:
+
             // Nur auto-Schedules löschen — manuelle behalten
             let descriptor = FetchDescriptor<VideoSchedule>(
                 predicate: #Predicate<VideoSchedule> { s in
@@ -590,6 +595,8 @@ class SettingsViewModel: ObservableObject {
                 toDelete.forEach { modelContext.delete($0) }
                 try? modelContext.save()
             }
+            */
+             
         }
         
         // Rest bleibt gleich — Schedules generieren

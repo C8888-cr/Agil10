@@ -10,13 +10,14 @@ import SwiftData
 struct CompactAppointmentView: View {
     let appointment: Appointment
     let onTap: () -> Void
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Image(systemName: "calendar")
                     .font(.caption)
-                    .foregroundColor(.accent)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                 Text(appointment.isToday ? "Heutiger Termin" : "Nächster Termin")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -30,7 +31,7 @@ struct CompactAppointmentView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(appointment.relativeTimeString)  // "Morgen" / "In 3 Tagen"
                             .font(.caption)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .fontWeight(.semibold)
                         Text(appointment.timeString)
                             .font(.subheadline)
@@ -60,7 +61,7 @@ struct CompactAppointmentView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-                .onTapGesture { onTap() }  // ← NEU
+                .onTapGesture { onTap() }
                 .contentShape(Rectangle())  // ← damit der ganze Bereich tappbar ist
     }
 }

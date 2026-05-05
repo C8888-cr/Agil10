@@ -17,6 +17,8 @@
 import SwiftUI
 import SwiftData 
 struct DetailRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let icon: String
     let title: String
     let value: String
@@ -24,7 +26,7 @@ struct DetailRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundStyle(.accent)
+                .foregroundStyle(themeManager.currentTheme.accentColor)
                 .frame(width: 24)
             
             Text(title)

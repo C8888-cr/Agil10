@@ -11,7 +11,9 @@ struct DailyProgressCard: View {
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
-
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    
     @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
 
     
@@ -75,7 +77,7 @@ struct DailyProgressCard: View {
                         Text(motivationText)
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
                     } else {
                         Text("\(todaysTargetMinutes) Min Ziel • \(formatSeconds(progressVM.remainingSeconds)) verbleibend")
@@ -87,7 +89,7 @@ struct DailyProgressCard: View {
 
                 Spacer()
 
-                ActivityRingView(progress: dailyProgressValue)
+                ActivityRingView(progress: dailyProgressValue, ringColor: themeManager.currentTheme.accentColor)
             }
 
             Divider()
@@ -95,7 +97,7 @@ struct DailyProgressCard: View {
             if let nextAppointment = appointmentViewModel.nextAppointment(from: appointments) {
                 CompactAppointmentView(
                     appointment: nextAppointment,
-                    onTap: { selectedAppointment = nextAppointment }  // ← NEU
+                    onTap: { selectedAppointment = nextAppointment }
                 )
             }
         }

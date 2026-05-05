@@ -20,7 +20,7 @@ struct AppointmentCardView: View {
     @State private var showingCancelError = false      // ← NEU
     @State private var cancelErrorMessage = ""         // ← NEU
     @EnvironmentObject var viewModel: AppointmentViewModel
-    
+    @EnvironmentObject var themeManager: ThemeManager
     
     init(
         appointment: Appointment,
@@ -38,8 +38,12 @@ struct AppointmentCardView: View {
     var body: some View {
         HStack(spacing: 16) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(appointment.status == .cancelled ? Color.red.opacity(0.5) : isNext ? Color.accent : Color.secondary.opacity(0.5))
-                .frame(width: 4)
+                .fill(appointment.status == .cancelled
+                      ? Color.red.opacity(0.5)
+                        : isNext
+                            ? themeManager.currentTheme.accentColor
+                            : Color.secondary.opacity(0.5))
+                    .frame(width: 4)
             
             // Date Badge
             VStack(alignment: .leading, spacing: 6) {
@@ -66,7 +70,7 @@ struct AppointmentCardView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "person.fill")
                         .font(.caption)
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                     Text(appointment.therapist)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -83,7 +87,7 @@ struct AppointmentCardView: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
-                    .foregroundColor(.accent)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                 }
             
                 //Notizen

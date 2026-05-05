@@ -18,6 +18,7 @@ struct AppointmentDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let appointment: Appointment
     @EnvironmentObject var viewModel: AppointmentViewModel
+    @EnvironmentObject var themeManager: ThemeManager 
     
     @State private var showingCancelSheet = false
     @State private var cancelReason = ""
@@ -60,7 +61,8 @@ struct AppointmentDetailView: View {
                             .font(.system(size: 60))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.accent, .accent],
+                                    colors: [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor],
+
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -73,15 +75,15 @@ struct AppointmentDetailView: View {
                         Text(appointment.formattedTime)
                             .font(.title)
                             .fontWeight(.semibold)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 32)
                     .background(
                         LinearGradient(
                             colors: [
-                                Color.accent.opacity(0.1),
-                                Color.accent.opacity(0.05)
+                                themeManager.currentTheme.accentColor.opacity(0.1),
+                                themeManager.currentTheme.accentColor.opacity(0.05)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -125,7 +127,7 @@ struct AppointmentDetailView: View {
                                 }
                             } label: {
                                 Image(systemName: isEditingNotes ? "checkmark.circle.fill" : "pencil.circle")
-                                    .foregroundColor(.accent)
+                                    .foregroundColor(themeManager.currentTheme.accentColor)
                                     .font(.title3)
                             }
                         }
@@ -204,7 +206,7 @@ struct AppointmentDetailView: View {
                                             .foregroundColor(.white)
                                             .frame(maxWidth: .infinity)
                                             .padding()
-                                            .background(Color.accent)
+                                            .background(themeManager.currentTheme.accentColor)
                                             .cornerRadius(12)
                                                     }
                                             .padding(.horizontal)
@@ -492,6 +494,7 @@ struct ManualAppointmentEntryView: View {
     
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: AppointmentViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
@@ -545,7 +548,7 @@ struct ManualAppointmentEntryView: View {
                         // Praxis-Name wie in PraxisCard
                         Text(praxis.name)
                             .font(.title3.bold())
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.currentTheme.accentColor)
                     } else {
                         Text("Keine Praxis im Profil hinterlegt")
                             .foregroundStyle(.secondary)
@@ -599,7 +602,7 @@ struct ManualAppointmentEntryView: View {
                     if isManualTherapist {
                         HStack(spacing: 12) {
                             Image(systemName: "pencil")
-                                .foregroundColor(.accent)
+                                .foregroundColor(themeManager.currentTheme.accentColor)
                                 .font(.caption)
                             TextField("Name des Therapeuten", text: $therapistName)
                                 .textContentType(.name)

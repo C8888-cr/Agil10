@@ -13,6 +13,8 @@ struct DayProgressBar: View {
     let dayName: String
     let progress: Double
     let isToday: Bool
+    @EnvironmentObject var themeManager: ThemeManager
+    
     
     var body: some View {
         VStack(spacing: 6) {
@@ -27,7 +29,9 @@ struct DayProgressBar: View {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(
                         LinearGradient(
-                            colors: progress > 0 ? [.accent, .accent.opacity(0.7)] : [.gray.opacity(0.3)],
+                            colors: progress > 0 ?
+                             [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor.opacity(0.7)]
+                                                           : [.gray.opacity(0.3)],
                             startPoint: .bottom,
                             endPoint: .top
                         )
@@ -37,16 +41,16 @@ struct DayProgressBar: View {
             }
             
             // Tag Label
-            Text(dayName)
-                .font(.caption2)
-                .fontWeight(isToday ? .bold : .regular)
-                .foregroundColor(isToday ? .accent : .secondary)
-            
-            // Heute Indikator
-            if isToday {
-                Circle()
-                    .fill(Color.accent)
-                    .frame(width: 4, height: 4)
+                       Text(dayName)
+                           .font(.caption2)
+                           .fontWeight(isToday ? .bold : .regular)
+                           .foregroundColor(isToday ? themeManager.currentTheme.accentColor : .secondary)   // ← geändert
+                       
+                       // Heute Indikator
+                       if isToday {
+                           Circle()
+                               .fill(themeManager.currentTheme.accentColor)   // ← geändert
+                               .frame(width: 4, height: 4)
             } else {
                 Circle()
                     .fill(Color.clear)

@@ -126,6 +126,8 @@ import SwiftUI
 import SwiftData
 
 struct EmailImportView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    
     @Binding var emailText: String
     let onImport: () -> Void
     let onDismiss: () -> Void
@@ -225,7 +227,9 @@ struct EmailImportView: View {
                     .padding()
                     .background(
                         LinearGradient(
-                            colors: [.accent, .accent],
+                            colors: [themeManager.currentTheme.accentColor,
+                                themeManager.currentTheme.accentColor
+                                    ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )

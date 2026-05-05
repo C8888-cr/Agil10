@@ -6,10 +6,6 @@
 //
 
 
-//
-//  LoginView.swift (MAGENTA VERSION)
-//  Agil9.0
-//
 import SwiftUI
 import SwiftData
 struct LoginView: View {
@@ -66,11 +62,11 @@ struct LoginView: View {
                             Text("Email")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.accent) // Auf telekomMagenta geändert
+                                .foregroundColor(Color("AccentColor"))
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope.fill")
-                                    .foregroundColor(.accent) // Auf telekomMagenta geändert
+                                    .foregroundColor(Color("AccentColor"))
                                     .font(.system(size: 14))
                                 
                                 CustomPlaceholderTextField(text: $email, placeholder: "deine@email.de")
@@ -78,7 +74,7 @@ struct LoginView: View {
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
-                                    .accentColor(.accent)
+                                    .tint(Color("AccentColor"))
                             }
                             .padding(14)
                             .background(Color.white)
@@ -86,9 +82,9 @@ struct LoginView: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(
-                                        Color.accent.opacity( // Auf telekomMagenta geändert
-                                            !ValidationHelper.isValidEmail(email) && !email.isEmpty ? 0.6 : 0.25
-                                        ),
+                                            Color("AccentColor").opacity(
+                                                !ValidationHelper.isValidEmail(email) && !email.isEmpty ? 0.6 : 0.25
+                                            ),
                                         lineWidth: 2
                                     )
                             )
@@ -99,11 +95,11 @@ struct LoginView: View {
                             Text("Passwort")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.accent) // Auf telekomMagenta geändert
+                                .foregroundColor(Color("AccentColor"))
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "lock.fill")
-                                    .foregroundColor(.accent) // Auf telekomMagenta geändert
+                                    .foregroundColor(Color("AccentColor"))
                                     .font(.system(size: 14))
                                 
                                 SecureField("Passwort eingeben", text: $password)
@@ -114,7 +110,7 @@ struct LoginView: View {
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.accent, lineWidth: 2) // Hier war ein Tippfehler, korrigiert
+                                    .stroke(Color("AccentColor"), lineWidth: 2)
                             )
                         }
                         
@@ -128,7 +124,7 @@ struct LoginView: View {
                             }
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.accent) // Hier war ein Tippfehler, korrigiert
+                            .foregroundColor(Color("AccentColor"))
                         }
                     }
                     .padding(.horizontal, 4)
@@ -145,7 +141,7 @@ struct LoginView: View {
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.accent.opacity(0.8)) // Auf telekomMagenta geändert
+                        .background(Color("AccentColor").opacity(0.8))
                         .cornerRadius(10)
                     }
                     
@@ -166,12 +162,12 @@ struct LoginView: View {
                     }
                     .frame(height: 50)
                     .foregroundColor(.white)
-                    .background(Color.accent) // Von LinearGradient auf telekomMagenta geändert
+                    .background(Color("AccentColor"))
                     .cornerRadius(12)
                     .disabled(isLoading || !isFormValid)
                     .opacity(isFormValid ? 1 : 0.65)
-                    // Die Shadow-Farbe habe ich auch auf telekomMagenta geändert, damit es passt.
-                    .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4)
+                  
+                    .shadow(color: Color("AccentColor").opacity(0.4), radius: 10, x: 0, y: 4)
                     
                     Spacer()
                     
@@ -183,7 +179,7 @@ struct LoginView: View {
                             SignUpView(
                             )
                         }
-                        .foregroundColor(.accent) // Auf telekomMagenta geändert
+                        .foregroundColor(Color("AccentColor")) 
                         .fontWeight(.semibold)
                     }
                     .font(.caption)
@@ -191,7 +187,9 @@ struct LoginView: View {
                 .padding(20)
                 .background(Color(.systemGroupedBackground))
             }
+            
         }
+        .tint(Color("AccentColor"))
     }
     
     private var isFormValid: Bool {

@@ -10,6 +10,7 @@ import SwiftData
 struct WeeklyProgressCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     private let weekDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
     
@@ -33,10 +34,10 @@ struct WeeklyProgressCard: View {
                 Text("\(Int(progressVM.weeklyProgress * 100))%")
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.accent)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.accent.opacity(0.15))
+                    .background(themeManager.currentTheme.accentColor.opacity(0.15))
                     .cornerRadius(10)
             }
             
@@ -54,7 +55,7 @@ struct WeeklyProgressCard: View {
             
             // Legende
             HStack(spacing: 16) {
-                LegendItem(color: .accent, text: "Erledigt")
+                LegendItem(color: themeManager.currentTheme.accentColor, text: "Erledigt")
                 LegendItem(color: .gray.opacity(0.3), text: "Ausstehend")
             }
             .font(.caption)

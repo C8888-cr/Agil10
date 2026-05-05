@@ -4,6 +4,7 @@ import Firebase
 
 @main
 struct AgilApp: App {
+    @StateObject private var themeManager = ThemeManager()
     @StateObject private var dependencies = AppDependencies.shared
     
     init() {
@@ -13,6 +14,8 @@ struct AgilApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environmentObject(themeManager)
+                .tint(themeManager.currentTheme.accentColor)
                 .environmentObject(dependencies)
          
                 .environmentObject(dependencies.sessionManager)

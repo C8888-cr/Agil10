@@ -60,6 +60,7 @@ struct SignUpView: View {
                 .padding(20)
             }
         }
+        .tint(Color("AccentColor"))
     }
     
     private var isFormValid: Bool {
@@ -150,22 +151,22 @@ struct FirstNameField: View {
             Text("Vorname")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
             
             HStack(spacing: 12) {
                 Image(systemName: "person.fill")
-                    .foregroundColor(.accent)
+                    .foregroundColor(Color("AccentColor"))
                     .font(.system(size: 14))
                 
                 TextField("Vorname", text: $firstName)
-                    .accentColor(.accent)
+                    .tint(Color("AccentColor"))
             }
             .padding(14)
             .background(Color.white)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.accent.opacity(0.25), lineWidth: 2)
+                    .stroke(Color("AccentColor").opacity(0.25), lineWidth: 2)
             )
         }
     }
@@ -178,22 +179,22 @@ struct LastNameField: View {
             Text("Nachname")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
             
             HStack(spacing: 12) {
                 Image(systemName: "person.fill")
-                    .foregroundColor(.accent)
+                    .foregroundColor(Color("AccentColor"))
                     .font(.system(size: 14))
                 
                 TextField("Nachname", text: $lastName)
-                    .accentColor(.accent)
+                    .tint(Color("AccentColor"))
             }
             .padding(14)
             .background(Color.white)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.accent.opacity(0.25), lineWidth: 2)
+                    .stroke(Color("AccentColor").opacity(0.25), lineWidth: 2)
             )
         }
     }
@@ -206,11 +207,11 @@ struct EmailField: View {
             Text("Email")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
             
             HStack(spacing: 12) {
                 Image(systemName: "envelope.fill")
-                    .foregroundColor(.accent)
+                    .foregroundColor(Color("AccentColor"))
                     .font(.system(size: 14))
                 
                 CustomPlaceholderTextField(text: $email, placeholder: "deine@email.de")
@@ -218,7 +219,7 @@ struct EmailField: View {
                     .keyboardType(.emailAddress)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .accentColor(.accent)
+                    .tint(Color("AccentColor"))
             }
             .padding(14)
             .background(Color.white)
@@ -226,7 +227,7 @@ struct EmailField: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        Color.accent.opacity(
+                        Color("AccentColor").opacity(
                             !ValidationHelper.isValidEmail(email) && !email.isEmpty ? 0.6 : 0.25
                         ),
                         lineWidth: 2
@@ -243,16 +244,16 @@ struct PasswordField: View {
             Text("Passwort")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
             
             HStack(spacing: 12) {
                 Image(systemName: "lock.fill")
-                    .foregroundColor(.accent)
+                    .foregroundColor(Color("AccentColor"))
                     .font(.system(size: 14))
                 
-                SecureField("8 Zeichen, 1 Großbuchstabe, 1 Kleinbuchstabe, 1 Zahl, 1 Sonderzeichen", text: $password)
-                    .textContentType(.newPassword)
-                    .accentColor(.accent)
+                SecureField("Passwort", text: $password)
+                                  .textContentType(.newPassword)
+                                  .tint(Color("AccentColor"))
             }
             .padding(14)
             .background(Color.white)
@@ -260,13 +261,16 @@ struct PasswordField: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        Color.accent.opacity(
+                        Color("AccentColor").opacity(
                             !ValidationHelper.isValidPassword(password) && !password.isEmpty ? 0.6 : 0.25
                         ),
                         lineWidth: 2
                     )
             )
-            
+            Text("Mind. 8 Zeichen mit Groß-/Kleinbuchstabe, Zahl und Sonderzeichen")
+                          .font(.caption2)
+                          .foregroundColor(.secondary)
+                          .padding(.horizontal, 4)
         }
     }
 }
@@ -279,16 +283,16 @@ struct ConfirmPasswordField: View {
             Text("Passwort wiederholen")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
             
             HStack(spacing: 12) {
                 Image(systemName: "lock.fill")
-                    .foregroundColor(.accent)
+                    .foregroundColor(Color("AccentColor"))
                     .font(.system(size: 14))
                 
                 SecureField("Passwort wiederholen", text: $confirmPassword)
                     .textContentType(.newPassword)
-                    .accentColor(.accent)
+                    .tint(Color("AccentColor"))
             }
             .padding(14)
             .background(Color.white)
@@ -296,7 +300,7 @@ struct ConfirmPasswordField: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        Color.accent.opacity(
+                        Color("AccentColor").opacity(
                             password != confirmPassword && !confirmPassword.isEmpty ? 0.6 : 0.25
                         ),
                         lineWidth: 2
@@ -313,7 +317,7 @@ struct TherapistToggleField: View {
             Text("Kontotyp")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(.accentColor)
             
             HStack {
                 Toggle(isOn: $isTherapist) {
@@ -327,7 +331,7 @@ struct TherapistToggleField: View {
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.accent.opacity(0.25), lineWidth: 2)
+                        .stroke(Color("AccentColor").opacity(0.25), lineWidth: 2)
                 )
             }
         }
@@ -336,41 +340,53 @@ struct TherapistToggleField: View {
 struct PraxisPickerField: View {
     @Binding var selectedPraxisId: UUID?
     
+    private var selectedPraxisName: String {
+        guard let id = selectedPraxisId,
+              let praxis = PraxisDataManager.shared.praxen.first(where: { $0.id == id })
+        else {
+            return "Bitte wählen Sie Ihre Praxis"
+        }
+        return praxis.name
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Ihre Praxis")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
-                                    
-            HStack {
-                Spacer()
-                Picker("Praxis auswählen", selection: $selectedPraxisId) {
-                    Text("Bitte wählen Sie Ihre Praxis")
-                        .tag(nil as UUID?)
-                    ForEach(PraxisDataManager.shared.praxen) { praxis in
-                        Text(praxis.name)
-                            .tag(praxis.id as UUID?)
+                .foregroundColor(Color("AccentColor"))
+            
+            Menu {
+                Button("Bitte wählen Sie Ihre Praxis") {
+                    selectedPraxisId = nil
+                }
+                ForEach(PraxisDataManager.shared.praxen) { praxis in
+                    Button(praxis.name) {
+                        selectedPraxisId = praxis.id
                     }
                 }
-                .pickerStyle(.menu)
-                .accentColor(.accent)
-                
-                Spacer()
+            } label: {
+                HStack {
+                    Text(selectedPraxisName)
+                        .foregroundColor(Color("AccentColor"))   // ← jetzt garantiert pink
+                    Spacer()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                        .foregroundColor(Color("AccentColor"))
+                }
+                .padding(14)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            Color("AccentColor").opacity(
+                                selectedPraxisId == nil ? 0.6 : 0.25
+                            ),
+                            lineWidth: 2
+                        )
+                )
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 14)
-            .background(Color.white)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(
-                        Color.accent.opacity(
-                            selectedPraxisId == nil ? 0.6 : 0.25
-                        ),
-                        lineWidth: 2
-                    )
-            )
         }
     }
 }
@@ -389,7 +405,7 @@ struct ErrorMessageSection: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.accent.opacity(0.8))
+        .background(Color("AccentColor").opacity(0.8))
         .cornerRadius(10)
     }
 }
@@ -413,12 +429,12 @@ struct SignUpButtonSection: View {
         .frame(height: 50)
         .foregroundColor(.white)
         .background(
-            isFormValid ? Color.accent : Color.accent.opacity(0.2)
+            isFormValid ? Color("AccentColor") : Color("AccentColor").opacity(0.2)
         )
         .cornerRadius(12)
         .disabled(isLoading || !isFormValid)
         .opacity(isFormValid ? 1 : 0.65)
-        .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4)
+        .shadow(color: Color("AccentColor").opacity(0.4), radius: 10, x: 0, y: 4)
     }
 }
 // MARK: - Back Button Section
@@ -430,7 +446,7 @@ struct BackButtonSection: View {
             Text("Zurück zum Login")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.accent)
+                .foregroundColor(Color("AccentColor"))
         }
     }
 }

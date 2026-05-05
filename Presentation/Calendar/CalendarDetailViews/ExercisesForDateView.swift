@@ -15,6 +15,7 @@ struct ExercisesForDateView: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var videoLibraryViewModel: VideoLibraryViewModel
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var draggedScheduleId: UUID? = nil
     @State private var dropIndicator: ScheduleDropIndicator? = nil
@@ -98,12 +99,8 @@ struct ExercisesForDateView: View {
                     onAddExercise()
                 } label: {
                     Label("Übung hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                 }
+                .buttonStyle(.primary)
             }
             
             if remainingSeconds > 0 {
@@ -119,7 +116,7 @@ struct ExercisesForDateView: View {
     private func dropLine(visible: Bool) -> some View {
         if visible {
             RoundedRectangle(cornerRadius: 2)
-                .fill(Color.accentColor)
+                .fill(themeManager.currentTheme.accentColor )
                 .frame(height: 3)
                 .padding(.vertical, 3)
                 .transition(.opacity.combined(with: .scale(scale: 0.5)))

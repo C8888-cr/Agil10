@@ -14,6 +14,7 @@ struct PraxisCard: View {
     let praxis: Praxis
     @Binding var isEditing: Bool
     @State private var showPraxisSelectionSheet = false
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         InfoCard {
@@ -22,7 +23,7 @@ struct PraxisCard: View {
                 ZStack(alignment: .leading) {
                     Text(praxis.name)
                         .font(.title3.bold())
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle( themeManager.currentTheme.accentColor)
                     if isEditing {
                         HStack {
                             Spacer()
@@ -51,7 +52,7 @@ struct PraxisCard: View {
                                 praxis.openInMaps()
                             }) {
                                 Image(systemName: "mappin.circle.fill")
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle( themeManager.currentTheme.accentColor)
                                     .font(.title3)
                             }
                         }
@@ -73,7 +74,7 @@ struct PraxisCard: View {
                             }
                         } label: {
                             Image(systemName: "phone.circle.fill")
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle( themeManager.currentTheme.accentColor)
                                 .font(.title3)
                         }
                     }
@@ -93,7 +94,7 @@ struct PraxisCard: View {
                             }
                         } label: {
                             Image(systemName: "envelope.circle.fill")
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle( themeManager.currentTheme.accentColor)
                                 .font(.title3)
                         }
                     }

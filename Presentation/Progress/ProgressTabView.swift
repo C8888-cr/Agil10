@@ -14,7 +14,7 @@ struct ProgressTabView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var profileVM: ProfileViewModel
     @State private var activeSheet: SheetType?
-
+    @EnvironmentObject var themeManager: ThemeManager
 
     enum SheetType: Identifiable {
         case
@@ -68,7 +68,7 @@ struct ProgressTabView: View {
                                            .overlay(
                                                Text(session.currentUser?.initials ?? "?")
                                                    .font(.system(size: 14, weight: .bold))
-                                                   .foregroundStyle(Color.accentColor)
+                                                   .foregroundStyle(themeManager.currentTheme.accentColor)
                                            )
                                    }
                     }

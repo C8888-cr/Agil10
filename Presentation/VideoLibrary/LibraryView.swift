@@ -12,7 +12,7 @@ struct LibraryView: View {
     @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var viewModel: VideoLibraryViewModel
     @EnvironmentObject private var settingsVM: SettingsViewModel
-    
+    @EnvironmentObject var themeManager: ThemeManager
 
     @State private var showPlayer = false
     @State private var showFilterSheet = false
@@ -299,6 +299,7 @@ struct LibraryView: View {
     
     
     var storageInfoCard: some View {
+        
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Speicher")
@@ -314,7 +315,7 @@ struct LibraryView: View {
             
             Text("\(viewModel.filteredVideos.count) Übungen")
                 .font(.headline)
-                .foregroundStyle(.accent)
+                .foregroundStyle(themeManager.currentTheme.accentColor)
         }
         .padding()
         .background(Color(.systemBackground))

@@ -7,6 +7,7 @@ import SwiftUI
 
 struct ExpertModeContent: View {
     @ObservedObject var viewModel: ExpertModeViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     var onDismiss: () -> Void
 
     init(viewModel: ExpertModeViewModel, onDismiss: @escaping () -> Void) {
@@ -107,17 +108,17 @@ struct ExpertModeContent: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color.accentColor.opacity(0.7),
-                        Color.accentColor,
-                        Color.accentColor.opacity(0.7)
+                        themeManager.currentTheme.accentColor.opacity(0.7),
+                        themeManager.currentTheme.accentColor,
+                        themeManager.currentTheme.accentColor.opacity(0.7),
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .frame(width: width, height: 16)
-            .shadow(color: Color.accentColor.opacity(0.8), radius: 14)
-            .shadow(color: Color.accentColor.opacity(0.5), radius: 28)
+            .shadow(color: themeManager.currentTheme.accentColor.opacity(0.8), radius: 14)
+            .shadow(color: themeManager.currentTheme.accentColor.opacity(0.5), radius: 28)
             .offset(y: yPos - pillHeight / 2)
             .animation(.linear(duration: 0.08), value: yPos)
             .allowsHitTesting(false)
@@ -203,6 +204,8 @@ struct ExpertModeContent: View {
         
         @State private var squashX: CGFloat = 1.0    // horizontale Skalierung
         @State private var squashY: CGFloat = 1.0    // vertikale Skalierung
+        @EnvironmentObject var themeManager: ThemeManager
+        
         
         private var ballHeight: CGFloat {
             let minHeight = ballWidth
@@ -215,9 +218,9 @@ struct ExpertModeContent: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.accentColor.opacity(0.5),
-                            Color.accentColor.opacity(0.85),
-                            Color.accentColor.opacity(0.45)
+                            themeManager.currentTheme.accentColor.opacity(0.5),
+                            themeManager.currentTheme.accentColor.opacity(0.85),
+                            themeManager.currentTheme.accentColor.opacity(0.45)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -225,7 +228,7 @@ struct ExpertModeContent: View {
                 )
                 .frame(width: ballWidth, height: ballHeight)
                 .scaleEffect(x: squashX, y: squashY, anchor: .bottom)
-                .shadow(color: Color.accentColor.opacity(0.4), radius: 12)
+                .shadow(color:  themeManager.currentTheme.accentColor.opacity(0.4), radius: 12)
                 .animation(.spring(response: 0.55, dampingFraction: 0.55), value: ballHeight)
                 .onChange(of: fillRatio) { _, _ in
                     triggerBounce()
@@ -379,12 +382,13 @@ struct ExpertModeContent: View {
         @State private var yOffset: CGFloat = 0
         @State private var opacity: Double = 0
         @State private var scale: CGFloat = 1.0
+        @EnvironmentObject var themeManager: ThemeManager
         
         var body: some View {
             Text(text)
                 .font(.headline)
-                .foregroundStyle(Color.accentColor)
-                .shadow(color: Color.accentColor.opacity(0.6), radius: 6)   // ← Glow während des Aufstiegs
+                .foregroundStyle(themeManager.currentTheme.accentColor)
+                .shadow(color: themeManager.currentTheme.accentColor.opacity(0.6), radius: 6)   // ← Glow während des Aufstiegs
                 .offset(y: yOffset)
                 .opacity(opacity)
                 .scaleEffect(scale)

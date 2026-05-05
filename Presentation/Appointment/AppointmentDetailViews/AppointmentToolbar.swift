@@ -5,6 +5,10 @@ import SwiftUI
 import SwiftData
 
 struct AppointmentToolbar: ToolbarContent {
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    
     let showingManualEntry: () -> Void
     let showingEmailImport: () -> Void
     let showingProfile: () -> Void
@@ -23,13 +27,13 @@ struct AppointmentToolbar: ToolbarContent {
                     Button("Aus Email importieren", action: showingEmailImport)
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                         .font(.title3)
                 }
 
                 Button(action: showingReminders) {
                     Image(systemName: notificationsEnabled ? "bell.fill" : "bell.slash")
-                        .foregroundStyle(notificationsEnabled ? .accent : .secondary)
+                        .foregroundStyle(notificationsEnabled ? themeManager.currentTheme.accentColor : .secondary)
                         .font(.title3)
                 }
             }
@@ -49,12 +53,12 @@ struct AppointmentToolbar: ToolbarContent {
                         .clipShape(Circle())
                 } else {
                     Circle()
-                        .fill(Color.accentColor.opacity(0.3))
+                        .fill(themeManager.currentTheme.accentColor.opacity(0.3))
                         .frame(width: 35, height: 35)
                         .overlay(
                             Text(session.currentUser?.initials ?? "?")
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle(themeManager.currentTheme.accentColor)
                         )
                 }
             

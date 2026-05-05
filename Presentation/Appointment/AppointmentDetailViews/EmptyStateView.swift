@@ -16,6 +16,8 @@ import SwiftUI
 import SwiftData
 // MARK: - Empty State
 struct EmptyStateView: View {
+    
+    @EnvironmentObject var themeManager: ThemeManager
     let showingManualEntry: () -> Void
     let showingEmailImport: () -> Void
     
@@ -50,13 +52,13 @@ struct EmptyStateView: View {
                     .frame(width: 120, height: 100)
                     .background(
                         LinearGradient(
-                            colors: [.accent, .accent],
+                            colors: [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .cornerRadius(16)
-                    .shadow(color: Color.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: themeManager.currentTheme.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 
                 Button(action: showingEmailImport) {
@@ -70,13 +72,13 @@ struct EmptyStateView: View {
                     .frame(width: 120, height: 100)
                     .background(
                         LinearGradient(
-                            colors: [.accent, .accent],
+                            colors: [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .cornerRadius(16)
-                    .shadow(color: Color.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: themeManager.currentTheme.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
             }
         }

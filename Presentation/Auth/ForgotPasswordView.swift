@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    
     @State private var email = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
@@ -14,8 +18,8 @@ struct ForgotPasswordView: View {
         ZStack {
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.accent.opacity(0.1),
-                    Color.accent.opacity(0.05)
+                    Color("AccentColor").opacity(0.1),
+                    Color("AccentColor").opacity(0.05)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -33,7 +37,7 @@ struct ForgotPasswordView: View {
                 VStack(spacing: 12) {
                     Image(systemName: emailSent ? "checkmark.circle.fill" : "key.circle.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(emailSent ? .green : .accent)
+                        .foregroundColor(emailSent ? .green : Color("AccentColor"))
                     
                     Text("Passwort zurücksetzen")
                         .font(.title2)
@@ -55,11 +59,11 @@ struct ForgotPasswordView: View {
                             Text("Email")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.accent)
+                                .foregroundColor(Color("AccentColor"))
                             
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope.fill")
-                                    .foregroundColor(.accent)
+                                    .foregroundColor(Color("AccentColor"))
                                     .font(.system(size: 14))
                                 
                                 CustomPlaceholderTextField(
@@ -70,7 +74,7 @@ struct ForgotPasswordView: View {
                                 .keyboardType(.emailAddress)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
-                                .accentColor(.accent)
+                                .tint(Color("AccentColor"))
                             }
                             .padding(14)
                             .background(Color.white)
@@ -97,11 +101,11 @@ struct ForgotPasswordView: View {
                         }
                         .frame(height: 50)
                         .foregroundColor(.white)
-                        .background(ValidationHelper.isValidEmail(email) ? Color.accent : Color.accent.opacity(0.2))
+                        .background(ValidationHelper.isValidEmail(email) ? Color("AccentColor") : Color("AccentColor").opacity(0.2))
                         .cornerRadius(12)
                         .disabled(isLoading || !ValidationHelper.isValidEmail(email))
                         .opacity(ValidationHelper.isValidEmail(email) ? 1 : 0.65)
-                        .shadow(color: Color.accent.opacity(0.4), radius: 10, x: 0, y: 4)
+                        .shadow(color: Color("AccentColor").opacity(0.4), radius: 10, x: 0, y: 4)
                     }
                 }
                 
@@ -117,7 +121,7 @@ struct ForgotPasswordView: View {
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.accent.opacity(0.8))
+                    .background(Color("AccentColor").opacity(0.8))
                     .cornerRadius(10)
                 }
                 
@@ -127,12 +131,13 @@ struct ForgotPasswordView: View {
                 Button(action: { dismiss() }) {
                     Text(emailSent ? "Zurück zum Login" : "Abbrechen")
                         .font(.caption)
-                        .foregroundColor(.accent)
+                        .foregroundColor(Color("AccentColor"))
                         .fontWeight(.semibold)
                 }
             }
             .padding(20)
         }
+        .tint(Color("AccentColor"))
     }
     
     // MARK: - Aktion

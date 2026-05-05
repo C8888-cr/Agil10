@@ -6,6 +6,7 @@ struct ExercisesSection: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var themeManager: ThemeManager
     
     
     @State private var draggedScheduleId: UUID? = nil
@@ -42,7 +43,7 @@ struct ExercisesSection: View {
                     } label: {
                         Label("Alle abspielen", systemImage: "play.circle.fill")
                             .font(.subheadline)
-                            .foregroundStyle(.accent)
+                            .foregroundStyle(themeManager.currentTheme.accentColor)
                     }
                 }
             }
@@ -101,13 +102,9 @@ struct ExercisesSection: View {
                     onAddVideo()
                 } label: {
                     Label("Übung hinzufügen", systemImage: "plus.circle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accent)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                 }
                 .padding(.top, 8)
+                .buttonStyle(.primary)
             }
             if remainingSeconds > 0 {
                 RemainingTimeCard(remainingSeconds: remainingSeconds)

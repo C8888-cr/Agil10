@@ -438,7 +438,9 @@ import SwiftData
 struct VideoQuickConfigSheet: View {
     let video: Video
     let activeMode: String
-    let expertModeEnabled: Bool         // 🆕
+    let expertModeEnabled: Bool
+    @EnvironmentObject var themeManager: ThemeManager
+    
     
     // Standard-Modus States
     @State private var repetitions: Int
@@ -448,7 +450,7 @@ struct VideoQuickConfigSheet: View {
     // Expert-Modus States
     @State private var sets: Int
     @State private var repsPerSet: Int
-    @State private var expertPauseSeconds: Int       // 🆕 — eigener State!
+    @State private var expertPauseSeconds: Int
     
     // Gemeinsam
     @State private var selectedPlanMode: String
@@ -566,7 +568,7 @@ struct VideoQuickConfigSheet: View {
                     planModeSection
                 }
             }
-            .navigationTitle("Video konfigurieren")
+            .navigationTitle("Übung konfigurieren")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -593,7 +595,7 @@ struct VideoQuickConfigSheet: View {
                         )
                     }
                     .fontWeight(.semibold)
-                    .foregroundColor(.accent)
+                    .foregroundColor(themeManager.currentTheme.accentColor)
                 }
             }
         }
@@ -618,7 +620,7 @@ struct VideoQuickConfigSheet: View {
                     Text(formatDuration(totalSeconds))
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                 }
             }
             .padding(.vertical, 4)
@@ -695,7 +697,7 @@ struct VideoQuickConfigSheet: View {
                     Text("\(expertPauseSeconds) Sek")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                 }
                 Slider(
                     value: Binding(
@@ -705,7 +707,7 @@ struct VideoQuickConfigSheet: View {
                     in: 0...180,
                     step: 5
                 )
-                .tint(.accent)
+                .tint(themeManager.currentTheme.accentColor)
             }
             .padding(.vertical, 4)
         } header: {
@@ -726,7 +728,7 @@ struct VideoQuickConfigSheet: View {
                     } label: {
                         Image(systemName: "minus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(repetitions > 1 ? .accent : .gray)
+                            .foregroundColor(repetitions > 1 ? themeManager.currentTheme.accentColor : .gray)
                     }
                     .buttonStyle(.plain)
 
@@ -740,7 +742,7 @@ struct VideoQuickConfigSheet: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                     }
                     .buttonStyle(.plain)
                 }
@@ -760,7 +762,7 @@ struct VideoQuickConfigSheet: View {
                     Text(formatDuration(loopDurationSeconds))
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                 }
                 Slider(
                     value: Binding(
@@ -787,7 +789,7 @@ struct VideoQuickConfigSheet: View {
                     Text("\(pauseSeconds) Sek")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                 }
                 Slider(
                     value: Binding(
@@ -797,7 +799,7 @@ struct VideoQuickConfigSheet: View {
                     in: 0...120,
                     step: 5
                 )
-                .tint(.accent)
+                .tint(themeManager.currentTheme.accentColor)
             }
             .padding(.vertical, 4)
         } header: {
@@ -812,7 +814,7 @@ struct VideoQuickConfigSheet: View {
             } label: {
                 HStack {
                     Image(systemName: selectedPlanMode == "single" ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                     Text("Nur heute")
                 }
             }
@@ -823,7 +825,7 @@ struct VideoQuickConfigSheet: View {
             } label: {
                 HStack {
                     Image(systemName: selectedPlanMode == activeMode ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                     Text(activeMode == "daily" ? "Zum Tagesplan hinzufügen" : "Zum Wochenplan hinzufügen")
                 }
             }

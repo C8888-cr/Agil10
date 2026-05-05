@@ -41,6 +41,7 @@ struct AppointmentReminderSheet: View {
     let appointments: [Appointment]
     @Environment(\.dismiss) private var dismiss
     @State private var showPermissionAlert = false
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         NavigationStack {
@@ -64,7 +65,7 @@ struct AppointmentReminderSheet: View {
                     )) {
                         Label("Erinnerungen aktiv", systemImage: "bell.badge.fill")
                     }
-                    .tint(.accent)
+                    .tint(themeManager.currentTheme.accentColor)
                 } header: {
                     Label("Termin-Erinnerungen", systemImage: "calendar.badge.clock")
                 }
@@ -77,7 +78,7 @@ struct AppointmentReminderSheet: View {
                             } label: {
                                 HStack(spacing: 12) {
                                     Image(systemName: option.icon)
-                                        .foregroundStyle(.accent)
+                                        .foregroundColor(themeManager.currentTheme.accentColor)
                                         .frame(width: 24)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
@@ -93,7 +94,7 @@ struct AppointmentReminderSheet: View {
                                     
                                     if isSelected(option) {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(.accent)
+                                            .foregroundColor(themeManager.currentTheme.accentColor)
                                     }
                                 }
                                 .padding(.vertical, 4)
