@@ -3,7 +3,7 @@ import SwiftData
 struct RoleEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-    
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var selectedRole: UserRole
     @State private var therapistCode: String = ""
@@ -127,7 +127,7 @@ struct RoleEditSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(isFormValid ? Color.accentColor : Color.gray.opacity(0.5))
+                        .background(isFormValid ? Color("AccentColor") : Color.gray.opacity(0.5))
                         .foregroundStyle(.white)
                         .cornerRadius(12)
                         .disabled(!isFormValid || isLoading)
@@ -230,7 +230,7 @@ struct RoleOptionButton: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title2)
-                    .foregroundStyle(isSelected ? .white : .accentColor)
+                    .foregroundStyle(isSelected ? .white : Color("AccentColor"))
                     .frame(width: 40)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -252,7 +252,7 @@ struct RoleOptionButton: View {
                 }
             }
             .padding()
-            .background(isSelected ? Color.accentColor : Color(.systemBackground))
+            .background(isSelected ? Color("AccentColor") : Color(.systemBackground))
             .cornerRadius(12)
         }
     }

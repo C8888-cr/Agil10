@@ -210,33 +210,7 @@ struct ProfileView: View {
                                                 .padding(.top, 8)
                                             
                                             Divider().padding(.vertical, 12)
-                                 /*
-                                            HStack {
-                                                Label {
-                                                    Text("Video während Training").foregroundStyle(.secondary)
-                                                } icon: {
-                                                    Image(systemName: "play.rectangle")
-                                                        .foregroundStyle(Color.accentColor.opacity(0.7))
-                                                }
-                                                Spacer()
-                                                Picker("", selection: Binding(
-                                                    get: { settingsVM.preferences.videoDuringTraining },
-                                                    set: { newValue in
-                                                        settingsVM.preferences.videoDuringTraining = newValue
-                                                        try? settingsVM.modelContext.save()
-                                                        settingsVM.objectWillChange.send()
-                                                    }
-                                                )) {
-                                                    ForEach(VideoDuringTrainingMode.allCases) { mode in
-                                                        Text(mode.displayName).tag(mode)
-                                                    }
-                                                }
-                                                .labelsHidden()
-                                                .pickerStyle(.menu)
-                                  
-                                  
-                                            }
-                                  */
+                             
                                         }
                                     }
                                 }
@@ -244,7 +218,7 @@ struct ProfileView: View {
                             
                             // MARK: - Farbe
                             InfoCard {
-                                VStack(spacing: 12) {
+                                HStack() {
                                     HStack {
                                         Label {
                                             Text("Farbe").foregroundStyle(.secondary)
@@ -253,7 +227,7 @@ struct ProfileView: View {
                                                 .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                         }
                                         Spacer()
-                                    }
+                              //      }
                                     
                                     HStack(spacing: 16) {
                                         ForEach(AppTheme.allCases) { theme in
@@ -276,9 +250,10 @@ struct ProfileView: View {
                                                     }
                                                 }
                                             }
+                                        }
                                             .buttonStyle(.plain)
                                         }
-                                        Spacer()
+                           
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }

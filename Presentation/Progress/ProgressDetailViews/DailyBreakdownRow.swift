@@ -15,19 +15,20 @@ struct DailyBreakdownRow: View {
     let watchedMinutes: Int
     let targetMinutes: Int
     let isToday: Bool
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         HStack(spacing: 12) {
             // Day Circle
             ZStack {
                 Circle()
-                    .fill(isToday ? Color.accent.opacity(0.15) : Color.gray.opacity(0.1))
+                    .fill(isToday ? themeManager.currentTheme.accentColor.opacity(0.15) : Color.gray.opacity(0.1))
                     .frame(width: 40, height: 40)
                 
                 Text(shortName)
                     .font(.caption)
                     .fontWeight(isToday ? .bold : .medium)
-                    .foregroundColor(isToday ? .accent : .secondary)
+                    .foregroundColor(isToday ? themeManager.currentTheme.accentColor : .secondary)
             }
             
             // Day Name
@@ -47,7 +48,7 @@ struct DailyBreakdownRow: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(
                             LinearGradient(
-                                colors: [.accent, .accent.opacity(0.7)],
+                                colors: [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor.opacity(0.7)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

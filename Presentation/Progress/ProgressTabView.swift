@@ -63,7 +63,7 @@ struct ProgressTabView: View {
                                            .clipShape(Circle())
                                    } else {
                                        Circle()
-                                           .fill(Color.accentColor.opacity(0.3))
+                                           .fill(themeManager.currentTheme.accentColor.opacity(0.3))
                                            .frame(width: 35, height: 35)
                                            .overlay(
                                                Text(session.currentUser?.initials ?? "?")

@@ -8,6 +8,7 @@ struct FilterSheet: View {
     
     @ObservedObject var viewModel: VideoLibraryViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         NavigationStack {
@@ -52,6 +53,7 @@ struct FilterSheet: View {
                 Section {
                     Toggle(isOn: $viewModel.showFavoritesOnly) {
                         Label("Nur Favoriten", systemImage: "star.fill")
+                            .tint(themeManager.currentTheme.accentColor)
                     }
                 }
                 

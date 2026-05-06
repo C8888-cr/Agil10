@@ -17,6 +17,7 @@ struct RemindersView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var showResetAlert = false
     @State private var selectedDay: Int = 0
@@ -78,7 +79,7 @@ struct RemindersView: View {
             )) {
                 Label("Erinnerungen aktiv", systemImage: "bell.fill")
             }
-            .tint(.accent)
+            .tint(themeManager.currentTheme.accentColor)
             
             if settingsVM.preferences.notificationsEnabled {
                 // Standard-Uhrzeit — nur sichtbar wenn mind. ein Tag KEINEN individuellen Wert hat
@@ -148,7 +149,7 @@ struct RemindersView: View {
                         settingsVM.scheduleAllReminders()                           } label: {
                             Text("Standard")
                                 .font(.caption)
-                                .foregroundColor(.accent)
+                                .foregroundColor(themeManager.currentTheme.accentColor)
                         }
                         .buttonStyle(.plain)
                     
@@ -165,7 +166,7 @@ struct RemindersView: View {
                         settingsVM.scheduleAllReminders()
                     } label: {
                         Image(systemName: "pencil.circle")
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .font(.system(size: 18))
                     }
                     .buttonStyle(.plain)

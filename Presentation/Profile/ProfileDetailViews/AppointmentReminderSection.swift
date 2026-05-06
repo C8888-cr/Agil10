@@ -7,6 +7,7 @@ import SwiftData
 struct AppointmentReminderSection: View {
     @Bindable var user: User
     let appointments: [Appointment]   // aus @Query in ProfileView übergeben
+    @EnvironmentObject var themeManager: ThemeManager
 
     @State private var showPermissionAlert = false
 
@@ -34,7 +35,7 @@ struct AppointmentReminderSection: View {
                     Label("Termin-Erinnerungen", systemImage: "bell.badge.fill")
                         .fontWeight(.medium)
                 }
-                .tint(.accentColor)
+                .tint(themeManager.currentTheme.accentColor)
 
                 // DatePicker — nur sichtbar wenn Toggle an
                 if user.appointmentReminderEnabled {

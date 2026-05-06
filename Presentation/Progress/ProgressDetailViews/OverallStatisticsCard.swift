@@ -10,6 +10,7 @@ import SwiftData
 // MARK: - Overall Statistics Card
 struct OverallStatisticsCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -25,7 +26,7 @@ struct OverallStatisticsCard: View {
                     icon: "play.circle.fill",
                     value: "\(progressVM.lifetimeCompletedWorkouts)",
                     label: "Videos geschaut",
-                    color: Color.accent
+                    color: Color("AccentColor")
                 )
                 
                 StatisticItem(

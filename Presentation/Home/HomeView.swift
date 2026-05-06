@@ -12,6 +12,7 @@ struct HomeView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var profileVM: ProfileViewModel
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     
  
     @State private var pendingDate: Date = Date()
@@ -159,12 +160,12 @@ struct HomeView: View {
                                            .clipShape(Circle())
                                    } else {
                                        Circle()
-                                           .fill(Color.accentColor.opacity(0.3))
+                                           .fill(themeManager.currentTheme.accentColor.opacity(0.3))
                                            .frame(width: 35, height: 35)
                                            .overlay(
                                                Text(session.currentUser?.initials ?? "?")
                                                    .font(.system(size: 14, weight: .bold))
-                                                   .foregroundStyle(Color.accentColor)
+                                                   .foregroundStyle(themeManager.currentTheme.accentColor)
                                            )
                                    }
                     }

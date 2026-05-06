@@ -58,16 +58,23 @@ struct AppointmentReminderSheet: View {
                                     for: appointments,
                                     enabled: true,
                                     reminderTime: user.appointmentReminderTime,
-                                    mode: user.appointmentReminderMode    // NEU
+                                    mode: user.appointmentReminderMode
                                 )
                             }
                         }
                     )) {
-                        Label("Erinnerungen aktiv", systemImage: "bell.badge.fill")
-                    }
-                    .tint(themeManager.currentTheme.accentColor)
+                        HStack(spacing: 12) {
+                               Image(systemName: "bell.badge.fill")
+                                   .symbolRenderingMode(.monochrome)
+                                   .foregroundStyle(themeManager.currentTheme.accentColor)
+                               Text("Erinnerungen aktiv")
+                                   .foregroundStyle(.primary)
+                           }
+                       }
+                       .tint(themeManager.currentTheme.accentColor)
                 } header: {
                     Label("Termin-Erinnerungen", systemImage: "calendar.badge.clock")
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                 }
 
                 if user.appointmentReminderEnabled {

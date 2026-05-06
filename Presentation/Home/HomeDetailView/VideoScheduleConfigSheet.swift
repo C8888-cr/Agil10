@@ -309,6 +309,8 @@ struct VideoScheduleConfigSheet: View {
     @Binding var repetitions: Int
     @Binding var pauseSeconds: Int
     
+    @EnvironmentObject var themeManager: ThemeManager
+    
     let onAdd: () -> Void
     let onCancel: () -> Void
     
@@ -337,7 +339,7 @@ struct VideoScheduleConfigSheet: View {
                                 Spacer()
                                 Text(formatSeconds(loopDuration))
                                     .fontWeight(.semibold)
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle(themeManager.currentTheme.accentColor)
                             }
                             
                           
@@ -350,7 +352,7 @@ struct VideoScheduleConfigSheet: View {
                                 in: 5...300,  // ✅ 5s bis 5min IMMER
                                 step: 5
                             )
-                            .tint(.accent)
+                            .tint(themeManager.currentTheme.accentColor)
                         }
                         
                     } header: {
@@ -400,7 +402,7 @@ struct VideoScheduleConfigSheet: View {
                                 Text(calculateTotal())
                                     .fontWeight(.semibold)
                                     .font(.headline)
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle(themeManager.currentTheme.accentColor)
                             }
                         }
                         .font(.subheadline)

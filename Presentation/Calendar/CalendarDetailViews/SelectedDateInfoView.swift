@@ -14,6 +14,7 @@ struct SelectedDateInfoView: View {
     let appointments: [Appointment]
     let onAddAppointment: () -> Void
     let onTapAppointment: (Appointment) -> Void
+    @EnvironmentObject var themeManager: ThemeManager
     
     
      // MARK: - Body
@@ -32,7 +33,7 @@ struct SelectedDateInfoView: View {
                             ForEach(appointments) { appt in
                                 HStack(spacing: 6) {
                                     Image(systemName: "")
-                                        .foregroundColor(.accentColor)
+                                        .foregroundColor(themeManager.currentTheme.accentColor)
                                     Text("\(appt.date.timeString) – \(appt.therapist)")
                                         .font(.headline)
                                         .foregroundColor(.secondary)

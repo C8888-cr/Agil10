@@ -12,6 +12,7 @@ import SwiftData
 struct CompactWeekView: View {
 @EnvironmentObject var appointmentViewModel: AppointmentViewModel
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     // ✅ @Query für Termine
        @Query(sort: \Appointment.date) private var allAppointments: [Appointment]
        
@@ -26,7 +27,7 @@ struct CompactWeekView: View {
                 Button(action: { calendarViewModel.previousWeek() }) {
                         Image(systemName: "chevron.left")
                             .font(.title3)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .frame(width: 44, height: 44)
                     }
                     
@@ -40,7 +41,7 @@ struct CompactWeekView: View {
                 Button(action: { calendarViewModel.nextWeek() }) {
                     Image(systemName: "chevron.right")
                         .font(.title3)
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                         .frame(width: 44, height: 44)
                 }
             }

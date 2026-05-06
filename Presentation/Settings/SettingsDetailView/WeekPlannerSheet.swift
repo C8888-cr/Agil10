@@ -27,6 +27,7 @@ struct WeekPlannerSheet: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @EnvironmentObject var videoLibraryVM: VideoLibraryViewModel
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var startDate: Date = Date()
     @State private var selectedDayIndex: Int = 0
@@ -166,17 +167,17 @@ struct WeekPlannerSheet: View {
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: "single",
-                    expertModeEnabled: expertModeEnabled,        // 🆕
+                    expertModeEnabled: expertModeEnabled,
                     onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                         let planned = PlannedVideo(
                             video: video,
                             repetitions: reps,
                             loopDurationSeconds: loopDuration,
                             pauseSeconds: pause,
-                            sets: sets,                          // 🆕
-                            reps: repsPerSet,                    // 🆕
-                            expertPauseSeconds: expertPause,     // 🆕
-                            weightKg: weight                     // 🆕
+                            sets: sets,
+                            reps: repsPerSet,
+                            expertPauseSeconds: expertPause,
+                            weightKg: weight
                         )
                         if rule == .daily {
                             guard !(weekPlan[0]?.contains { $0.video.id == video.id } ?? false) else {
@@ -355,7 +356,7 @@ struct WeekPlannerSheet: View {
                         .foregroundColor(.primary)
                     Spacer()
                     Text(startDate, format: .dateTime.day().month().year())
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                         .fontWeight(.semibold)
                     Image(systemName: "chevron.right")
                         .font(.caption)
@@ -376,7 +377,7 @@ struct WeekPlannerSheet: View {
                 )
                 .datePickerStyle(.graphical)
                 .padding(.horizontal)
-                .tint(.accent)
+                .tint(themeManager.currentTheme.accentColor)
                 .onChange(of: startDate) { _, newDate in
                     print("📅 Datum gewählt: \(newDate)")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -522,7 +523,7 @@ struct WeekPlannerSheet: View {
                     .font(.caption2)
                     .foregroundColor(
                         isSelected ? .white.opacity(0.8) :
-                        isActive ? .accent : .secondary
+                        isActive ? themeManager.currentTheme.accentColor : .secondary
                     )
                 
                 // ✅ Fortschrittsbalken nur bei Weekly
@@ -563,7 +564,7 @@ struct WeekPlannerSheet: View {
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(
-                        isSelected ? Color.accent :
+                        isSelected ? themeManager.currentTheme.accentColor :
                         isActive ? Color.gray.opacity(0.1) :
                         Color.gray.opacity(0.05)
                     )
@@ -639,11 +640,11 @@ struct WeekPlannerSheet: View {
         
         return HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.accent.opacity(0.15))
+                .fill(themeManager.currentTheme.accentColor.opacity(0.15))
                 .frame(width: 44, height: 44)
                 .overlay(
                     Image(systemName: "play.fill")
-                        .foregroundColor(.accent)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
                         .font(.caption)
                 )
             
@@ -722,7 +723,7 @@ struct WeekPlannerSheet: View {
                 Label("Plan speichern", systemImage: "checkmark.circle.fill")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isReadyToSave ? Color.accent : Color.gray)
+                    .background(isReadyToSave ? themeManager.currentTheme.accentColor : Color.gray)
                     .foregroundColor(.white)
                     .cornerRadius(12)
                     .fontWeight(.semibold)

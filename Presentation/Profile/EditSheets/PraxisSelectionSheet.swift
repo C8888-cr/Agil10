@@ -12,7 +12,7 @@ import SwiftData
 struct PraxisSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
-   
+    @EnvironmentObject var themeManager: ThemeManager
     
     @Bindable var user: User 
     @State private var selectedPraxisId: UUID?
@@ -57,7 +57,7 @@ struct PraxisSelectionSheet: View {
                                                     .font(.subheadline)
                                                 Spacer()
                                                 Image(systemName: "mappin.circle.fill")
-                                                    .foregroundStyle(.accent)
+                                                    .foregroundStyle(themeManager.currentTheme.accentColor)
                                                     .font(.subheadline)
                                             }
                                         }
@@ -73,7 +73,7 @@ struct PraxisSelectionSheet: View {
                                                 
                                                 Link(destination: URL(string: "tel://\(telefon.filter { $0.isNumber })")!) {
                                                     Image(systemName: "phone.circle.fill")
-                                                        .foregroundStyle(.accent)
+                                                        .foregroundStyle(themeManager.currentTheme.accentColor)
                                                         .font(.subheadline)
                                                 }
                                             }
@@ -86,7 +86,7 @@ struct PraxisSelectionSheet: View {
                                                 
                                                 Link(destination: URL(string: "mailto:\(email)")!) {
                                                     Image(systemName: "envelope.circle.fill")
-                                                        .foregroundStyle(.accent)
+                                                        .foregroundStyle(themeManager.currentTheme.accentColor)
                                                         .font(.subheadline)
                                                 }
                                             }
@@ -100,7 +100,7 @@ struct PraxisSelectionSheet: View {
                                         // ✅ CHECKMARK
                                         if selectedPraxisId == praxis.id {
                                             Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(Color.accentColor)
+                                                .foregroundStyle(themeManager.currentTheme.accentColor)
                                                 .font(.title3)
                                                 .padding(12)
                                         }
@@ -125,7 +125,7 @@ struct PraxisSelectionSheet: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(selectedPraxisId != nil ? Color.accentColor : Color.gray.opacity(0.5))
+                                .background(selectedPraxisId != nil ? themeManager.currentTheme.accentColor : Color.gray.opacity(0.5))
                                 .foregroundStyle(.white)
                                 .cornerRadius(12)
                             }

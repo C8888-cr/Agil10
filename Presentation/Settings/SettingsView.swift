@@ -600,6 +600,7 @@ struct SettingsView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var showResetAlert = false
     @State private var selectedDay: Int = 0
@@ -693,7 +694,7 @@ struct SettingsView: View {
                     .font(.caption2)
                     .foregroundColor(
                         isSelected ? .white.opacity(0.8) :
-                            isActive ? .accent : .secondary
+                            isActive ? themeManager.currentTheme.accentColor : .secondary
                     )
                 
                 Circle()
@@ -708,20 +709,20 @@ struct SettingsView: View {
                             )
                     )
             }
-            .frame(minWidth: 44)  // ✅ minWidth statt maxWidth
+            .frame(minWidth: 44)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(
-                        isSelected ? Color.accent :
+                        isSelected ? themeManager.currentTheme.accentColor :
                             isActive ? Color.gray.opacity(0.1) :
                             Color.gray.opacity(0.05)
                     )
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(isSelected ? Color.accent : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? themeManager.currentTheme.accentColor : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(.plain)
@@ -738,7 +739,7 @@ struct SettingsView: View {
                         Spacer()
                         Text("\(dayGoal.targetMinutes) Min")
                             .font(.subheadline)
-                            .foregroundColor(.accent)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                             .fontWeight(.semibold)
                     }
                     
@@ -754,7 +755,7 @@ struct SettingsView: View {
                         in: 0...60,
                         step: 5
                     )
-                    .tint(.accent)
+                    .tint(themeManager.currentTheme.accentColor)
                     
                     Text("Wähle zwischen 0 und 60 Minuten tägliches Training")
                         .font(.caption)
@@ -836,5 +837,6 @@ enum WeekDay: String, CaseIterable, Identifiable {
             removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
         ))
         .environmentObject(sessionManager)
+        .environmentObject(ThemeManager())
 }
 

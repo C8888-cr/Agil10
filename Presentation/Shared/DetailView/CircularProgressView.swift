@@ -4,6 +4,7 @@ struct CircularProgressView: View {
     let progress: Double
     let lineWidth: CGFloat
     let size: CGFloat
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         ZStack {
@@ -16,7 +17,7 @@ struct CircularProgressView: View {
                 .trim(from: 0, to: min(progress, 1.0))
                 .stroke(
                     LinearGradient(
-                        colors: [.accent, .accent.opacity(0.7)],
+                        colors: [themeManager.currentTheme.accentColor, themeManager.currentTheme.accentColor.opacity(0.7)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -44,10 +45,12 @@ struct CircularProgressView: View {
 }
 // MARK: - Preview
 #Preview {
+   
     VStack(spacing: 40) {
         CircularProgressView(progress: 0.35, lineWidth: 8, size: 80)
         CircularProgressView(progress: 0.75, lineWidth: 10, size: 100)
         CircularProgressView(progress: 1.0, lineWidth: 12, size: 120)
     }
     .padding()
+    .environmentObject(ThemeManager())
 }

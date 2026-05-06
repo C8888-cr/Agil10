@@ -568,7 +568,7 @@ struct VideoQuickConfigSheet: View {
                     planModeSection
                 }
             }
-            .navigationTitle("Übung konfigurieren")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -772,7 +772,7 @@ struct VideoQuickConfigSheet: View {
                     in: 10...300,
                     step: 10
                 )
-                .tint(.accent)
+                .tint(themeManager.currentTheme.accentColor)
             }
             .padding(.vertical, 4)
         } header: {
@@ -884,4 +884,5 @@ private extension Int {
         onCancel: {}
     )
     .modelContainer(container)
+    .environmentObject(ThemeManager())
 }

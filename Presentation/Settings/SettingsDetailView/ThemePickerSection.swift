@@ -34,3 +34,7 @@ struct ThemePickerSection: View {
         }
     }
 }
+#Preview {
+    ThemePickerSection()
+        .environmentObject(ThemeManager())
+}

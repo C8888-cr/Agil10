@@ -13,6 +13,7 @@ import SwiftData
 struct EmailEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var themeManager: ThemeManager
 
     
     @State private var newEmail: String = ""
@@ -76,7 +77,7 @@ struct EmailEditSheet: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(isEmailValid ? Color.accentColor : Color.gray.opacity(0.5))
+                            .background(isEmailValid ? themeManager.currentTheme.accentColor : Color.gray.opacity(0.5))
                             .foregroundStyle(.white)
                             .cornerRadius(12)
                             .disabled(!isEmailValid || isLoading)
@@ -100,7 +101,7 @@ struct EmailEditSheet: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(isCodeValid ? Color.accentColor : Color.gray.opacity(0.5))
+                            .background(isCodeValid ? themeManager.currentTheme.accentColor : Color.gray.opacity(0.5))
                             .foregroundStyle(.white)
                             .cornerRadius(12)
                             .disabled(!isCodeValid || isLoading)
@@ -245,7 +246,7 @@ struct EmailEditSheet: View {
                 } label: {
                     Text("Code erneut senden")
                         .font(.caption)
-                        .foregroundStyle(.accent)
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                 }
                 .padding(.horizontal)
             }

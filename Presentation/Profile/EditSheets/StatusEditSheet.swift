@@ -285,12 +285,13 @@ struct FeatureRow: View {
     let description: String
     let isAvailable: Bool
     let isPremiumFeature: Bool
+  
     
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(isAvailable ? Color.accentColor : .gray)
+                .foregroundStyle(isAvailable ? Color("AccentColor") : .gray)
                 .frame(width: 40)
             
             VStack(alignment: .leading, spacing: 4) {

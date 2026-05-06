@@ -359,7 +359,7 @@ struct LibraryView: View {
                           "line.3.horizontal.decrease.circle.fill" :
                           "line.3.horizontal.decrease.circle")
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(viewModel.hasActiveFilters ? .accent : .primary)
+                    .foregroundStyle(viewModel.hasActiveFilters ? themeManager.currentTheme.accentColor : .primary)
                 }
             }
         }
@@ -390,7 +390,7 @@ struct LibraryView: View {
                                    .overlay(
                                        Text(session.currentUser?.initials ?? "?")
                                            .font(.system(size: 14, weight: .bold))
-                                           .foregroundStyle(Color.accentColor)
+                                           .foregroundStyle(themeManager.currentTheme.accentColor)
                                    )
                            }
             }
@@ -403,6 +403,7 @@ struct FilterChip: View {
     let title: String
     let icon: String
     let onRemove: () -> Void
+    @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         HStack(spacing: 6) {
@@ -422,8 +423,8 @@ struct FilterChip: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color.accent.opacity(0.1))
-        .foregroundStyle(.accent)
+        .background(themeManager.currentTheme.accentColor.opacity(0.1))
+        .foregroundStyle(themeManager.currentTheme.accentColor)
         .clipShape(Capsule())
     }
 }

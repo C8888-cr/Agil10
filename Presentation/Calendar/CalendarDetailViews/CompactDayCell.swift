@@ -12,6 +12,7 @@ struct CompactDayCell: View {
     let isSelected: Bool
     let isToday: Bool
     let hasAppointment: Bool
+    @EnvironmentObject var themeManager: ThemeManager
   //  let hasExercises: Bool
   //  let exerciseProgress: Double
     
@@ -46,7 +47,7 @@ struct CompactDayCell: View {
         HStack(spacing: 3) {
             if hasAppointment {
                 Circle()
-                    .fill(Color.accent)
+                    .fill(themeManager.currentTheme.accentColor)
                     .frame(width: 5, height: 5)
             }
             
@@ -75,11 +76,11 @@ struct CompactDayCell: View {
     }
     
     private var backgroundColor: Color {
-        isSelected ? Color.accent : Color(.secondarySystemGroupedBackground)
+        isSelected ? themeManager.currentTheme.accentColor : Color(.secondarySystemGroupedBackground)
     }
     
     private var borderColor: Color {
-        isToday ? .accent : .clear
+        isToday ? themeManager.currentTheme.accentColor : .clear
     }
 }
 // MARK: - Preview

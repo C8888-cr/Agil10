@@ -19,6 +19,7 @@ struct CalendarDayView: View {
     @EnvironmentObject var profileVM: ProfileViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var themeManager: ThemeManager
     
     @Query private var allAppointments: [Appointment]
     
@@ -227,14 +228,14 @@ struct CalendarDayView: View {
             VideoQuickConfigSheet(
                 video: video,
                 activeMode: settingsVM.preferences.activeMode,
-                expertModeEnabled: settingsVM.preferences.expertModeEnabled,        // 🆕
+                expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                 initialRepetitions: playbackSettings.repetitions,
                 initialLoopDuration: playbackSettings.loopDurationSeconds,
                 initialPause: playbackSettings.pauseSeconds,
                 initialWeightKg: pendingEditWeightKg,
                 initialSets: editingSchedule?.sets,
                 initialRepsPerSet: editingSchedule?.reps,
-                initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,    // 🆕
+                initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,
                 onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                     if let scheduleId = editingScheduleId,
                        let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
@@ -262,7 +263,7 @@ struct CalendarDayView: View {
                             customLoopDuration: loopDuration,
                             sets: sets,
                             reps: repsPerSet,
-                            expertPauseSeconds: expertPause,                       // 🆕
+                            expertPauseSeconds: expertPause,
                             weightKg: weight
                         )
                         progressVM.loadToday(for: session.currentUser!, date: pendingDate)
@@ -358,6 +359,7 @@ struct CalendarDayView: View {
         let date: Date
         let onPrevious: () -> Void
         let onNext: () -> Void
+        @EnvironmentObject var themeManager: ThemeManager
         
         private var formattedDate: String {
             date.formatted(.dateTime.weekday(.wide).day().month(.wide))
@@ -368,7 +370,7 @@ struct CalendarDayView: View {
                 Button(action: onPrevious) {
                     Image(systemName: "chevron.left")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
@@ -382,7 +384,7 @@ struct CalendarDayView: View {
                 Button(action: onNext) {
                     Image(systemName: "chevron.right")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }

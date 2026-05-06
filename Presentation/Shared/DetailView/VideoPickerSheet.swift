@@ -12,6 +12,7 @@ import SwiftUI
 struct VideoPickerSheet: View {
     @EnvironmentObject var viewModel: VideoLibraryViewModel
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var themeManager: ThemeManager
     
     let onVideoSelected: (Video) -> Void
     @Environment(\.dismiss) var dismiss
@@ -31,7 +32,7 @@ struct VideoPickerSheet: View {
                                   "line.3.horizontal.decrease.circle.fill" :
                                   "line.3.horizontal.decrease.circle")
                                 .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(viewModel.hasActiveFilters ? .accent : .primary)
+                                .foregroundStyle(viewModel.hasActiveFilters ? themeManager.currentTheme.accentColor : .primary)
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {

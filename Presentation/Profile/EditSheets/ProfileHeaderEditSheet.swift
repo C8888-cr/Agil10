@@ -14,7 +14,7 @@ import PhotosUI
 struct ProfileHeaderEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext
- 
+    @EnvironmentObject var themeManager: ThemeManager
     
     @State private var firstName: String
     @State private var lastName: String
@@ -62,8 +62,8 @@ struct ProfileHeaderEditSheet: View {
                                         .fill(
                                             LinearGradient(
                                                 colors: [
-                                                    Color.accentColor.opacity(0.3),
-                                                    Color.accentColor.opacity(0.1)
+                                                    themeManager.currentTheme.accentColor.opacity(0.3),
+                                                    themeManager.currentTheme.accentColor.opacity(0.1)
                                                 ],
                                                 startPoint: .topLeading,
                                                 endPoint: .bottomTrailing
@@ -73,7 +73,7 @@ struct ProfileHeaderEditSheet: View {
                                         .overlay(
                                             Text(user.initials)
                                                 .font(.system(size: 48, weight: .bold, design: .rounded))
-                                                .foregroundStyle(Color.accentColor)
+                                                .foregroundStyle(themeManager.currentTheme.accentColor)
                                         )
                                 }
                                 
@@ -83,7 +83,7 @@ struct ProfileHeaderEditSheet: View {
                                     } label: {
                                         Image(systemName: "pencil.circle.fill")
                                             .font(.title2)
-                                            .foregroundStyle(Color.accentColor)
+                                            .foregroundStyle(themeManager.currentTheme.accentColor)
                                             .background(Circle().fill(Color(.systemBackground)).frame(width: 44, height: 44))
                                     }
                                 }
@@ -113,7 +113,7 @@ struct ProfileHeaderEditSheet: View {
                             VStack(spacing: 0) {
                                 HStack {
                                     Image(systemName: "person.fill")
-                                        .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     
                                     TextField(firstName.isEmpty ? "Vorname" : firstName, text: $firstName)
                                         .multilineTextAlignment(.leading)
@@ -127,7 +127,7 @@ struct ProfileHeaderEditSheet: View {
                             VStack(spacing: 0) {
                                 HStack {
                                     Image(systemName: "person.fill")
-                                        .foregroundStyle(Color.accentColor.opacity(0.7))
+                                        .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     
                                     TextField(lastName.isEmpty ? "Nachname" : lastName, text: $lastName)
                                         .multilineTextAlignment(.leading)
