@@ -58,7 +58,7 @@ private struct AppointmentSummaryRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(appointment.therapist)
+            Text(appointment.therapist ?? "")
                 .font(.headline)
             Text(appointment.formattedDateTime)
                 .font(.caption)

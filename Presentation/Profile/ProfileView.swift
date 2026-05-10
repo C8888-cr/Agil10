@@ -9,7 +9,7 @@ struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var settingsVM: SettingsViewModel
-    @EnvironmentObject var themeManager: ThemeManager 
+    @EnvironmentObject var themeManager: ThemeManager
     
     @Query var users: [User]
     @Query private var allAppointments: [Appointment]
@@ -28,6 +28,8 @@ struct ProfileView: View {
     @State private var showStatusEditSheet = false
     @State private var showResetAlert = false
     @State private var showDeleteAccountAlert = false
+    @State private var showPrivacyPolicy = false
+    @State private var showProfileSettings = false
     
     private var praxisId: UUID? {
         currentUser?.praxisId
@@ -61,7 +63,7 @@ struct ProfileView: View {
                                         Text("Berechtigungen").foregroundStyle(.secondary)
                                     } icon: {
                                         Image(systemName: "shield.lefthalf.filled")
-                                           .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
+                                            .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     }
                                     Spacer()
                                     HStack(spacing: 8) {
@@ -112,6 +114,28 @@ struct ProfileView: View {
                                 EmailEditSheet(user: user)
                             }
                             
+                            // MARK: - Settings
+                            InfoCard {
+                                HStack {
+                                    Label {
+                                        Text("Einstellungen").foregroundStyle(.secondary)
+                                    } icon: {
+                                        Image(systemName: "gearshape.fill")
+                                            .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.gray)
+                                        .font(.subheadline)
+                                }
+                            }
+                            .onTapGesture {
+                                showProfileSettings = true
+                            }
+                            .sheet(isPresented: $showProfileSettings) {
+                                ProfileSettingsView()
+                            }
+                            
                             // MARK: - Praxis
                             if let praxisId = praxisId,
                                let praxis = PraxisDataManager.shared.getPraxis(by: praxisId) {
@@ -156,9 +180,9 @@ struct ProfileView: View {
                                     .sheet(isPresented: $showStatusEditSheet) {
                                         StatusEditSheet(user: user)
                                     }
-
+                                    
                                     Divider().padding(.vertical, 8)
-
+                                    
                                     InfoRow(
                                         label: "Mitglied seit",
                                         value: user.createdAt.formatted(date: .abbreviated, time: .omitted),
@@ -167,99 +191,27 @@ struct ProfileView: View {
                                 }
                             }
                             
-                            
-                            // MARK: - Training / Expertenmodus
-
-                            if user.preferences != nil {
-                   
-                                InfoCard {
-                                    VStack(spacing: 0) {
-                                        // Toggle: Expertenmodus an/aus
-                                        HStack {
-                                            Label {
-                                                Text("Expertenmodus").foregroundStyle(.secondary)
-                                            } icon: {
-                                                Image(systemName: "dumbbell.fill")
-                                                    .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
-                                            }
-                                            Spacer()
-                                 
-                                                Toggle("", isOn: Binding(
-                                                    get: {
-                                                        let val = settingsVM.preferences.expertModeEnabled
-                                                        print("📱 Toggle GET: \(val)")
-                                                        return val
-                                                    },
-                                                    set: { newValue in
-                                                        print("📱 Toggle SET: \(newValue)")
-                                                        settingsVM.preferences.expertModeEnabled = newValue
-                                                        print("📱 Nach SET: \(settingsVM.preferences.expertModeEnabled)")
-                                                        try? settingsVM.modelContext.save()
-                                                      //  settingsVM
-                                             //   .objectWillChange.send()
-                                                    }
-                                                ))
-                                                .labelsHidden()
-                                        }
-                                        
-                                        if settingsVM.preferences.expertModeEnabled {
-                                            Text("Bei Krafttraining wird der Trainingsmodus mit Tempo-Vorgabe und Gewichts-Tracking angezeigt.")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(.top, 8)
-                                            
-                                            Divider().padding(.vertical, 12)
-                             
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // MARK: - Farbe
+                            // MARK: - Datenschutz
                             InfoCard {
-                                HStack() {
-                                    HStack {
-                                        Label {
-                                            Text("Farbe").foregroundStyle(.secondary)
-                                        } icon: {
-                                            Image(systemName: "paintpalette.fill")
-                                                .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
-                                        }
-                                        Spacer()
-                              //      }
-                                    
-                                    HStack(spacing: 16) {
-                                        ForEach(AppTheme.allCases) { theme in
-                                            Button {
-                                                themeManager.currentTheme = theme
-                                            } label: {
-                                                ZStack {
-                                                    Circle()
-                                                        .fill(theme.accentColor)
-                                                        .frame(width: 36, height: 36)
-                                                    
-                                                    if themeManager.currentTheme == theme {
-                                                        Circle()
-                                                            .stroke(Color.primary, lineWidth: 2)
-                                                            .frame(width: 44, height: 44)
-                                                        
-                                                        Image(systemName: "checkmark")
-                                                            .foregroundStyle(.white)
-                                                            .font(.system(size: 14, weight: .bold))
-                                                    }
-                                                }
-                                            }
-                                        }
-                                            .buttonStyle(.plain)
-                                        }
-                           
+                                HStack {
+                                    Label {
+                                        Text("Datenschutz").foregroundStyle(.secondary)
+                                    } icon: {
+                                        Image(systemName: "lock.shield")
+                                            .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.gray)
+                                        .font(.subheadline)
                                 }
                             }
-                            
-                            
+                            .onTapGesture {
+                                showPrivacyPolicy = true
+                            }
+                            .sheet(isPresented: $showPrivacyPolicy) {
+                                PrivacyPolicyView()
+                            }
                             
                             // MARK: - App Info
                             InfoCard {
@@ -294,7 +246,6 @@ struct ProfileView: View {
                                 }
                             }
                             
-                      
                             // MARK: - Buttons
                             VStack(spacing: 12) {
                                 if isEditing {
@@ -350,6 +301,7 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal)
                             .padding(.bottom, 30)
+                            
                         } else {
                             ContentUnavailableView(
                                 "Kein Profil",
@@ -383,7 +335,7 @@ struct ProfileView: View {
     private func deleteAccount() {
         Task { await authViewModel.deleteAccount() }
     }
-
+    
     private func resetAllData() {
         Task { await authViewModel.resetAllData() }
     }

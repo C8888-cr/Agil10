@@ -10,6 +10,8 @@ class AppDependencies: ObservableObject {
     let modelContainer: ModelContainer
     let modelContext: ModelContext
     
+    
+    
     // MARK: - Auth
     private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
     private lazy var userRepository = UserRepository(modelContext: modelContext)
@@ -30,6 +32,8 @@ class AppDependencies: ObservableObject {
     // MARK: - Services
     lazy var emailParser: EmailParserService = EmailParserService(session: sessionManager)
     let emailService: EmailService
+    // MARK: - Calendar Sync
+    lazy var calendarSync: CalendarSyncService = EventKitCalendarSync()
     
     // MARK: - Repositories
     lazy var appointmentRepository = AppointmentRepository(
@@ -48,7 +52,8 @@ class AppDependencies: ObservableObject {
     // MARK: - AppointmentUseCases
     lazy var addAppointmentUseCase = AddAppointmentUseCase(
         repository: appointmentRepository,
-        session: sessionManager
+        session: sessionManager,
+        calendarSync: calendarSync
     )
     lazy var deleteAppointmentUseCase = DeleteAppointmentUseCase(
         repository: appointmentRepository
@@ -143,8 +148,16 @@ class AppDependencies: ObservableObject {
         markAsNotifiedUseCase: markAsNotifiedUseCase,
         loadAppointmentsUseCase: loadAppointmentsUseCase,
         deleteAppointmentUseCase: deleteAppointmentUseCase,
-        parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase
+        parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase,
+        calendarSync: calendarSync 
     )
+    
+    // MARK: - Calendar ViewModels (Factory)
+    func makeAppointmentPlannerViewModel() -> AppointmentPlannerViewModel {
+        AppointmentPlannerViewModel(calendarSync: calendarSync)
+    }
+    
+    
     lazy var calendarViewModel = CalendarViewModel(
         session: sessionManager,
         getSchedulesUseCase: getSchedulesForDateUseCase
@@ -164,6 +177,8 @@ class AppDependencies: ObservableObject {
         userRepository: userRepository,
         session: sessionManager
     )
+    
+    
     
     
     // MARK: - Init

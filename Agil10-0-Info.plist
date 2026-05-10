@@ -23,6 +23,14 @@
             <string>Agil benötigt die Kamera um Übungsvideos aufzunehmen.</string>
        <key>NSMicrophoneUsageDescription</key>
             <string>Agil benötigt das Mikrofon für Videoaufnahmen.</string>
+            
+            
+            <key>NSCalendarsFullAccessUsageDescription</key>
+                     <string>Agil zeigt dir deine bestehenden Termine, damit du beim Termin-Planen freie Zeiten siehst. Neue Termine werden automatisch in deinen iPhone-Kalender eingetragen. Alle Daten bleiben lokal auf deinem Gerät und werden nicht an Agil-Server übertragen.</string>
+                <key>NSCalendarsUsageDescription</key>
+                     <string>Agil zeigt dir deine bestehenden Termine, damit du beim Termin-Planen freie Zeiten siehst. Neue Termine werden automatisch in deinen iPhone-Kalender eingetragen. Alle Daten bleiben lokal auf deinem Gerät und werden nicht an Agil-Server übertragen.</string>
+                
+ 
        
 </dict>
 </plist>

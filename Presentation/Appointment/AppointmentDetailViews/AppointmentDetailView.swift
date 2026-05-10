@@ -99,7 +99,7 @@ struct AppointmentDetailView: View {
                         Label("Therapeut", systemImage: "person.fill")
                             .font(.headline)
                         
-                        Text(appointment.therapist)
+                        Text(appointment.therapist ?? "Nicht angegeben")
                             .font(.title3)
                             .fontWeight(.medium)
                     }
@@ -490,6 +490,10 @@ struct CancelAppointmentView: View {
                             // MARK: - Manual Appointment Entry
 struct ManualAppointmentEntryView: View {
     
+    
+    let prefilledDate: Date?
+    
+    
     @EnvironmentObject var session: SessionManager
     
     @Environment(\.dismiss) private var dismiss
@@ -507,9 +511,10 @@ struct ManualAppointmentEntryView: View {
     @State private var errorMessage = ""
     @State private var selectedTherapistId: UUID? = nil
     @State private var isManualTherapist = false
+    @State private var durationMinutes: Int = 45
     
-    // ❌ selectedPraxisId entfernt — Praxis kommt fest aus dem Profil
     
+
     private var userPraxis: Praxis? {
         guard let praxisId = session.currentUser?.praxisId else { return nil }
         return PraxisDataManager.shared.praxen.first { $0.id == praxisId }
@@ -520,6 +525,14 @@ struct ManualAppointmentEntryView: View {
         guard let praxisId = session.currentUser?.praxisId else { return [] }
         return TherapeutDataManager.shared.getTherapeutenForPraxis(praxisId)
     }
+    
+    init(prefilledDate: Date? = nil) {
+            self.prefilledDate = prefilledDate
+            let date = prefilledDate ?? Date()
+            _selectedDate = State(initialValue: date)
+            _selectedTime = State(initialValue: date)
+        }
+    
     
     var body: some View {
         NavigationStack {
@@ -563,6 +576,16 @@ struct ManualAppointmentEntryView: View {
                             .font(.caption)
                     }
                     .foregroundStyle(.secondary)
+                }
+                
+                // MARK: - Dauer
+                Section("Dauer") {
+                    Picker("Dauer", selection: $durationMinutes) {
+                        ForEach([20, 30, 40, 50, 60, 70, 80, 90], id: \.self) { min in
+                            Text("\(min) Minuten").tag(min)
+                        }
+                    }
+                    .pickerStyle(.menu)
                 }
                 
                 // MARK: - Therapeut Picker
@@ -725,7 +748,8 @@ struct ManualAppointmentEntryView: View {
                 locationAddress: locationAddress.isEmpty ? nil : locationAddress,
                 latitude: latitude,
                 longitude: longitude,
-                notes: notes.isEmpty ? nil : notes
+                notes: notes.isEmpty ? nil : notes,
+                durationMinutes: durationMinutes
             )
             
             await MainActor.run {

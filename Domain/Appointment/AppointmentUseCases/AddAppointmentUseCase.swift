@@ -10,21 +10,28 @@ struct AddAppointmentUseCase {
     
     private let repository: AppointmentRepository
     private let session: SessionManager
+    private let calendarSync: CalendarSyncService?
     
-    init(repository: AppointmentRepository, session: SessionManager) {
+    init(
+        repository: AppointmentRepository,
+        session: SessionManager,
+        calendarSync: CalendarSyncService? = nil
+    ) {
         self.repository = repository
         self.session = session
+        self.calendarSync = calendarSync
     }
     
     // ✅ Für manuelles Hinzufügen (von UI)
     func executeManual(
         date: Date,
-        therapist: String,
+        therapist: String?,
         locationName: String? = nil,
         locationAddress: String? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        notes: String? = nil
+        notes: String? = nil,
+        durationMinutes: Int = 45
     ) async throws -> Appointment {
         print("📝 addAppointmentManual called")
         
@@ -43,6 +50,7 @@ struct AddAppointmentUseCase {
             locationLatitude: latitude,
             locationLongitude: longitude,
             notes: notes,
+            durationMinutes: durationMinutes,
             status: .confirmed,
             userId: userId,
             praxisId: UUID()  // ✅ Status hinzugefügt
@@ -53,26 +61,47 @@ struct AddAppointmentUseCase {
         print("   → Therapeut: \(therapist)")
         print("   → User: \(userId)")
         
-        // ✅ Validierung + Speichern
         let savedAppointment = try await execute(appointment)
+              
         
-        print("✅ executeManual() erfolgreich abgeschlossen")
-        
-        return savedAppointment
+        // ✅ Validierung + Speichern
+        // 🆕 NEU: Calendar-Sync (nur wenn Service verfügbar und Permission OK)
+               if let sync = calendarSync, sync.authorizationStatus == .authorized {
+                   do {
+                       let endDate = savedAppointment.date.addingTimeInterval(60 * 60) // Default 1h
+                       let location = savedAppointment.displayLocation
+                       let title = "Physio: \(savedAppointment.therapist)"
+                       
+                       let eventId = try await sync.createEvent(
+                           title: title,
+                           startDate: savedAppointment.date,
+                           endDate: endDate,
+                           location: location,
+                           notes: savedAppointment.notes
+                       )
+                       savedAppointment.calendarEventIdentifier = eventId
+                  
+                   } catch {
+                       // Sync-Fehler ist kein Hard-Fail – Termin ist in Agil gespeichert
+                       print("⚠️ Calendar-Sync fehlgeschlagen: \(error)")
+                   }
+               }
+               
+               return savedAppointment
     }
     
     // ✅ Für Email-Import
     @discardableResult
     func execute(_ appointment: Appointment) async throws -> Appointment {
         print("\n💾 === ADD APPOINTMENT USE CASE ===")
-        print("📅 Termin: \(appointment.therapist) am \(appointment.date)")
+        print("📅 Termin: \(appointment.therapist ?? "kein Therapeut") am \(appointment.date)")
         
-        // ✅ Validation
+    /*    // ✅ Validation
         guard !appointment.therapist.isEmpty else {
             print("❌ Therapeut leer")
             throw ValidationError.emptyTherapistName
         }
-        
+      */
         // ✅ GEÄNDERT: Erlaube vergangene Termine für Email-Import
         if appointment.date < Date() {
             print("⚠️ Warnung: Datum in Vergangenheit: \(appointment.date)")
@@ -85,7 +114,7 @@ struct AddAppointmentUseCase {
         print("🔍 Prüfe Duplikate...")
         let isDuplicate = try await repository.checkDuplicate(
             date: appointment.date,
-            therapist: appointment.therapist
+            therapist: appointment.therapist ?? ""
         )
         
         if isDuplicate {

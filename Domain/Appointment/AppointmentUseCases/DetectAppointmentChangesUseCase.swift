@@ -77,8 +77,8 @@ struct DetectAppointmentChangesUseCase {
         as b: Appointment
     ) -> Bool {
         Calendar.current.isDate(a.date, inSameDayAs: b.date) &&
-        a.therapist.lowercased() == b.therapist.lowercased()
-    }
+        a.therapist?.compare(b.therapist ?? "", options: .caseInsensitive) == .orderedSame
+       }
     
     // ✅ NEU: Prüft ob sich Details geändert haben
     private func hasChanges(

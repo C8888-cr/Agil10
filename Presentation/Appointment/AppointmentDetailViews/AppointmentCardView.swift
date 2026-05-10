@@ -71,7 +71,7 @@ struct AppointmentCardView: View {
                     Image(systemName: "person.fill")
                         .font(.caption)
                         .foregroundColor(themeManager.currentTheme.accentColor)
-                    Text(appointment.therapist)
+                    Text(appointment.therapist ?? "")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)

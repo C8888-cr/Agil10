@@ -175,7 +175,7 @@ struct CancelAppointmentSheet: View {
                     HStack {
                         Image(systemName: "person.fill")
                             .foregroundColor(themeManager.currentTheme.accentColor)
-                        Text(appointment.therapist)
+                        Text(appointment.therapist ?? "")
                     }
                 }
                 
