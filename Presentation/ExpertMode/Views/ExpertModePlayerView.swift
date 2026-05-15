@@ -118,8 +118,8 @@ struct ExpertModePlayerView: View {
                     let screenHeight = geo.size.height
                     let maxVideoWidth = screenWidth * 0.9
                     let videoAspectRatio: CGFloat = 16/9
-                    let videoWidth = min(maxVideoWidth, screenHeight * videoAspectRatio)
-                    let videoHeight = videoWidth / videoAspectRatio
+           //         let videoWidth = min(maxVideoWidth, screenHeight * videoAspectRatio)
+                   // let videoHeight = videoWidth / videoAspectRatio
 
                     VStack(alignment: .center, spacing: 20) {
                         VStack(alignment: .center, spacing: 8) {

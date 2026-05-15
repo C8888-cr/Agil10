@@ -2,30 +2,31 @@
 //  AppointmentDayView.swift
 //  Agil10.0
 //
-//  Created by Christiane Roth on 10.05.26.
-//
-
-
-//
-//  AppointmentDayView.swift
-//  Agil10.0
-//
 //  Tagesansicht mit Stunden-Raster und Wochen-Leiste oben.
-//  Tap auf freien Slot → ManualAppointmentEntryView mit vorausgefülltem Datum.
+//  Tap auf freien Slot → neuer Termin
+//  Tap auf Agil-Termin → Edit-Sheet
+//  Long-Press auf Agil-Termin → Kontextmenü „Löschen"
 //
 
 import SwiftUI
+import SwiftData
 
 struct AppointmentDayView: View {
 
     @ObservedObject var viewModel: AppointmentPlannerViewModel
     @State private var displayedDay: Date
-    @State private var prefilledSlot: Date? = nil
+    @State private var prefilledSlot: SlotItem? = nil
+    @State private var appointmentToEdit: Appointment? = nil
+    @State private var appointmentToDelete: Appointment? = nil
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var appointmentViewModel: AppointmentViewModel
+    
+    @Query private var allAppointments: [Appointment]
 
     private let hourHeight: CGFloat = 60
-    private let startHour: Int = 6      // Tag startet bei 6 Uhr
-    private let endHour: Int = 23       // Tag endet bei 23 Uhr
+    private let startHour: Int = 6
+    private let endHour: Int = 23
 
     init(viewModel: AppointmentPlannerViewModel, initialDay: Date) {
         self.viewModel = viewModel
@@ -41,12 +42,10 @@ struct AppointmentDayView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Wochen-Leiste oben
             weekStrip
 
             Divider()
 
-            // Tagesname
             HStack {
                 Text(dayFormatter.string(from: displayedDay))
                     .font(.headline)
@@ -62,7 +61,6 @@ struct AppointmentDayView: View {
             .padding(.horizontal)
             .padding(.vertical, 8)
 
-            // Stunden-Raster
             ScrollView {
                 hourGrid
                     .padding(.horizontal)
@@ -77,10 +75,39 @@ struct AppointmentDayView: View {
         .onChange(of: displayedDay) { _, _ in
             Task { await loadEventsForDisplayedWeek() }
         }
+        // Neu-Termin-Sheet (Tap auf freien Slot)
         .sheet(item: $prefilledSlot, onDismiss: {
             Task { await loadEventsForDisplayedWeek() }
         }) { slot in
-            ManualAppointmentEntryView(prefilledDate: slot)
+            ManualAppointmentEntryView(prefilledDate: slot.date)
+        }
+        // Edit-Sheet (Tap auf Agil-Termin)
+        .sheet(item: $appointmentToEdit, onDismiss: {
+            Task { await loadEventsForDisplayedWeek() }
+        }) { appt in
+            ManualAppointmentEntryView(appointmentToEdit: appt)
+        }
+        // Lösch-Bestätigung (Long-Press → Kontextmenü → Löschen)
+        .confirmationDialog(
+            "Termin löschen?",
+            isPresented: Binding(
+                get: { appointmentToDelete != nil },
+                set: { if !$0 { appointmentToDelete = nil } }
+            ),
+            presenting: appointmentToDelete
+        ) { appt in
+            Button("Löschen", role: .destructive) {
+                Task {
+                    await appointmentViewModel.deleteAppointment(appt)
+                    appointmentToDelete = nil
+                    await loadEventsForDisplayedWeek()
+                }
+            }
+            Button("Abbrechen", role: .cancel) {
+                appointmentToDelete = nil
+            }
+        } message: { _ in
+            Text("Möchtest du diesen Termin wirklich löschen?")
         }
     }
 
@@ -89,7 +116,6 @@ struct AppointmentDayView: View {
     private var weekStrip: some View {
         let cal = Calendar.current
         let weekday = cal.component(.weekday, from: displayedDay)
-        // Montag als Wochenstart
         let mondayOffset = (weekday + 5) % 7
         let monday = cal.date(byAdding: .day, value: -mondayOffset, to: displayedDay) ?? displayedDay
         let days = (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
@@ -136,9 +162,9 @@ struct AppointmentDayView: View {
             }
             .frame(height: 32)
 
-            Circle()
-                .fill(hasEvents ? themeManager.currentTheme.accentColor : .clear)
-                .frame(width: 4, height: 4)
+            Rectangle()
+                .fill(hasEvents ? Color("Blau") : Color.clear)
+                .frame(width: 12, height: 2)
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
@@ -148,14 +174,12 @@ struct AppointmentDayView: View {
 
     private var hourGrid: some View {
         ZStack(alignment: .topLeading) {
-            // Hintergrund: Stunden-Linien + Labels
             VStack(spacing: 0) {
                 ForEach(startHour...endHour, id: \.self) { hour in
                     hourRow(hour: hour)
                 }
             }
 
-            // Events drüberlegen
             ForEach(viewModel.events(on: displayedDay).filter { !$0.isAllDay }) { event in
                 eventBlock(event)
             }
@@ -174,12 +198,11 @@ struct AppointmentDayView: View {
                     .fill(Color.gray.opacity(0.2))
                     .frame(height: 1)
 
-                // Tappable Bereich (freier Slot)
                 Color.clear
                     .frame(height: hourHeight - 1)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        prefilledSlot = makeDate(hour: hour, minute: 0)
+                        prefilledSlot = SlotItem(id: makeDate(hour: hour, minute: 0))
                     }
             }
         }
@@ -191,7 +214,6 @@ struct AppointmentDayView: View {
         let startOfDay = cal.startOfDay(for: displayedDay)
         let baseOffset = CGFloat(startHour) * hourHeight
 
-        // Nur den Teil zeigen, der innerhalb unserer Stunden-Range liegt
         let eventStartOnDay = max(event.start, cal.date(byAdding: .hour, value: startHour, to: startOfDay) ?? event.start)
         let eventEndOnDay = min(event.end, cal.date(byAdding: .hour, value: endHour + 1, to: startOfDay) ?? event.end)
 
@@ -201,11 +223,8 @@ struct AppointmentDayView: View {
         let topOffset = CGFloat(startMinutes) * (hourHeight / 60) - baseOffset
         let height = max(20, CGFloat(endMinutes - startMinutes) * (hourHeight / 60))
 
-        let color = Color(
-            red: event.calendarColor.red,
-            green: event.calendarColor.green,
-            blue: event.calendarColor.blue
-        )
+        let color = Color("Blau")
+        let agilAppt = agilAppointment(for: event)
 
         return HStack(spacing: 4) {
             Rectangle()
@@ -229,12 +248,42 @@ struct AppointmentDayView: View {
         .frame(height: height, alignment: .top)
         .background(color.opacity(0.15))
         .cornerRadius(6)
-        .padding(.leading, 52)   // Platz für Stunden-Labels
+        .padding(.leading, 52)
         .padding(.trailing, 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let appt = agilAppt {
+                print("✏️ Tap auf Agil-Termin → Edit-Modus für \(appt.id)")
+                appointmentToEdit = appt
+            } else {
+                print("ℹ️ Tap auf fremden Termin – kein Edit möglich")
+            }
+        }
+        .contextMenu {
+            if let appt = agilAppt {
+                Button(role: .destructive) {
+                    let haptic = UIImpactFeedbackGenerator(style: .medium)
+                    haptic.impactOccurred()
+                    appointmentToDelete = appt
+                } label: {
+                    Label("Löschen", systemImage: "trash")
+                }
+            }
+        }
         .offset(y: topOffset)
     }
 
     // MARK: - Helpers
+    
+    /// Sucht den Agil-Appointment zu einem Kalender-Event (über calendarEventIdentifier).
+    /// Gibt nil zurück bei fremden Terminen (z.B. iCloud-Zahnarzt).
+    private func agilAppointment(for event: CalendarEvent) -> Appointment? {
+        guard let userId = session.currentUser?.id else { return nil }
+        return allAppointments.first { appt in
+            appt.userId == userId
+            && appt.calendarEventIdentifier == event.id
+        }
+    }
 
     private func makeDate(hour: Int, minute: Int) -> Date {
         let cal = Calendar.current
@@ -257,7 +306,8 @@ struct AppointmentDayView: View {
     }
 }
 
-// Damit ein Date als Sheet-Identifier funktioniert
-extension Date: Identifiable {
-    public var id: Date { self }
+/// Wrapper, damit ein Date als sheet(item:) verwendet werden kann.
+private struct SlotItem: Identifiable {
+    let id: Date
+    var date: Date { id }
 }

@@ -125,7 +125,7 @@ struct CancelAppointmentSheet: View {
         ich möchte meinen folgenden Termin absagen:
         Datum: \(appointment.dateString)
         Uhrzeit: \(appointment.timeString)
-        Therapeut: \(appointment.therapist)
+        Therapeut: \(appointment.therapist ?? "kein Therapeut")
         """
         
         if !reason.isEmpty {

@@ -154,10 +154,10 @@ struct AppointmentMonthView: View {
             }
             .frame(height: 32)
 
-            // Marker-Punkt
-            Circle()
-                .fill(hasEvents ? themeManager.currentTheme.accentColor : .clear)
-                .frame(width: 5, height: 5)
+            // Marker-Linie
+            Rectangle()
+                .fill(hasEvents ? Color("Blau") : Color.clear)
+                .frame(width: 16, height: 2)
         }
         .frame(maxWidth: .infinity, minHeight: 44)
         .contentShape(Rectangle())

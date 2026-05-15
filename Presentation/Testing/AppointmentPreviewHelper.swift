@@ -59,6 +59,10 @@ struct PreviewHelper {
             repository: repository,
             session: sessionManager  // ← statt authService
         )
+        let updateAppointmentUseCase = UpdateAppointmentUseCase(    // 🆕
+            repository: repository,
+            calendarSync: nil  // im Preview kein Calendar-Sync nötig
+        )
         
         let detectChangesUseCase = DetectAppointmentChangesUseCase(
             repository: repository
@@ -81,6 +85,7 @@ struct PreviewHelper {
                 emailService: emailService
             ),
             addAppointmentUseCase: addAppointmentUseCase,
+            updateAppointmentUseCase: updateAppointmentUseCase,
             emailService: emailService,
             markAsNotifiedUseCase: MarkAsNotifiedUseCase(
                 repository: repository

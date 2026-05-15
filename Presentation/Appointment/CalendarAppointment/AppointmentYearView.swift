@@ -100,21 +100,30 @@ struct AppointmentYearView: View {
         let monthName = DateFormatter().monthSymbols[month - 1]
         let isCurrentMonth = isCurrent(month: month)
 
-        return VStack(alignment: .leading, spacing: 6) {
-            Text(monthName)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundStyle(isCurrentMonth ? themeManager.currentTheme.accentColor : .primary)
+        return GeometryReader { geo in
+            // Schriftgröße basierend auf verfügbarer Breite
+            let cellWidth = (geo.size.width - 16) / 7   // 7 Spalten, etwas Innenrand
+            let dayFontSize = max(8, min(14, cellWidth * 0.55))
+            let headerFontSize = max(11, min(18, geo.size.width * 0.12))
 
-            miniMonthGrid(month: month)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(monthName)
+                    .font(.system(size: headerFontSize, weight: .semibold))
+                    .foregroundStyle(isCurrentMonth ? themeManager.currentTheme.accentColor : .primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+
+                miniMonthGrid(month: month, dayFontSize: dayFontSize)
+            }
+            .padding(8)
+            .frame(width: geo.size.width, height: geo.size.width, alignment: .topLeading)
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(8)
         }
-        .padding(8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(8)
+        .aspectRatio(1, contentMode: .fit)   // Quadrat erzwingen
     }
 
-    private func miniMonthGrid(month: Int) -> some View {
+    private func miniMonthGrid(month: Int, dayFontSize: CGFloat) -> some View {
         let calendar = Calendar.current
         var components = DateComponents()
         components.year = displayedYear
@@ -127,8 +136,7 @@ struct AppointmentYearView: View {
         }
 
         let weekdayOfFirst = calendar.component(.weekday, from: firstOfMonth)
-        // Montag = 1 (statt Sonntag = 1)
-        let leadingEmpties = (weekdayOfFirst + 5) % 7
+        let leadingEmpties = (weekdayOfFirst + 5) % 7  // Montag-Start
 
         let cells: [Int?] = Array(repeating: nil, count: leadingEmpties)
             + range.map { Optional($0) }
@@ -136,21 +144,24 @@ struct AppointmentYearView: View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 1), count: 7)
 
         return AnyView(
-            LazyVGrid(columns: columns, spacing: 1) {
+            LazyVGrid(columns: columns, spacing: 2) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
                     if let day = day {
                         Text("\(day)")
-                            .font(.system(size: 8))
-                            .frame(maxWidth: .infinity, minHeight: 10)
+                            .font(.system(size: dayFontSize))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .frame(maxWidth: .infinity)
                             .foregroundStyle(.primary)
                     } else {
-                        Color.clear.frame(height: 10)
+                        Color.clear
                     }
                 }
             }
         )
     }
-
+    
+    
     private func isCurrent(month: Int) -> Bool {
         let now = Date()
         let cal = Calendar.current

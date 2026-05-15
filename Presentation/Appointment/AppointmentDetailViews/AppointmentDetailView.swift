@@ -455,7 +455,7 @@ struct CancelAppointmentView: View {
         
         Datum: \(appointment.dateString)
         Uhrzeit: \(appointment.timeString)
-        Therapeut: \(appointment.therapist)
+        Therapeut: \(appointment.therapist ?? "kein Therapeut")
         """
         if !cancelReason.isEmpty {
             body += "\n\nGrund: \(cancelReason)"
@@ -488,56 +488,64 @@ struct CancelAppointmentView: View {
     }
 }
                             // MARK: - Manual Appointment Entry
+// MARK: - Manual Appointment Entry
 struct ManualAppointmentEntryView: View {
     
-    
+    /// Wenn gesetzt → Edit-Modus für diesen Termin
+    /// Wenn nil → Neu-Modus
+    let appointmentToEdit: Appointment?
     let prefilledDate: Date?
     
-    
     @EnvironmentObject var session: SessionManager
-    
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: AppointmentViewModel
     @EnvironmentObject var themeManager: ThemeManager
     
-    @State private var selectedDate = Date()
-    @State private var selectedTime = Date()
+    @State private var selectedDate: Date
+    @State private var selectedTime: Date
     @State private var therapistName = ""
     @State private var locationName = ""
     @State private var locationAddress = ""
     @State private var notes = ""
+    @State private var durationMinutes: Int = 20
     @State private var showingAlert = false
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var selectedTherapistId: UUID? = nil
     @State private var isManualTherapist = false
-    @State private var durationMinutes: Int = 45
     
-    
-
     private var userPraxis: Praxis? {
         guard let praxisId = session.currentUser?.praxisId else { return nil }
         return PraxisDataManager.shared.praxen.first { $0.id == praxisId }
     }
     
-    // Therapeuten der Praxis aus dem Profil
     private var availableTherapists: [Therapeut] {
         guard let praxisId = session.currentUser?.praxisId else { return [] }
         return TherapeutDataManager.shared.getTherapeutenForPraxis(praxisId)
     }
     
-    init(prefilledDate: Date? = nil) {
-            self.prefilledDate = prefilledDate
-            let date = prefilledDate ?? Date()
-            _selectedDate = State(initialValue: date)
-            _selectedTime = State(initialValue: date)
-        }
+    /// Edit-Modus?
+    private var isEditMode: Bool {
+        appointmentToEdit != nil
+    }
     
+    init(appointmentToEdit: Appointment? = nil, prefilledDate: Date? = nil) {
+        self.appointmentToEdit = appointmentToEdit
+        self.prefilledDate = prefilledDate
+        
+        let date: Date
+        if let appt = appointmentToEdit {
+            date = appt.date
+        } else {
+            date = prefilledDate ?? Date()
+        }
+        _selectedDate = State(initialValue: date)
+        _selectedTime = State(initialValue: date)
+    }
     
     var body: some View {
         NavigationStack {
             Form {
-                
                 // MARK: - Termin-Details
                 Section("Termin-Details") {
                     DatePicker(
@@ -555,10 +563,19 @@ struct ManualAppointmentEntryView: View {
                     .datePickerStyle(.compact)
                 }
                 
+                // MARK: - Dauer
+                Section("Dauer") {
+                    Picker("Dauer", selection: $durationMinutes) {
+                        ForEach([20, 30, 40, 50, 60, 70, 80, 90], id: \.self) { min in
+                            Text("\(min) Minuten").tag(min)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                
                 // MARK: - Praxis (fest aus Profil)
                 Section {
                     if let praxis = userPraxis {
-                        // Praxis-Name wie in PraxisCard
                         Text(praxis.name)
                             .font(.title3.bold())
                             .foregroundStyle(themeManager.currentTheme.accentColor)
@@ -576,16 +593,6 @@ struct ManualAppointmentEntryView: View {
                             .font(.caption)
                     }
                     .foregroundStyle(.secondary)
-                }
-                
-                // MARK: - Dauer
-                Section("Dauer") {
-                    Picker("Dauer", selection: $durationMinutes) {
-                        ForEach([20, 30, 40, 50, 60, 70, 80, 90], id: \.self) { min in
-                            Text("\(min) Minuten").tag(min)
-                        }
-                    }
-                    .pickerStyle(.menu)
                 }
                 
                 // MARK: - Therapeut Picker
@@ -621,7 +628,6 @@ struct ManualAppointmentEntryView: View {
                         }
                     }
                     
-                    // Manuelles Textfeld
                     if isManualTherapist {
                         HStack(spacing: 12) {
                             Image(systemName: "pencil")
@@ -632,7 +638,6 @@ struct ManualAppointmentEntryView: View {
                         }
                     }
                     
-                    // Gewählter Therapeut als Info
                     if !therapistName.isEmpty && !isManualTherapist {
                         HStack(spacing: 6) {
                             Image(systemName: "person.circle.fill")
@@ -645,28 +650,25 @@ struct ManualAppointmentEntryView: View {
                     }
                 }
                 
-              
-                
                 // MARK: - Notizen
                 Section("Notizen (optional)") {
                     TextEditor(text: $notes)
                         .frame(minHeight: 80)
                 }
                 
-                // MARK: - Speichern
+                // MARK: - Speichern / Ändern
                 Section {
                     Button(action: saveAppointment) {
                         HStack {
                             Spacer()
-                            Text("Termin speichern")
+                            Text(isEditMode ? "Ändern" : "Termin speichern")
                                 .fontWeight(.semibold)
                             Spacer()
                         }
                     }
-                    .disabled(therapistName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-            .navigationTitle("Neuer Termin")
+            .navigationTitle(isEditMode ? "Termin ändern" : "Neuer Termin")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -675,23 +677,45 @@ struct ManualAppointmentEntryView: View {
                     }
                 }
             }
-            .alert("Termin gespeichert", isPresented: $showingAlert) {
+            .alert(isEditMode ? "Termin aktualisiert" : "Termin gespeichert", isPresented: $showingAlert) {
                 Button("OK", role: .cancel) {
                     dismiss()
                 }
             } message: {
-                Text("Dein Termin wurde erfolgreich hinzugefügt.")
+                Text(isEditMode
+                     ? "Dein Termin wurde erfolgreich aktualisiert."
+                     : "Dein Termin wurde erfolgreich hinzugefügt.")
             }
-            .alert("Fehler", isPresented: $showingError) {  // ← NEU
-                  Button("OK", role: .cancel) { }
-              } message: {
-                  Text(errorMessage)
-              }
+            .alert("Fehler", isPresented: $showingError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
             .onAppear {
-                if let praxis = userPraxis {
+                if let appt = appointmentToEdit {
+                    // Edit-Modus: Felder mit bestehenden Daten füllen
+                    fillFromAppointment(appt)
+                } else if let praxis = userPraxis {
+                    // Neu-Modus: Praxis-Daten vorausfüllen
                     fillPraxisData(praxis)
                 }
             }
+        }
+    }
+    
+    // MARK: - Helpers
+    
+    private func fillFromAppointment(_ appt: Appointment) {
+        therapistName = appt.therapist ?? ""
+        locationName = appt.locationName ?? ""
+        locationAddress = appt.locationAddress ?? ""
+        notes = appt.notes ?? ""
+        durationMinutes = appt.durationMinutes
+        
+        // Therapist-Picker auf "manuell" setzen, damit der Name angezeigt wird
+        if !therapistName.isEmpty {
+            isManualTherapist = true
+            selectedTherapistId = UUID(uuidString: "00000000-0000-0000-0000-000000000001")
         }
     }
     
@@ -708,16 +732,10 @@ struct ManualAppointmentEntryView: View {
     
     private func saveAppointment() {
         guard session.currentUser != nil else {
-            print("❌ Kein User eingeloggt")
             errorMessage = "Nicht eingeloggt"
             showingError = true
             return
         }
-        guard !therapistName.trimmingCharacters(in: .whitespaces).isEmpty else {
-              errorMessage = "Bitte einen Therapeuten auswählen oder eintragen"
-              showingError = true
-              return
-          }
         
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
@@ -731,35 +749,53 @@ struct ManualAppointmentEntryView: View {
         finalComponents.minute = timeComponents.minute
         
         guard let finalDate = calendar.date(from: finalComponents) else {
-            print("❌ Datum ungültig")
+            errorMessage = "Datum ungültig"
+            showingError = true
             return
         }
         
         let latitude = userPraxis?.latitude
         let longitude = userPraxis?.longitude
+        let cleanTherapist = therapistName.trimmingCharacters(in: .whitespaces).isEmpty
+            ? nil
+            : therapistName
         
         Task {
-            print("💾 Speichere Manual Appointment: \(therapistName) am \(finalDate)")
-            
-            await viewModel.addAppointmentManual(
-                date: finalDate,
-                therapist: therapistName,
-                locationName: locationName.isEmpty ? nil : locationName,
-                locationAddress: locationAddress.isEmpty ? nil : locationAddress,
-                latitude: latitude,
-                longitude: longitude,
-                notes: notes.isEmpty ? nil : notes,
-                durationMinutes: durationMinutes
-            )
+            if let appt = appointmentToEdit {
+                // EDIT-MODUS
+                print("✏️ Aktualisiere Termin \(appt.id)")
+                await viewModel.updateAppointment(
+                    appt,
+                    date: finalDate,
+                    therapist: cleanTherapist,
+                    locationName: locationName.isEmpty ? nil : locationName,
+                    locationAddress: locationAddress.isEmpty ? nil : locationAddress,
+                    latitude: latitude,
+                    longitude: longitude,
+                    notes: notes.isEmpty ? nil : notes,
+                    durationMinutes: durationMinutes
+                )
+            } else {
+                // NEU-MODUS
+                print("💾 Neuer Termin: \(cleanTherapist ?? "-") am \(finalDate)")
+                await viewModel.addAppointmentManual(
+                    date: finalDate,
+                    therapist: cleanTherapist,
+                    locationName: locationName.isEmpty ? nil : locationName,
+                    locationAddress: locationAddress.isEmpty ? nil : locationAddress,
+                    latitude: latitude,
+                    longitude: longitude,
+                    notes: notes.isEmpty ? nil : notes,
+                    durationMinutes: durationMinutes
+                )
+            }
             
             await MainActor.run {
-                print("✅ Appointment gespeichert!")
                 showingAlert = true
             }
         }
     }
 }
-
 #Preview("Appointment Detail") {
     let appointment = PreviewHelper.createSampleAppointments()[0]
     

@@ -482,9 +482,9 @@ struct VideoQuickConfigSheet: View {
         self.onCancel = onCancel
         
         // Standard-Modus Defaults: 3 Wdh, 60s Loop, 30s Pause
-        _repetitions = State(initialValue: initialRepetitions ?? video.defaultRepetitions ?? 3)
-        _loopDurationSeconds = State(initialValue: max(10, initialLoopDuration ?? video.loopDurationSeconds ?? 60))
-        _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds ?? 30)
+        _repetitions = State(initialValue: initialRepetitions ?? video.defaultRepetitions)
+        _loopDurationSeconds = State(initialValue: max(10, initialLoopDuration ?? video.loopDurationSeconds))
+        _pauseSeconds = State(initialValue: initialPause ?? video.defaultPauseSeconds)
         
         // Expert-Modus Defaults: 3 Sätze × 12 Wdh, 60s Pause
         let defaultSets = initialSets ?? video.tempoProtocol?.sets ?? 3

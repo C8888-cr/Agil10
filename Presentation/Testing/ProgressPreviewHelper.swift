@@ -13,9 +13,9 @@ import SwiftData
 struct ProgressPreviewHelper {
     static func makeProgressVM(context: ModelContext) -> ProgressViewModel {
         let repository = VideoScheduleRepository(modelContext: context)
-        let sessionManager = SessionManager(
-            userRepository: UserRepository(modelContext: context)
-        )
+     //   let sessionManager = SessionManager(
+     //       userRepository: UserRepository(modelContext: context)
+     //   )
         return ProgressViewModel(
             session: SessionManager(userRepository: UserRepository(modelContext: context)),
                    getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),
