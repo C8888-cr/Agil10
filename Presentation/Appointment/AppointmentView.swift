@@ -106,9 +106,20 @@ struct AppointmentView: View {
 // MARK: - Preview
 #Preview {
     let container = PreviewHelper.createModelContainer()
-    let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: container.mainContext)
-    )
+       let userRepository = UserRepository(modelContext: container.mainContext)
+       let authenticator = LocalAuthBiometricAuthenticator()
+       let preferences = UserDefaultsBiometricPreferences()
+       let unlockUseCase = UnlockAppUseCase(
+           authenticator: authenticator,
+           preferences: preferences
+       )
+       let sessionManager = SessionManager(
+           userRepository: userRepository,
+           unlockUseCase: unlockUseCase,
+           preferences: preferences
+       )
+    
+    
     let context = ModelContext(container)
 
     let repository = VideoScheduleRepository(modelContext: context)

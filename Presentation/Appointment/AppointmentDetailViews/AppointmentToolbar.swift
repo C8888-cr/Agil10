@@ -13,7 +13,7 @@ struct AppointmentToolbar: ToolbarContent {
     let showingEmailImport: () -> Void
     let showingProfile: () -> Void
 
-    let showingReminders: () -> Void          // NEU
+    let showingReminders: () -> Void
     let notificationsEnabled: Bool
     
     let session: SessionManager
@@ -69,9 +69,19 @@ struct AppointmentToolbar: ToolbarContent {
 /// MARK: - Preview
 #Preview {
     let container = PreviewHelper.createModelContainer()
-    let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: container.mainContext)
+    let userRepository = UserRepository(modelContext: container.mainContext)
+    let authenticator = LocalAuthBiometricAuthenticator()
+    let preferences = UserDefaultsBiometricPreferences()
+    let unlockUseCase = UnlockAppUseCase(
+        authenticator: authenticator,
+        preferences: preferences
     )
+    let sessionManager = SessionManager(
+        userRepository: userRepository,
+        unlockUseCase: unlockUseCase,
+        preferences: preferences
+    )
+    
     NavigationStack {
         Text("Content")
             .toolbar {

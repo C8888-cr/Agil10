@@ -8,12 +8,13 @@ struct AppRouter: View {
         Group {
             if authViewModel.isLoading {
                 LoadingView()
-            } else if session.isAuthenticated {
+            } else if session.isAuthenticated && !session.requiresBiometricUnlock {
                 ContentView()
             } else {
                 LoginView()
             }
         }
         .animation(.easeInOut, value: session.isAuthenticated)
+        .animation(.easeInOut, value: session.requiresBiometricUnlock)
     }
 }

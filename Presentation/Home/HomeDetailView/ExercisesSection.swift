@@ -128,54 +128,74 @@ private func dropLine(visible: Bool) -> some View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(
-        for: VideoSchedule.self, Video.self,
-        configurations: config
-    )
-    let context = ModelContext(container)
+    PreviewWrapper()
+}
 
-    let video1 = Video.previewMobility
-    let video2 = Video.previewStrength
-    let video3 = Video.previewStretching
-    context.insert(video1)
-    context.insert(video2)
-    context.insert(video3)
-
-    let schedule1 = VideoSchedule(scheduledDate: Date(), orderIndex: 0, video: video1)
-    let schedule2 = VideoSchedule(scheduledDate: Date(), orderIndex: 1, video: video2)
-    let schedule3 = VideoSchedule(scheduledDate: Date(), orderIndex: 2, video: video3)
-    context.insert(schedule1)
-    context.insert(schedule2)
-    context.insert(schedule3)
-    try? context.save()
-
-    // ← SessionManager korrekt instanziieren
-    let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: context)
-    )
- 
-    let repository = VideoScheduleRepository(modelContext: context)
-    let settingsVM = SettingsViewModel(
-        modelContext: context,
-        session: sessionManager,
-        addScheduleUseCase: AddScheduleUseCase(repository: repository),
-        removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
-    )
-    let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
+private struct PreviewWrapper: View {
+    let container: ModelContainer
+    let sessionManager: SessionManager
+    let settingsVM: SettingsViewModel
+    let progressVM: ProgressViewModel
     
+    init() {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        self.container = try! ModelContainer(
+            for: VideoSchedule.self, Video.self,
+            configurations: config
+        )
+        let context = container.mainContext
+        
+        let userRepository = UserRepository(modelContext: context)
+        let authenticator = LocalAuthBiometricAuthenticator()
+        let preferences = UserDefaultsBiometricPreferences()
+        let unlockUseCase = UnlockAppUseCase(
+            authenticator: authenticator,
+            preferences: preferences
+        )
+        self.sessionManager = SessionManager(
+            userRepository: userRepository,
+            unlockUseCase: unlockUseCase,
+            preferences: preferences
+        )
+        
+        let video1 = Video.previewMobility
+        let video2 = Video.previewStrength
+        let video3 = Video.previewStretching
+        context.insert(video1)
+        context.insert(video2)
+        context.insert(video3)
+        
+        let schedule1 = VideoSchedule(scheduledDate: Date(), orderIndex: 0, video: video1)
+        let schedule2 = VideoSchedule(scheduledDate: Date(), orderIndex: 1, video: video2)
+        let schedule3 = VideoSchedule(scheduledDate: Date(), orderIndex: 2, video: video3)
+        context.insert(schedule1)
+        context.insert(schedule2)
+        context.insert(schedule3)
+        try? context.save()
+        
+        let repository = VideoScheduleRepository(modelContext: context)
+        self.settingsVM = SettingsViewModel(
+            modelContext: context,
+            session: sessionManager,
+            addScheduleUseCase: AddScheduleUseCase(repository: repository),
+            removeScheduleUseCase: RemoveScheduleUseCase(repository: repository)
+        )
+        self.progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
+    }
     
-  return ExercisesSection(
-        onToggleCompletion: { _ in },
-        onDelete: { _ in },
-        onConfig: { _ in },
-        onPlay: { _, _ in },
-        onAddVideo: { },
-        onRate: { _, _ in },
-        onPlayAll: { }
-    )
-    .environmentObject(progressVM)
-    .environmentObject(settingsVM)
-    .modelContainer(container)
-    .environmentObject(sessionManager)
+    var body: some View {
+        ExercisesSection(
+            onToggleCompletion: { _ in },
+            onDelete: { _ in },
+            onConfig: { _ in },
+            onPlay: { _, _ in },
+            onAddVideo: { },
+            onRate: { _, _ in },
+            onPlayAll: { }
+        )
+        .environmentObject(progressVM)
+        .environmentObject(settingsVM)
+        .modelContainer(container)
+        .environmentObject(sessionManager)
+    }
 }

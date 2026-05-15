@@ -13,6 +13,8 @@ final class AuthViewModel: ObservableObject {
     private let resetPasswordUseCase: ResetPasswordUseCase
     private let deleteAccountUseCase: DeleteAccountUseCase
     private let resetUserDataUseCase: ResetUserDataUseCase
+    private let loginWithBiometricUseCase: LoginWithBiometricUseCase  // NEU
+    private let credentialStorage: BiometricCredentialStorage          // NEU
 
     init(
         session: SessionManager,
@@ -21,7 +23,9 @@ final class AuthViewModel: ObservableObject {
         signOutUseCase: SignOutUseCase,
         resetPasswordUseCase: ResetPasswordUseCase,
         deleteAccountUseCase: DeleteAccountUseCase,
-        resetUserDataUseCase: ResetUserDataUseCase
+        resetUserDataUseCase: ResetUserDataUseCase,
+        loginWithBiometricUseCase: LoginWithBiometricUseCase,   // NEU
+        credentialStorage: BiometricCredentialStorage           // NEU
     ) {
         self.session = session
         self.loginUseCase = loginUseCase
@@ -30,6 +34,13 @@ final class AuthViewModel: ObservableObject {
         self.resetPasswordUseCase = resetPasswordUseCase
         self.deleteAccountUseCase = deleteAccountUseCase
         self.resetUserDataUseCase = resetUserDataUseCase
+        self.loginWithBiometricUseCase = loginWithBiometricUseCase    // NEU
+        self.credentialStorage = credentialStorage                    // NEU
+    }
+    
+    // NEU: Prüft ob Face-ID-Login möglich ist
+    var canUseBiometricLogin: Bool {
+        credentialStorage.hasStoredCredentials
     }
 
     func login(email: String, password: String) async {
@@ -37,9 +48,24 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let authUser = try await loginUseCase.execute(email: email, password: password)
-            session.setAuthenticatedUser(authUser)  // ← explizit, kein Firebase-Seiteneffekt
+            session.setAuthenticatedUser(authUser)
+            
+            // NEU: Credentials für Face-ID-Login speichern
+            try? credentialStorage.save(email: email, password: password)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+    
+    // NEU: Login mit Face ID
+    func loginWithBiometric() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let authUser = try await loginWithBiometricUseCase.execute()
+            session.setAuthenticatedUser(authUser)
+        } catch {
+            errorMessage = "Anmeldung mit Face ID fehlgeschlagen"
         }
     }
 
@@ -48,7 +74,10 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let authUser = try await signUpUseCase.execute(request: request)
-            session.setAuthenticatedUser(authUser)  // ← Namen kommen aus dem Request
+            session.setAuthenticatedUser(authUser)
+            
+            // NEU: Auch nach SignUp Credentials speichern
+            try? credentialStorage.save(email: request.email, password: request.password)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -58,6 +87,7 @@ final class AuthViewModel: ObservableObject {
         do {
             try await signOutUseCase.execute()
             session.clearSession()
+            // Keychain NICHT löschen — User soll mit Face ID wieder rein können
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -72,12 +102,16 @@ final class AuthViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+    
     func deleteAccount() async {
         guard let userId = session.currentUser?.id else { return }
         isLoading = true
         defer { isLoading = false }
         do {
             try await deleteAccountUseCase.execute(userId: userId)
+            
+            // NEU: Account gelöscht → Keychain auch leeren
+            credentialStorage.clear()
         } catch {
             errorMessage = error.localizedDescription
         }

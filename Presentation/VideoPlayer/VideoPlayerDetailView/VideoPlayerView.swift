@@ -403,8 +403,17 @@ struct VideoPlayerView: View {
         configurations: config
     )
     let context = ModelContext(container)
+    let userRepository = UserRepository(modelContext: context)
+    let authenticator = LocalAuthBiometricAuthenticator()
+    let preferences = UserDefaultsBiometricPreferences()
+    let unlockUseCase = UnlockAppUseCase(
+        authenticator: authenticator,
+        preferences: preferences
+    )
     let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: context)
+        userRepository: userRepository,
+        unlockUseCase: unlockUseCase,
+        preferences: preferences
     )
     let progressVM = ProgressPreviewHelper.makeProgressVM(context: context)
     

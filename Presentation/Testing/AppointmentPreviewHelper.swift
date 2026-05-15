@@ -21,7 +21,18 @@ struct PreviewHelper {
         )
         let context = ModelContext(container)
         let userRepository = UserRepository(modelContext: context)
-        let sessionManager = SessionManager(userRepository: userRepository)
+   
+        let authenticator = LocalAuthBiometricAuthenticator()
+        let preferences = UserDefaultsBiometricPreferences()
+        let unlockUseCase = UnlockAppUseCase(
+            authenticator: authenticator,
+            preferences: preferences
+        )
+        let sessionManager = SessionManager(
+            userRepository: userRepository,
+            unlockUseCase: unlockUseCase,
+            preferences: preferences
+        )
         
         // Mock User setzen
         _ = userRepository.findOrCreate(

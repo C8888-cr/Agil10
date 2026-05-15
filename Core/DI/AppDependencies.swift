@@ -13,7 +13,18 @@ class AppDependencies: ObservableObject {
     // MARK: - Auth
     private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
     private lazy var userRepository = UserRepository(modelContext: modelContext)
-    lazy var sessionManager = SessionManager(userRepository: userRepository)
+    
+    // MARK: - Biometrie-Infrastruktur
+    private lazy var biometricAuthenticator: BiometricAuthenticator = LocalAuthBiometricAuthenticator()
+    private lazy var biometricPreferences: BiometricPreferences = UserDefaultsBiometricPreferences()
+    private lazy var biometricCredentialStorage: BiometricCredentialStorage = KeychainBiometricCredentialStorage()
+    
+    
+    lazy var sessionManager = SessionManager(
+        userRepository: userRepository,
+        unlockUseCase: unlockAppUseCase,
+        preferences: biometricPreferences
+    )
     
     func makeAuthViewModel() -> AuthViewModel {
         AuthViewModel(
@@ -23,8 +34,14 @@ class AppDependencies: ObservableObject {
             signOutUseCase: SignOutUseCase(authService: authServiceProtocol),
             resetPasswordUseCase: ResetPasswordUseCase(authService: authServiceProtocol),
             deleteAccountUseCase: deleteAccountUseCase,
-            resetUserDataUseCase: resetUserDataUseCase
+            resetUserDataUseCase: resetUserDataUseCase,
+            loginWithBiometricUseCase: loginWithBiometricUseCase,
+            credentialStorage: biometricCredentialStorage
         )
+    }
+    
+    func makeBiometricLockViewModel() -> BiometricLockViewModel {
+        BiometricLockViewModel(session: sessionManager)
     }
 
     // MARK: - Services
@@ -116,6 +133,29 @@ class AppDependencies: ObservableObject {
         userRepository: userRepository,
         session: sessionManager
     )
+    
+    
+    
+    
+    
+    // MARK: - BiometricUseCases
+    lazy var unlockAppUseCase = UnlockAppUseCase(
+        authenticator: biometricAuthenticator,
+        preferences: biometricPreferences
+    )
+    lazy var enableBiometricLoginUseCase = EnableBiometricLoginUseCase(
+        authenticator: biometricAuthenticator,
+        preferences: biometricPreferences
+    )
+    lazy var disableBiometricLoginUseCase = DisableBiometricLoginUseCase(
+        preferences: biometricPreferences
+    )
+    
+    lazy var loginWithBiometricUseCase = LoginWithBiometricUseCase(
+        credentialStorage: biometricCredentialStorage,
+        authService: authServiceProtocol
+    )
+    
     
     // MARK: - ViewModels
     lazy var progressViewModel = ProgressViewModel(

@@ -219,9 +219,19 @@ extension Notification.Name {
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
     let context = container.mainContext
-    let sessionManager = SessionManager(
-        userRepository: UserRepository(modelContext: context)
-    )
+
+       let userRepository = UserRepository(modelContext: container.mainContext)
+       let authenticator = LocalAuthBiometricAuthenticator()
+       let preferences = UserDefaultsBiometricPreferences()
+       let unlockUseCase = UnlockAppUseCase(
+           authenticator: authenticator,
+           preferences: preferences
+       )
+       let sessionManager = SessionManager(
+           userRepository: userRepository,
+           unlockUseCase: unlockUseCase,
+           preferences: preferences
+       )
     let repository = VideoScheduleRepository(modelContext: context)
     
     SettingsView()

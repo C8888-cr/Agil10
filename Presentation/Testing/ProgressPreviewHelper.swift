@@ -13,14 +13,24 @@ import SwiftData
 struct ProgressPreviewHelper {
     static func makeProgressVM(context: ModelContext) -> ProgressViewModel {
         let repository = VideoScheduleRepository(modelContext: context)
-        let sessionManager = SessionManager(
-            userRepository: UserRepository(modelContext: context)
+        let userRepository = UserRepository(modelContext: context)
+        let authenticator = LocalAuthBiometricAuthenticator()
+        let preferences = UserDefaultsBiometricPreferences()
+        let unlockUseCase = UnlockAppUseCase(
+            authenticator: authenticator,
+            preferences: preferences
         )
+        let sessionManager = SessionManager(
+            userRepository: userRepository,
+            unlockUseCase: unlockUseCase,
+            preferences: preferences
+        )
+        
         return ProgressViewModel(
-            session: SessionManager(userRepository: UserRepository(modelContext: context)),
-                   getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),
-                   addVideoToPlanUseCase: AddVideoToPlanUseCase(repository: repository),  // ← NEU
-                   addScheduleUseCase: AddScheduleUseCase(repository: repository),
+            session: sessionManager,   
+            getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),
+            addVideoToPlanUseCase: AddVideoToPlanUseCase(repository: repository),
+            addScheduleUseCase: AddScheduleUseCase(repository: repository),
             removeScheduleUseCase: RemoveScheduleUseCase(repository: repository),
             toggleCompletionUseCase: ToggleScheduleCompletionUseCase(repository: repository),
             reorderSchedulesUseCase: ReorderSchedulesUseCase(repository: repository),
