@@ -59,7 +59,7 @@ struct AppointmentNotificationService {
 
                 let content = UNMutableNotificationContent()
                 content.title = "Termin heute"
-                content.body = "\(appointment.timeString) Uhr – \(appointment.therapist)"
+                content.body = "\(appointment.timeString) Uhr – \(appointment.therapist ?? "kein Therapeut")"
                 content.sound = .default
 
                 let components = calendar.dateComponents(
@@ -83,7 +83,7 @@ struct AppointmentNotificationService {
                     if let error {
                         print("❌ Termin-Notification Fehler: \(error)")
                     } else {
-                        print("🔔 Erinnerung geplant: \(appointment.therapist) am \(appointment.dateString) um \(fireDate)")
+                        print("🔔 Erinnerung geplant: \(appointment.therapist ?? "kein Therapeut") am \(appointment.dateString) um \(fireDate)")
                     }
                 }
             }

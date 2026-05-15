@@ -76,6 +76,11 @@ class AppDependencies: ObservableObject {
         emailParser: emailParser,
         detectChangesUseCase: detectAppointmentChangesUseCase
     )
+    lazy var updateAppointmentUseCase = UpdateAppointmentUseCase(
+        repository: appointmentRepository,
+        calendarSync: calendarSync
+    )
+    
     
     // MARK: - ScheduleUseCases
     lazy var getSchedulesForDateUseCase = GetSchedulesForDateUseCase(
@@ -144,6 +149,7 @@ class AppDependencies: ObservableObject {
         detectAppointmentChangesUseCase: detectAppointmentChangesUseCase,
         cancelAppointmentUseCase: cancelAppointmentUseCase,
         addAppointmentUseCase: addAppointmentUseCase,
+        updateAppointmentUseCase: updateAppointmentUseCase,
         emailService: emailService,
         markAsNotifiedUseCase: markAsNotifiedUseCase,
         loadAppointmentsUseCase: loadAppointmentsUseCase,

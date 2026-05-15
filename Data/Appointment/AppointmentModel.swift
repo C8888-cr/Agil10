@@ -18,7 +18,7 @@ final class Appointment {
     var date: Date
     var therapist: String?
     var notes: String?
-    var durationMinutes: Int = 45
+    var durationMinutes: Int = 20
     
     // MARK: - Location (✅ KOMPLETT!)
        var locationName: String?

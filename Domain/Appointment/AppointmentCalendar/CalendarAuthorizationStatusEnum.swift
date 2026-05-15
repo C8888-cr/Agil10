@@ -41,3 +41,13 @@ public enum CalendarSyncError: Error, LocalizedError {
         }
     }
 }
+extension CalendarAuthorizationStatus: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .notDetermined: return "notDetermined"
+        case .authorized: return "authorized"
+        case .denied: return "denied"
+        case .restricted: return "restricted"
+        }
+    }
+}

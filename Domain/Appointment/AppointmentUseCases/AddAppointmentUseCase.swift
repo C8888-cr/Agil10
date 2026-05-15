@@ -31,7 +31,7 @@ struct AddAppointmentUseCase {
         latitude: Double? = nil,
         longitude: Double? = nil,
         notes: String? = nil,
-        durationMinutes: Int = 45
+        durationMinutes: Int = 20
     ) async throws -> Appointment {
         print("📝 addAppointmentManual called")
         
@@ -53,12 +53,12 @@ struct AddAppointmentUseCase {
             durationMinutes: durationMinutes,
             status: .confirmed,
             userId: userId,
-            praxisId: UUID()  // ✅ Status hinzugefügt
+            praxisId: UUID()
         )
         
         print("📅 Appointment erstellt:")
         print("   → Datum: \(date)")
-        print("   → Therapeut: \(therapist)")
+        print("   → Therapeut: \(String(describing: therapist))")
         print("   → User: \(userId)")
         
         let savedAppointment = try await execute(appointment)
@@ -68,9 +68,32 @@ struct AddAppointmentUseCase {
         // 🆕 NEU: Calendar-Sync (nur wenn Service verfügbar und Permission OK)
                if let sync = calendarSync, sync.authorizationStatus == .authorized {
                    do {
-                       let endDate = savedAppointment.date.addingTimeInterval(60 * 60) // Default 1h
+                       let endDate = savedAppointment.date.addingTimeInterval(
+                                 TimeInterval(savedAppointment.durationMinutes * 60)
+                                 )
                        let location = savedAppointment.displayLocation
-                       let title = "Physio: \(savedAppointment.therapist)"
+                       
+                       
+                       // Title bauen
+                       let baseTitle: String
+                       if let therapist = savedAppointment.therapist, !therapist.isEmpty {
+                           baseTitle = "Physio agil: \(therapist)"
+                       } else {
+                           baseTitle = "Physio agil"
+                       }
+
+                       // Notizen an Titel anhängen, wenn vorhanden
+                       let title: String
+                       if let notes = savedAppointment.notes, !notes.isEmpty {
+                           title = "\(baseTitle) – \(notes)"
+                       } else {
+                           title = baseTitle
+                       }
+                       
+                       print("📝 Calendar-Sync Notes-Check:")
+                       print("   → appointment.notes: \(savedAppointment.notes ?? "nil")")
+                       print("   → title: \(title)")
+                       print("   → location: \(location ?? "nil")")
                        
                        let eventId = try await sync.createEvent(
                            title: title,
@@ -80,6 +103,8 @@ struct AddAppointmentUseCase {
                            notes: savedAppointment.notes
                        )
                        savedAppointment.calendarEventIdentifier = eventId
+                       try await repository.saveContext()        // 🆕 NEU
+                       print("✅ calendarEventIdentifier gespeichert: \(eventId)")
                   
                    } catch {
                        // Sync-Fehler ist kein Hard-Fail – Termin ist in Agil gespeichert
