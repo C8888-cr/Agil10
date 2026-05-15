@@ -14,7 +14,7 @@ final class SessionManager: ObservableObject {
     
     // NEU: Lock-Timing
     private var backgroundedAt: Date?
-    private let lockTimeout: TimeInterval = 120  // 2 Minuten
+    private let lockTimeout: TimeInterval = 30 
 
     init(
         userRepository: UserRepository,

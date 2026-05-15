@@ -7,6 +7,8 @@ struct AgilApp: App {
     @StateObject private var themeManager = ThemeManager()
     @StateObject private var dependencies = AppDependencies.shared
     
+    @Environment(\.scenePhase) private var scenePhase
+    
     init() {
         FirebaseApp.configure()
     }
@@ -28,6 +30,24 @@ struct AgilApp: App {
                 .environment(\.modelContext, dependencies.modelContext)
                 .dynamicTypeSize(...DynamicTypeSize.xLarge)
         }
+        .onChange(of: scenePhase) { _, newPhase in       // ← HIER, an die WindowGroup!
+                   print("🔄 ScenePhase: \(newPhase)")
+                   switch newPhase {
+                   case .background:
+                       print("📱 → didEnterBackground()")
+                       dependencies.sessionManager.didEnterBackground()
+                   case .active:
+                       print("📱 → didEnterForeground()")
+                       dependencies.sessionManager.didEnterForeground()
+                   case .inactive:
+                       print("📱 → inactive (skip)")
+                       break
+                   @unknown default:
+                       break
+                   }
+               }
+        
+        
     }
 }
 
