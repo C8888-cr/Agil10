@@ -17,6 +17,11 @@ struct VideoPickerSheet: View {
     let onVideoSelected: (Video) -> Void
     @Environment(\.dismiss) var dismiss
     
+    @State private var currentlyPlayingId: UUID? = nil
+     
+     @State private var showFilterSheet = false
+    
+    
     var body: some View {
         NavigationStack {
             contentView
@@ -57,7 +62,7 @@ struct VideoPickerSheet: View {
         }
     }
     
-    @State private var showFilterSheet = false
+
     
     @ViewBuilder
     private var contentView: some View {
@@ -74,36 +79,57 @@ struct VideoPickerSheet: View {
     }
     
     private var videoListView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                if viewModel.hasActiveFilters {
-                    activeFiltersBar
-                }
-                
-                LazyVStack(spacing: 8) {
-                    ForEach(viewModel.filteredVideos) { video in
-                        VideoListRow(
-                            video: video,
-                            onTap: { video in
-                                onVideoSelected(video)
-                                dismiss()
-                            },
-                            onFavorite: {
-                                Task {
-                                    if let user = session.currentUser {
-                                        await viewModel.toggleFavorite(video, for: user)
-                                    }
-                                }
-                            },
-                            onDelete: nil
-                        )
-                        .padding(.horizontal, 16) 
-                    }
-                }
-            }
-            .padding(.top, 8)
-        }
-    }
+          ScrollView {
+              VStack(alignment: .leading, spacing: 16) {
+                  if viewModel.hasActiveFilters {
+                      activeFiltersBar
+                  }
+                  
+                  LazyVStack(spacing: 8) {
+                      ForEach(viewModel.filteredVideos) { video in
+                          VideoListRow(
+                              video: video,
+                              onTap: { video in
+                                  currentlyPlayingId = nil   // beim Auswählen alles stoppen
+                                  onVideoSelected(video)
+                                  dismiss()
+                              },
+                              onFavorite: {
+                                  Task {
+                                      if let user = session.currentUser {
+                                          await viewModel.toggleFavorite(video, for: user)
+                                      }
+                                  }
+                              },
+                              onDelete: nil,
+                              // ✅ NEU:
+                              isPreviewPlaying: currentlyPlayingId == video.id,
+                              onPreviewTap: {
+                                  togglePreview(for: video.id)
+                              }
+                          )
+                          .padding(.horizontal, 16)
+                          // ✅ Auto-Stop beim Wegscrollen
+                          .onDisappear {
+                              if currentlyPlayingId == video.id {
+                                  currentlyPlayingId = nil
+                              }
+                          }
+                      }
+                  }
+              }
+              .padding(.top, 8)
+          }
+      }
+      
+      private func togglePreview(for videoId: UUID) {
+          if currentlyPlayingId == videoId {
+              currentlyPlayingId = nil    // pausieren
+          } else {
+              currentlyPlayingId = videoId  // neues starten, altes wird automatisch gestoppt
+          }
+      }
+  
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {

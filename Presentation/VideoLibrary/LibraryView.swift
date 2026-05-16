@@ -23,7 +23,9 @@ struct LibraryView: View {
     
     @State private var showCamera = false
     
-
+    @State private var currentlyPlayingId: UUID? = nil
+    
+    
     var onVideoSelected: ((Video) -> Void)? = nil
     
     
@@ -177,8 +179,8 @@ struct LibraryView: View {
             ForEach(viewModel.filteredVideos) { video in
                 VideoListRow(
                     video: video,
-                    
                     onTap: { video in
+                        currentlyPlayingId = nil   // beim Auswählen stoppen
                         print("🎬 onTap Closure aufgerufen für: \(video.title)")
                         if let onVideoSelected = onVideoSelected {
                             print("✅ onVideoSelected existiert, rufe auf...")
@@ -189,8 +191,6 @@ struct LibraryView: View {
                             selectedVideo = video
                         }
                     },
-                    
-
                     onFavorite: {
                         Task {
                             if let user = session.currentUser {
@@ -204,13 +204,34 @@ struct LibraryView: View {
                                viewModel.deleteVideo(video, for: user)
                             }
                         }
+                    },
+                    // ✅ NEU:
+                    isPreviewPlaying: currentlyPlayingId == video.id,
+                    onPreviewTap: {
+                        togglePreview(for: video.id)
                     }
-                    )
-                .padding(.horizontal, 16) 
+                )
+                .padding(.horizontal, 16)
+                // ✅ Auto-Stop beim Wegscrollen
+                .onDisappear {
+                    if currentlyPlayingId == video.id {
+                        currentlyPlayingId = nil
+                    }
+                }
+                
                 if video.id != viewModel.filteredVideos.last?.id {
                    
                 }
             }
+        }
+    }
+
+    // ✅ NEU: irgendwo unten in der View hinzufügen
+    private func togglePreview(for videoId: UUID) {
+        if currentlyPlayingId == videoId {
+            currentlyPlayingId = nil
+        } else {
+            currentlyPlayingId = videoId
         }
     }
     

@@ -201,6 +201,10 @@ struct VideoListRow: View {
     let onTap: (Video) -> Void
     let onFavorite: () -> Void
     let onDelete: (() -> Void)?
+    
+    // InlinePlayerState
+      var isPreviewPlaying: Bool 
+      var onPreviewTap: (() -> Void)? = nil
 
     @State private var showDeleteAlert = false
     @State private var offset: CGFloat = 0
@@ -290,9 +294,22 @@ struct VideoListRow: View {
     // MARK: - Row Content
     private var rowContent: some View {
         HStack(spacing: 0) {
-            thumbnailView
-                .frame(width: 170)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            // ✅ Thumbnail-Bereich
+                   Group {
+                       if let onPreviewTap = onPreviewTap {
+                           // Preview-Modus: tappbarer Mini-Player
+                           PreviewThumbnailPlayer(
+                               video: video,
+                               isPlaying: isPreviewPlaying,
+                               onTap: onPreviewTap
+                           )
+                       } else {
+                           // Klassischer Modus: statisches Thumbnail (LibraryView)
+                           thumbnailView
+                       }
+                   }
+                   .frame(width: 170)
+                   .clipShape(RoundedRectangle(cornerRadius: 12))
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(video.title)
