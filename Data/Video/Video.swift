@@ -145,9 +145,9 @@ final class Video {
         equipment: Equipment,
         durationSeconds: Int,
         fileSizeBytes: Int64 = 0,
-        defaultRepetitions: Int = 1,
+        defaultRepetitions: Int = 3,
         defaultPauseSeconds: Int = 30,
-        loopDurationSeconds: Int,
+        loopDurationSeconds: Int = 60,
         user: User? = nil,
         uploadedByTherapist: User? = nil,
      

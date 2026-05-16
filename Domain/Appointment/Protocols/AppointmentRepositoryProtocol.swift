@@ -18,4 +18,5 @@ protocol AppointmentRepositoryProtocol {
     func save(_ appointment: Appointment) async throws
     func delete(_ appointment: Appointment) async throws
     func checkDuplicate(date: Date, therapist: String) async throws -> Bool
+    func saveContext() async throws
 }

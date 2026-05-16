@@ -21,7 +21,7 @@ struct CancelAppointmentUseCase {
         userName: String, 
         practiceEmail: String
     ) async throws {
-        print("🚫 Setze Status auf cancelled für: \(appointment.therapist)")
+        print("🚫 Setze Status auf cancelled für: \(appointment.therapist ?? "kein Therapeut")")
         
         // Status ändern
         appointment.status = .cancelled
@@ -50,7 +50,7 @@ struct CancelAppointmentUseCase {
         
         Datum: \(appointment.dateString)
         Uhrzeit: \(appointment.timeString)
-        Therapeut: \(appointment.therapist)
+        Therapeut: \(appointment.therapist ?? "kein Therapeut")
         """
         
         if let reason = reason, !reason.isEmpty {

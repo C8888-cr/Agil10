@@ -16,14 +16,15 @@ final class Appointment {
     @Attribute(.unique) var id: UUID
   
     var date: Date
-    var therapist: String
+    var therapist: String?
     var notes: String?
+    var durationMinutes: Int = 20
     
     // MARK: - Location (✅ KOMPLETT!)
-       var locationName: String?           // "Praxis Mitte"
-       var locationAddress: String?        // "Hauptstraße 42, 10115 Berlin"
-       var locationLatitude: Double?       // 52.520008
-       var locationLongitude: Double?      // 13.404954
+       var locationName: String?
+       var locationAddress: String?
+       var locationLatitude: Double?
+       var locationLongitude: Double?
     
     // MARK: - Status & Tracking
     var statusRaw: String
@@ -60,21 +61,27 @@ final class Appointment {
            return locationName ?? locationAddress
        }
     
+    
+    var calendarEventIdentifier: String?
+    
+    
     // MARK: - Initializer
     init(
         id: UUID = UUID(),
         date: Date,
-        therapist: String,
+        therapist: String? = nil,
         locationName: String? = nil,
         locationAddress: String? = nil,
         locationLatitude: Double? = nil,
         locationLongitude: Double? = nil,
         notes: String? = nil,
+        durationMinutes: Int = 45,
         emailUID: String? = nil,
         status: AppointmentStatus = .scheduled,
-        userId: UUID,  // ✅ NEU: Statt user: User?
-        therapistId: UUID? = nil,  // ✅ NEU
-        praxisId: UUID  // ✅ NEU
+        userId: UUID,
+        therapistId: UUID? = nil,
+        praxisId: UUID,
+        calendarEventIdentifier: String? = nil
     ) {
         self.id = id
         self.date = date
@@ -84,14 +91,16 @@ final class Appointment {
         self.locationLatitude = locationLatitude
         self.locationLongitude = locationLongitude
         self.notes = notes
+        self.durationMinutes = durationMinutes
         self.emailUID = emailUID
         self.statusRaw = status.rawValue
         self.lastModified = Date()
         self.isHighlighted = false
         self.wasNotified = false
-        self.userId = userId  // ✅ NEU
-        self.therapistId = therapistId  // ✅ NEU
-        self.praxisId = praxisId  // ✅ NEU
+        self.userId = userId
+        self.therapistId = therapistId
+        self.praxisId = praxisId
+        self.calendarEventIdentifier = calendarEventIdentifier
     }
 }
 

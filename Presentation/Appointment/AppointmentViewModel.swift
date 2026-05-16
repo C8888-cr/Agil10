@@ -27,7 +27,9 @@ class AppointmentViewModel: ObservableObject {
     private let emailService: EmailService
     private let deleteAppointmentUseCase: DeleteAppointmentUseCase
     private let parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
-    
+    private let calendarSync: CalendarSyncService?
+    private let updateAppointmentUseCase: UpdateAppointmentUseCase
+
     // MARK: - State
    
     @Published var isLoading = false
@@ -64,12 +66,14 @@ class AppointmentViewModel: ObservableObject {
             detectAppointmentChangesUseCase: DetectAppointmentChangesUseCase,
             cancelAppointmentUseCase: CancelAppointmentUseCase,
             addAppointmentUseCase: AddAppointmentUseCase,
+            updateAppointmentUseCase: UpdateAppointmentUseCase,
             emailService: EmailService,
             markAsNotifiedUseCase: MarkAsNotifiedUseCase,
             loadAppointmentsUseCase: LoadAppointmentsUseCase,
         //    parseEmailUseCase: ParseEmailUseCase,
             deleteAppointmentUseCase: DeleteAppointmentUseCase,
-            parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
+            parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase,
+            calendarSync: CalendarSyncService? = nil
         
         ) {
          //   self.repository = repository
@@ -79,13 +83,14 @@ class AppointmentViewModel: ObservableObject {
             self.detectAppointmentChangesUseCase = detectAppointmentChangesUseCase
             self.cancelAppointmentUseCase = cancelAppointmentUseCase
             self.addAppointmentUseCase = addAppointmentUseCase
+            self.updateAppointmentUseCase = updateAppointmentUseCase
             self.emailService = emailService
             self.markAsNotifiedUseCase = markAsNotifiedUseCase
             self.loadAppointmentsUseCase = loadAppointmentsUseCase
           //  self.parseEmailUseCase = parseEmailUseCase
             self.deleteAppointmentUseCase = deleteAppointmentUseCase
             self.parseAppointmentsFromEmailUseCase = parseAppointmentsFromEmailUseCase
-            
+            self.calendarSync = calendarSync
 
         }
     
@@ -148,7 +153,7 @@ class AppointmentViewModel: ObservableObject {
             // ✅ User zu ALLEN neuen/geänderten Terminen hinzufügen
             for apt in changes.added + changes.modified + changes.cancelled {
                 apt.userId = user.id
-                print("   → \(apt.therapist) | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
+                print("   → \(apt.therapist ?? "-") | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
             }
             
             // ✅ Liste refreshen
@@ -192,12 +197,13 @@ class AppointmentViewModel: ObservableObject {
 
     func addAppointmentManual(
         date: Date,
-        therapist: String,
+        therapist: String?,
         locationName: String? = nil,
         locationAddress: String? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        notes: String? = nil
+        notes: String? = nil,
+        durationMinutes: Int = 20
     ) async {
         do {
                let savedAppointment = try await addAppointmentUseCase.executeManual(
@@ -207,9 +213,10 @@ class AppointmentViewModel: ObservableObject {
                    locationAddress: locationAddress,
                    latitude: latitude,
                    longitude: longitude,
-                   notes: notes
+                   notes: notes,
+                   durationMinutes: durationMinutes
                )
-            print("✅ Appointment saved: \(savedAppointment.therapist) on \(savedAppointment.date)")
+            print("✅ Appointment saved: \(savedAppointment.therapist ?? "-") on \(savedAppointment.date)")
             
       
             clearErrors()
@@ -227,7 +234,34 @@ class AppointmentViewModel: ObservableObject {
         }
     }
 
-    
+    func updateAppointment(
+        _ appointment: Appointment,
+        date: Date,
+        therapist: String?,
+        locationName: String?,
+        locationAddress: String?,
+        latitude: Double?,
+        longitude: Double?,
+        notes: String?,
+        durationMinutes: Int
+    ) async {
+        do {
+            _ = try await updateAppointmentUseCase.execute(
+                appointment,
+                newDate: date,
+                newTherapist: therapist,
+                newLocationName: locationName,
+                newLocationAddress: locationAddress,
+                newLatitude: latitude,
+                newLongitude: longitude,
+                newNotes: notes,
+                newDurationMinutes: durationMinutes
+            )
+            clearErrors()
+        } catch {
+            setError(.saveFailed(error.localizedDescription))
+        }
+    }
     
     /// Termin hinzufügen
        func addAppointment(_ appointment: Appointment) async {
@@ -292,18 +326,41 @@ class AppointmentViewModel: ObservableObject {
            }
        }
        
-       /// Termin löschen
-       func deleteAppointment(_ appointment: Appointment) async {
-           do {
-               try await deleteAppointmentUseCase.execute(appointment)
-             
-               clearErrors()
-           } catch let error as AppointmentError {
-               setError(error)
-           } catch {
-               setError(.deleteFailed(error.localizedDescription))
-           }
-       }
+       
+    /// Termin löschen
+    func deleteAppointment(_ appointment: Appointment) async {
+        
+        // 🆕 Debug
+           print("🔎 Delete Diagnose:")
+           print("   → calendarEventIdentifier: \(appointment.calendarEventIdentifier ?? "nil")")
+           print("   → calendarSync vorhanden: \(calendarSync != nil)")
+           print("   → calendarSync auth: \(calendarSync?.authorizationStatus.description ?? "n/a")")
+           
+        // Erst aus iPhone-Kalender entfernen (best effort)
+        if let eventId = appointment.calendarEventIdentifier,
+           let calendarSync = calendarSync,
+           calendarSync.authorizationStatus == .authorized {
+            do {
+                try await calendarSync.deleteEvent(identifier: eventId)
+                print("🗑️ Kalender-Event gelöscht: \(eventId)")
+            } catch {
+                // Wenn Kalender-Delete fehlschlägt: Termin trotzdem aus Agil löschen.
+                // Der Kalender-Eintrag bleibt dann verwaist, aber das ist besser, als den
+                // ganzen Delete abzubrechen.
+                print("⚠️ Kalender-Event konnte nicht gelöscht werden: \(error)")
+            }
+        }
+        
+        // Bestehender Code:
+        do {
+            try await deleteAppointmentUseCase.execute(appointment)
+            clearErrors()
+        } catch let error as AppointmentError {
+            setError(error)
+        } catch {
+            setError(.deleteFailed(error.localizedDescription))
+        }
+    }
        
        /// Als benachrichtigt markieren
        func markAsNotified(_ appointment: Appointment) async {

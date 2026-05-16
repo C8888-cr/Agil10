@@ -40,7 +40,7 @@ struct CompactAppointmentView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(appointment.therapist)
+                    Text(appointment.therapist ?? "")
                         .font(appointment.isToday ? .caption : .caption2)
                         .foregroundColor(.secondary)
                     if let location = appointment.locationName, !location.isEmpty {

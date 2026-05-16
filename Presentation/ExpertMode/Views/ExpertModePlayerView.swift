@@ -6,7 +6,7 @@ struct ExpertModePlayerView: View {
 
     let video: Video
     let videoDuringTraining: VideoDuringTrainingMode
-    let onComplete: (() -> Void)?                      // 🆕
+    let onComplete: (() -> Void)?
 
     @State private var showWeightPrompt: Bool = false
     @State private var promptWeightText: String = ""
@@ -22,10 +22,10 @@ struct ExpertModePlayerView: View {
         restOverride: Int? = nil,
         lastTrainingTotalKg: Int? = nil,
         videoDuringTraining: VideoDuringTrainingMode = .toggleable,
-        scheduleId: UUID? = nil,                       // 🆕
-        progressViewModel: ProgressViewModel? = nil,   // 🆕
-        session: SessionManager? = nil,                // 🆕
-        onComplete: (() -> Void)? = nil                // 🆕
+        scheduleId: UUID? = nil,
+        progressViewModel: ProgressViewModel? = nil,
+        session: SessionManager? = nil,
+        onComplete: (() -> Void)? = nil
     ) {
         self.video = video
         self.videoDuringTraining = videoDuringTraining
@@ -40,16 +40,16 @@ struct ExpertModePlayerView: View {
             setsOverride: setsOverride,
             repsOverride: repsOverride,
             restOverride: restOverride,
-            scheduleId: scheduleId,                    // 🆕
-            progressViewModel: progressViewModel,      // 🆕
-            session: session,                          // 🆕
-            onComplete: onComplete                     // 🆕
+            scheduleId: scheduleId,
+            progressViewModel: progressViewModel,
+            session: session,
+            onComplete: onComplete
         ))
         _promptWeightText = State(initialValue: "\(effectiveWeight)")
         _showWeightPrompt = State(initialValue: weightKg == nil)
     }
     
-    // ... body bleibt fast gleich, nur das Rating-Sheet kommt dazu:
+   
     
     var body: some View {
         NavigationStack {
@@ -89,7 +89,7 @@ struct ExpertModePlayerView: View {
             } message: {
                 Text("Mit welchem Gewicht trainierst du heute?")
             }
-            // 🆕 Rating-Sheet wie im VideoPlayerView
+            //  Rating-Sheet wie im VideoPlayerView
             .sheet(isPresented: $viewModel.showRatingSheet, onDismiss: { dismiss() }) {
                 VideoRatingSheet(
                     videoTitle: video.title,
@@ -118,8 +118,8 @@ struct ExpertModePlayerView: View {
                     let screenHeight = geo.size.height
                     let maxVideoWidth = screenWidth * 0.9
                     let videoAspectRatio: CGFloat = 16/9
-                    let videoWidth = min(maxVideoWidth, screenHeight * videoAspectRatio)
-                    let videoHeight = videoWidth / videoAspectRatio
+           //         let videoWidth = min(maxVideoWidth, screenHeight * videoAspectRatio)
+                   // let videoHeight = videoWidth / videoAspectRatio
 
                     VStack(alignment: .center, spacing: 20) {
                         VStack(alignment: .center, spacing: 8) {

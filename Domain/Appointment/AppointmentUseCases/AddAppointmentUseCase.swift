@@ -10,21 +10,28 @@ struct AddAppointmentUseCase {
     
     private let repository: AppointmentRepository
     private let session: SessionManager
+    private let calendarSync: CalendarSyncService?
     
-    init(repository: AppointmentRepository, session: SessionManager) {
+    init(
+        repository: AppointmentRepository,
+        session: SessionManager,
+        calendarSync: CalendarSyncService? = nil
+    ) {
         self.repository = repository
         self.session = session
+        self.calendarSync = calendarSync
     }
     
     // ✅ Für manuelles Hinzufügen (von UI)
     func executeManual(
         date: Date,
-        therapist: String,
+        therapist: String?,
         locationName: String? = nil,
         locationAddress: String? = nil,
         latitude: Double? = nil,
         longitude: Double? = nil,
-        notes: String? = nil
+        notes: String? = nil,
+        durationMinutes: Int = 20
     ) async throws -> Appointment {
         print("📝 addAppointmentManual called")
         
@@ -43,36 +50,83 @@ struct AddAppointmentUseCase {
             locationLatitude: latitude,
             locationLongitude: longitude,
             notes: notes,
+            durationMinutes: durationMinutes,
             status: .confirmed,
             userId: userId,
-            praxisId: UUID()  // ✅ Status hinzugefügt
+            praxisId: UUID()
         )
         
         print("📅 Appointment erstellt:")
         print("   → Datum: \(date)")
-        print("   → Therapeut: \(therapist)")
+        print("   → Therapeut: \(String(describing: therapist))")
         print("   → User: \(userId)")
         
-        // ✅ Validierung + Speichern
         let savedAppointment = try await execute(appointment)
+              
         
-        print("✅ executeManual() erfolgreich abgeschlossen")
-        
-        return savedAppointment
+        // ✅ Validierung + Speichern
+        // 🆕 NEU: Calendar-Sync (nur wenn Service verfügbar und Permission OK)
+               if let sync = calendarSync, sync.authorizationStatus == .authorized {
+                   do {
+                       let endDate = savedAppointment.date.addingTimeInterval(
+                                 TimeInterval(savedAppointment.durationMinutes * 60)
+                                 )
+                       let location = savedAppointment.displayLocation
+                       
+                       
+                       // Title bauen
+                       let baseTitle: String
+                       if let therapist = savedAppointment.therapist, !therapist.isEmpty {
+                           baseTitle = "Physio agil: \(therapist)"
+                       } else {
+                           baseTitle = "Physio agil"
+                       }
+
+                       // Notizen an Titel anhängen, wenn vorhanden
+                       let title: String
+                       if let notes = savedAppointment.notes, !notes.isEmpty {
+                           title = "\(baseTitle) – \(notes)"
+                       } else {
+                           title = baseTitle
+                       }
+                       
+                       print("📝 Calendar-Sync Notes-Check:")
+                       print("   → appointment.notes: \(savedAppointment.notes ?? "nil")")
+                       print("   → title: \(title)")
+                       print("   → location: \(location ?? "nil")")
+                       
+                       let eventId = try await sync.createEvent(
+                           title: title,
+                           startDate: savedAppointment.date,
+                           endDate: endDate,
+                           location: location,
+                           notes: savedAppointment.notes
+                       )
+                       savedAppointment.calendarEventIdentifier = eventId
+                       try await repository.saveContext()        // 🆕 NEU
+                       print("✅ calendarEventIdentifier gespeichert: \(eventId)")
+                  
+                   } catch {
+                       // Sync-Fehler ist kein Hard-Fail – Termin ist in Agil gespeichert
+                       print("⚠️ Calendar-Sync fehlgeschlagen: \(error)")
+                   }
+               }
+               
+               return savedAppointment
     }
     
     // ✅ Für Email-Import
     @discardableResult
     func execute(_ appointment: Appointment) async throws -> Appointment {
         print("\n💾 === ADD APPOINTMENT USE CASE ===")
-        print("📅 Termin: \(appointment.therapist) am \(appointment.date)")
+        print("📅 Termin: \(appointment.therapist ?? "kein Therapeut") am \(appointment.date)")
         
-        // ✅ Validation
+    /*    // ✅ Validation
         guard !appointment.therapist.isEmpty else {
             print("❌ Therapeut leer")
             throw ValidationError.emptyTherapistName
         }
-        
+      */
         // ✅ GEÄNDERT: Erlaube vergangene Termine für Email-Import
         if appointment.date < Date() {
             print("⚠️ Warnung: Datum in Vergangenheit: \(appointment.date)")
@@ -85,7 +139,7 @@ struct AddAppointmentUseCase {
         print("🔍 Prüfe Duplikate...")
         let isDuplicate = try await repository.checkDuplicate(
             date: appointment.date,
-            therapist: appointment.therapist
+            therapist: appointment.therapist ?? ""
         )
         
         if isDuplicate {

@@ -34,7 +34,7 @@ struct SelectedDateInfoView: View {
                                 HStack(spacing: 6) {
                                     Image(systemName: "")
                                         .foregroundColor(themeManager.currentTheme.accentColor)
-                                    Text("\(appt.date.timeString) – \(appt.therapist)")
+                                    Text("\(appt.date.timeString) – \(appt.therapist ?? "kein Therapeut")")
                                         .font(.headline)
                                         .foregroundColor(.secondary)
                                     

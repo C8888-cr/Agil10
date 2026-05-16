@@ -125,7 +125,7 @@ struct CancelAppointmentSheet: View {
         ich möchte meinen folgenden Termin absagen:
         Datum: \(appointment.dateString)
         Uhrzeit: \(appointment.timeString)
-        Therapeut: \(appointment.therapist)
+        Therapeut: \(appointment.therapist ?? "kein Therapeut")
         """
         
         if !reason.isEmpty {
@@ -175,7 +175,7 @@ struct CancelAppointmentSheet: View {
                     HStack {
                         Image(systemName: "person.fill")
                             .foregroundColor(themeManager.currentTheme.accentColor)
-                        Text(appointment.therapist)
+                        Text(appointment.therapist ?? "")
                     }
                 }
                 

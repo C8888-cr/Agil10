@@ -13,6 +13,7 @@ import SwiftData
 struct ProgressPreviewHelper {
     static func makeProgressVM(context: ModelContext) -> ProgressViewModel {
         let repository = VideoScheduleRepository(modelContext: context)
+
         let userRepository = UserRepository(modelContext: context)
         let authenticator = LocalAuthBiometricAuthenticator()
         let preferences = UserDefaultsBiometricPreferences()
@@ -26,6 +27,7 @@ struct ProgressPreviewHelper {
             preferences: preferences
         )
         
+
         return ProgressViewModel(
             session: sessionManager,   
             getSchedulesUseCase: GetSchedulesForDateUseCase(repository: repository),

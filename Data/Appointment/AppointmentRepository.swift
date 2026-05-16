@@ -94,7 +94,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         }
         
         print("💾 Saving appointment:")
-        print("   → Therapist: \(appointment.therapist)")
+        print("   → Therapist: \(appointment.therapist ?? "kein Therapeut")")
         print("   → Date: \(appointment.date)")
         
         // ✅ userId setzen
@@ -109,7 +109,7 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
     func delete(_ appointment: Appointment) async throws {
         modelContext.delete(appointment)
         try modelContext.save()
-        print("🗑️ Deleted appointment: \(appointment.therapist)")
+        print("🗑️ Deleted appointment: \(appointment.therapist ?? "kein Therapeut")")
     }
     
     // MARK: - Duplicate Check
@@ -128,4 +128,11 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
         
         return isDuplicate
     }
+    
+    func saveContext() async throws {
+        try modelContext.save()
+        print("💾 Context saved")
+    }
+    
+    
 }

@@ -48,7 +48,7 @@ class EmailParserService {
             // Prüfen ob Zeile ein Termin ist (enthält Datum + Uhrzeit + Therapeut)
             // Format: "Mo    20.10.2025    12:00    KG (Frau Müller)"
             if let appointment = parseAppointmentLine(trimmed, emailHash: emailHash) {
-                print("  ✅ Termin gefunden: \(appointment.date.formatted()) | \(appointment.therapist)")
+                print("  ✅ Termin gefunden: \(appointment.date.formatted()) | \(appointment.therapist ?? "kein Therapeut")")
                 parsedAppointments.append(appointment)
             }
         }

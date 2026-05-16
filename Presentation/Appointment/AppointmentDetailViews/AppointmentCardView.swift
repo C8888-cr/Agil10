@@ -12,7 +12,7 @@ struct AppointmentCardView: View {
     @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) var modelContext
     
-    
+    @State private var showingEditSheet = false
     @State private var showingDeleteAlert = false
     @State private var showingCancelSheet = false      // ← NEU
     
@@ -71,7 +71,7 @@ struct AppointmentCardView: View {
                     Image(systemName: "person.fill")
                         .font(.caption)
                         .foregroundColor(themeManager.currentTheme.accentColor)
-                    Text(appointment.therapist)
+                    Text(appointment.therapist ?? "")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -118,6 +118,15 @@ struct AppointmentCardView: View {
                         Label("Termin absagen", systemImage: "xmark.circle")
                     }
                 }
+                
+                // 🆕 Bearbeiten (nur wenn nicht abgesagt und nicht in Vergangenheit)
+                    if appointment.status != .cancelled && !appointment.isPast {
+                        Button(action: {
+                            showingEditSheet = true
+                        }) {
+                            Label("Bearbeiten", systemImage: "pencil")
+                        }
+                    }
                 
                 Divider()
                 
@@ -176,6 +185,9 @@ struct AppointmentCardView: View {
                 isPresented: $showingCancelSheet
             )
             .environmentObject(session)
+        }
+        .sheet(isPresented: $showingEditSheet) {           // 🆕
+            ManualAppointmentEntryView(appointmentToEdit: appointment)
         }
            }
        }
