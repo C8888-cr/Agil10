@@ -533,14 +533,29 @@ struct ManualAppointmentEntryView: View {
         self.appointmentToEdit = appointmentToEdit
         self.prefilledDate = prefilledDate
         
-        let date: Date
+        let calendar = Calendar.current
+        
         if let appt = appointmentToEdit {
-            date = appt.date
+            // Edit-Modus: Originalzeit beibehalten
+            _selectedDate = State(initialValue: appt.date)
+            _selectedTime = State(initialValue: appt.date)
         } else {
-            date = prefilledDate ?? Date()
+            // Neu-Modus: nächste volle Stunde
+            let rawDate = prefilledDate ?? Date()
+            
+            var comps = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: rawDate)
+            let currentMinute = comps.minute ?? 0
+            if currentMinute > 0 {
+                comps.hour = (comps.hour ?? 0) + 1
+            }
+            comps.minute = 0
+            comps.second = 0
+            
+            let cleanDate = calendar.date(from: comps) ?? rawDate
+            
+            _selectedDate = State(initialValue: cleanDate)
+            _selectedTime = State(initialValue: cleanDate)
         }
-        _selectedDate = State(initialValue: date)
-        _selectedTime = State(initialValue: date)
     }
     
     var body: some View {
@@ -555,12 +570,12 @@ struct ManualAppointmentEntryView: View {
                     )
                     .datePickerStyle(.compact)
                     
-                    DatePicker(
-                        "Uhrzeit",
-                        selection: $selectedTime,
-                        displayedComponents: .hourAndMinute
-                    )
-                    .datePickerStyle(.compact)
+                    HStack {
+                        Text("Uhrzeit")
+                        Spacer()
+                        IntervalTimePicker(date: $selectedTime, minuteInterval: 10)
+                            .frame(minWidth: 100, minHeight: 34)
+                    }
                 }
                 
                 // MARK: - Dauer
