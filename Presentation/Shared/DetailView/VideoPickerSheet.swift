@@ -5,8 +5,6 @@
 //  Created by Christiane Roth on 12.04.26.
 //
 
-
-// Presentation/Shared/Views/VideoPickerSheet.swift
 import SwiftUI
 
 struct VideoPickerSheet: View {
@@ -17,52 +15,95 @@ struct VideoPickerSheet: View {
     let onVideoSelected: (Video) -> Void
     @Environment(\.dismiss) var dismiss
     
-    @State private var currentlyPlayingId: UUID? = nil
-     
-     @State private var showFilterSheet = false
+    @State private var showFilterSheet = false
     
+    // ✅ NEU: für Inline-Preview
+    @State private var currentlyPlayingId: UUID? = nil
     
     var body: some View {
         NavigationStack {
-            contentView
-                .background(Color(.systemGroupedBackground))
-                .navigationTitle("Übung auswählen")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            showFilterSheet = true
-                        } label: {
-                            Image(systemName: viewModel.hasActiveFilters ?
-                                  "line.3.horizontal.decrease.circle.fill" :
-                                  "line.3.horizontal.decrease.circle")
-                                .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(viewModel.hasActiveFilters ? themeManager.currentTheme.accentColor : .primary)
+            VStack(spacing: 0) {
+                // ✅ NEU: Custom Searchbar mit Filter rechts daneben
+                customSearchBar
+                
+                contentView
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Übung auswählen")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                // ✅ NEU: Zurück-Pfeil links
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.body.weight(.semibold))
+                            Text("Zurück")
                         }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Abbrechen") { dismiss() }
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                     }
                 }
-                .searchable(
-                    text: $viewModel.searchText,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: "Übung suchen..."
-                )
-                .onChange(of: viewModel.searchText) {
-                    viewModel.applyFilters()
-                }
-                .sheet(isPresented: $showFilterSheet) {
-                    FilterSheet(viewModel: viewModel)
-                }
-                .task {
-                    guard let user = session.currentUser else { return }
-                    viewModel.setup(for: user)
-                }
+            }
+            .sheet(isPresented: $showFilterSheet) {
+                FilterSheet(viewModel: viewModel)
+            }
+            .task {
+                guard let user = session.currentUser else { return }
+                viewModel.setup(for: user)
+            }
         }
     }
     
-
+    // MARK: - Custom Searchbar
+    
+    private var customSearchBar: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                
+                TextField("Übung suchen...", text: $viewModel.searchText)
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled()
+                    .onChange(of: viewModel.searchText) {
+                        viewModel.applyFilters()
+                    }
+                
+                if !viewModel.searchText.isEmpty {
+                    Button {
+                        viewModel.searchText = ""
+                        viewModel.applyFilters()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6))
+            .clipShape(Capsule())
+            
+            // Filter-Button direkt rechts
+            Button {
+                showFilterSheet = true
+            } label: {
+                Image(systemName: viewModel.hasActiveFilters ?
+                      "line.3.horizontal.decrease.circle.fill" :
+                      "line.3.horizontal.decrease.circle")
+                    .font(.title2)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(viewModel.hasActiveFilters ? themeManager.currentTheme.accentColor : .primary)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color(.systemGroupedBackground))
+    }
+    
+    // MARK: - Content
     
     @ViewBuilder
     private var contentView: some View {
@@ -71,6 +112,7 @@ struct VideoPickerSheet: View {
                 ProgressView()
                 Text("Lade Übungen...")
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if viewModel.filteredVideos.isEmpty {
             emptyStateView
         } else {
@@ -79,57 +121,46 @@ struct VideoPickerSheet: View {
     }
     
     private var videoListView: some View {
-          ScrollView {
-              VStack(alignment: .leading, spacing: 16) {
-                  if viewModel.hasActiveFilters {
-                      activeFiltersBar
-                  }
-                  
-                  LazyVStack(spacing: 8) {
-                      ForEach(viewModel.filteredVideos) { video in
-                          VideoListRow(
-                              video: video,
-                              onTap: { video in
-                                  currentlyPlayingId = nil   // beim Auswählen alles stoppen
-                                  onVideoSelected(video)
-                                  dismiss()
-                              },
-                              onFavorite: {
-                                  Task {
-                                      if let user = session.currentUser {
-                                          await viewModel.toggleFavorite(video, for: user)
-                                      }
-                                  }
-                              },
-                              onDelete: nil,
-                              // ✅ NEU:
-                              isPreviewPlaying: currentlyPlayingId == video.id,
-                              onPreviewTap: {
-                                  togglePreview(for: video.id)
-                              }
-                          )
-                          .padding(.horizontal, 16)
-                          // ✅ Auto-Stop beim Wegscrollen
-                          .onDisappear {
-                              if currentlyPlayingId == video.id {
-                                  currentlyPlayingId = nil
-                              }
-                          }
-                      }
-                  }
-              }
-              .padding(.top, 8)
-          }
-      }
-      
-      private func togglePreview(for videoId: UUID) {
-          if currentlyPlayingId == videoId {
-              currentlyPlayingId = nil    // pausieren
-          } else {
-              currentlyPlayingId = videoId  // neues starten, altes wird automatisch gestoppt
-          }
-      }
-  
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if viewModel.hasActiveFilters {
+                    activeFiltersBar
+                }
+                
+                LazyVStack(spacing: 8) {
+                    ForEach(viewModel.filteredVideos) { video in
+                        VideoListRow(
+                            video: video,
+                            onTap: { video in
+                                currentlyPlayingId = nil
+                                onVideoSelected(video)
+                                dismiss()
+                            },
+                            onFavorite: {
+                                Task {
+                                    if let user = session.currentUser {
+                                        await viewModel.toggleFavorite(video, for: user)
+                                    }
+                                }
+                            },
+                            onDelete: nil,
+                            isPreviewPlaying: currentlyPlayingId == video.id,
+                            onPreviewTap: {
+                                togglePreview(for: video.id)
+                            }
+                        )
+                        .padding(.horizontal, 16)
+                        .onDisappear {
+                            if currentlyPlayingId == video.id {
+                                currentlyPlayingId = nil
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {
@@ -192,6 +223,16 @@ struct VideoPickerSheet: View {
                 .foregroundStyle(.red)
             }
             .padding(.horizontal, 16)
+        }
+    }
+    
+    // MARK: - Preview Helper
+    
+    private func togglePreview(for videoId: UUID) {
+        if currentlyPlayingId == videoId {
+            currentlyPlayingId = nil
+        } else {
+            currentlyPlayingId = videoId
         }
     }
 }

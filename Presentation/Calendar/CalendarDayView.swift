@@ -193,7 +193,7 @@ struct CalendarDayView: View {
             guard let user = currentUser else { return }
             progressVM.loadToday(for: user, date: calendarViewModel.selectedDate)
         }
-        .sheet(item: $activeSheet) { sheet in
+        .fullScreenCover(item: $activeSheet) { sheet in
             switch sheet {
             case .settings:
                 SettingsView()
@@ -224,7 +224,7 @@ struct CalendarDayView: View {
                 ManualAppointmentEntryView()
             }
         }
-        .sheet(item: $selectedVideoForConfig) { video in
+        .fullScreenCover(item: $selectedVideoForConfig) { video in
             VideoQuickConfigSheet(
                 video: video,
                 activeMode: settingsVM.preferences.activeMode,

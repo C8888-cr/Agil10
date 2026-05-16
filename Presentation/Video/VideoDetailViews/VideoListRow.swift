@@ -203,7 +203,7 @@ struct VideoListRow: View {
     let onDelete: (() -> Void)?
     
     // InlinePlayerState
-      var isPreviewPlaying: Bool 
+      var isPreviewPlaying: Bool
       var onPreviewTap: (() -> Void)? = nil
 
     @State private var showDeleteAlert = false
@@ -240,20 +240,24 @@ struct VideoListRow: View {
             rowContent
                 .offset(x: offset)
                 .simultaneousGesture(
-                    DragGesture(minimumDistance: 15)
+                    DragGesture(minimumDistance: 30)
                         .onChanged { value in
+                            // Wenn kein onDelete → gar nicht reagieren
+                            guard onDelete != nil else { return }
+                            
                             if dragDirection == nil {
                                 let dx = abs(value.translation.width)
                                 let dy = abs(value.translation.height)
-                                if dx > dy && dx > 10 {
+                                // Strenger: muss klar horizontal sein
+                                if dx > dy * 2 && dx > 20 {
                                     dragDirection = .horizontal
-                                } else if dy > dx {
+                                } else {
                                     dragDirection = .vertical
                                     return
                                 }
                             }
                             guard dragDirection == .horizontal else { return }
-
+                            
                             let drag = value.translation.width
                             if drag < 0 {
                                 offset = max(drag, -rightWidth)
@@ -261,8 +265,9 @@ struct VideoListRow: View {
                         }
                         .onEnded { _ in
                             defer { dragDirection = nil }
+                            guard onDelete != nil else { return }
                             guard dragDirection == .horizontal else { return }
-
+                            
                             withAnimation(.spring(response: 0.3)) {
                                 if offset < -rightWidth / 2 {
                                     offset = -rightWidth
