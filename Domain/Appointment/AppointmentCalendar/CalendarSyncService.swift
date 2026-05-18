@@ -51,4 +51,15 @@ public protocol CalendarSyncService {
     /// Löscht einen Event aus dem Kalender.
     /// Wirft NICHT, wenn der Event nicht mehr existiert (User hat ihn evtl. selbst gelöscht).
     func deleteEvent(identifier: String) async throws
+    
+    
+    /// Beobachtet externe Änderungen am Kalender (z.B. wenn der User
+    /// in Apple-Kalender einen Termin direkt ändert).
+    /// Der Callback wird aufgerufen, sobald sich was geändert hat.
+    /// Wichtig: Der Callback läuft auf einem Background-Thread!
+    func startObservingChanges(onChange: @escaping () async -> Void)
+
+    /// Stoppt das Beobachten (z.B. wenn ViewModel deinitialisiert wird)
+    func stopObservingChanges()
+    
 }

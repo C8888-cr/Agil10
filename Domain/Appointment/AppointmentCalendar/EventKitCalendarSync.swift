@@ -1,10 +1,3 @@
-//
-//  EventKitCalendarSync.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 10.05.26.
-//
-
 
 //
 //  EventKitCalendarSync.swift
@@ -193,5 +186,33 @@ public final class EventKitCalendarSync: CalendarSyncService {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
         return CalendarEventColor(red: Double(r), green: Double(g), blue: Double(b))
+    }
+    
+    // MARK: - Live-Sync (External Changes)
+
+    private var changeObserver: NSObjectProtocol?
+
+    public func startObservingChanges(onChange: @escaping () async -> Void) {
+        // Falls schon ein Observer läuft, erst alten entfernen
+        stopObservingChanges()
+        
+        changeObserver = NotificationCenter.default.addObserver(
+            forName: .EKEventStoreChanged,
+            object: eventStore,
+            queue: .main
+        ) { _ in
+            print("📅 EventKit hat sich extern geändert – starte Reverse-Sync")
+            Task {
+                await onChange()
+            }
+        }
+    }
+
+    public func stopObservingChanges() {
+        if let observer = changeObserver {
+            NotificationCenter.default.removeObserver(observer)
+            changeObserver = nil
+            print("📅 Calendar-Observer gestoppt")
+        }
     }
 }

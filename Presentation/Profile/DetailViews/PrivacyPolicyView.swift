@@ -74,6 +74,7 @@ struct PrivacyPolicyView: View {
                     section(
                         title: "Kalender-Integration",
                         body: """
+                        Während die App geöffnet ist, prüft Agil automatisch, ob deine bereits verknüpften Termine im iPhone-Kalender extern geändert wurden, und gleicht diese mit der App ab. Es findet keine Übertragung an Server statt.
                         Wenn du der Kalender-Integration zustimmst, greift Agil lesend \
                         und schreibend auf den Kalender deines Geräts zu. Wir lesen die \
                         Termine ausschließlich, um dir beim Planen neuer Praxis-Termine \

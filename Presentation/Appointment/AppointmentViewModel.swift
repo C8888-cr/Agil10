@@ -91,10 +91,12 @@ class AppointmentViewModel: ObservableObject {
             self.deleteAppointmentUseCase = deleteAppointmentUseCase
             self.parseAppointmentsFromEmailUseCase = parseAppointmentsFromEmailUseCase
             self.calendarSync = calendarSync
-
-        }
+            //  Live-Sync starten wichtig um updates von appleCalender zu erhalten
+            setupCalendarObserver()        }
     
-    
+    deinit {
+          calendarSync?.stopObservingChanges()
+      }
     
     // MARK: - Public Methods
  /*
@@ -436,5 +438,108 @@ class AppointmentViewModel: ObservableObject {
            validationError = nil
            showingError = false
        }
+    
+    // MARK: - Live-Sync mit Apple-Kalender
+
+    private func setupCalendarObserver() {
+        guard let sync = calendarSync, sync.authorizationStatus == .authorized else {
+            return
+        }
+        
+        sync.startObservingChanges { [weak self] in
+            await self?.syncFromAppleCalendar()
+        }
+        print("📅 Calendar-Live-Sync aktiviert")
+    }
+
+    /// Holt alle verknüpften Apple-Events und gleicht sie mit Agil-DB ab.
+    func syncFromAppleCalendar() async {
+        guard let sync = calendarSync, sync.authorizationStatus == .authorized else {
+            return
+        }
+        
+        print("🔄 Reverse-Sync: Apple-Kalender → Agil")
+        
+        // Alle Agil-Appointments mit Calendar-Verknüpfung
+        let descriptor = FetchDescriptor<Appointment>(
+            predicate: #Predicate<Appointment> { $0.calendarEventIdentifier != nil }
+        )
+        
+        guard let appointments = try? modelContext.fetch(descriptor) else {
+            print("⚠️ Konnte verknüpfte Termine nicht laden")
+            return
+        }
+        
+        // Großzügig: 1 Jahr vor und nach heute
+        let now = Date()
+        let oneYearAgo = Calendar.current.date(byAdding: .year, value: -1, to: now) ?? now
+        let oneYearAhead = Calendar.current.date(byAdding: .year, value: 1, to: now) ?? now
+        
+        let events: [CalendarEvent]
+        do {
+            events = try await sync.getEvents(from: oneYearAgo, to: oneYearAhead)
+        } catch {
+            print("⚠️ Konnte Apple-Events nicht laden: \(error)")
+            return
+        }
+        
+        var changed = 0
+        
+        for appointment in appointments {
+            guard let eventId = appointment.calendarEventIdentifier,
+                  let event = events.first(where: { $0.id == eventId }) else {
+                continue
+            }
+            
+            // Vergleichen: hat sich was geändert?
+            let durationMinutes = Int(event.end.timeIntervalSince(event.start) / 60)
+            let titleChanged = !event.title.contains(appointment.therapist ?? "")
+            let dateChanged = abs(event.start.timeIntervalSince(appointment.date)) > 60 // Toleranz 1 Min
+            let durationChanged = durationMinutes != appointment.durationMinutes
+            
+            if dateChanged || durationChanged || titleChanged {
+                appointment.date = event.start
+                appointment.durationMinutes = durationMinutes
+                appointment.lastModified = Date()
+                
+                // Titel parsen (Format: "Physio: NAME – NOTIZ" oder "Physio-Termin – NOTIZ")
+                let parsed = parseEventTitle(event.title)
+                if let therapist = parsed.therapist {
+                    appointment.therapist = therapist
+                }
+                if let notes = parsed.notes {
+                    appointment.notes = notes
+                }
+                
+                changed += 1
+                print("  ✏️ Termin aktualisiert: \(appointment.id) – Datum: \(event.start)")
+            }
+        }
+        
+        if changed > 0 {
+            try? modelContext.save()
+            print("✅ \(changed) Termin(e) aus Apple-Kalender übernommen")
+        } else {
+            print("ℹ️ Keine externen Änderungen gefunden")
+        }
+    }
+
+    /// Zerlegt einen Event-Titel im Format "Physio: NAME – NOTIZ" oder
+    /// "Physio-Termin – NOTIZ" zurück in Bestandteile.
+    private func parseEventTitle(_ title: String) -> (therapist: String?, notes: String?) {
+        // Nach " – " teilen (Halbgeviertstrich, nicht normaler Bindestrich!)
+        let parts = title.components(separatedBy: " – ")
+        let mainPart = parts[0]
+        let notesPart = parts.count > 1 ? parts.dropFirst().joined(separator: " – ") : nil
+        
+        // Therapeut aus mainPart extrahieren
+        var therapist: String? = nil
+        if mainPart.hasPrefix("Physio: ") {
+            therapist = String(mainPart.dropFirst("Physio: ".count))
+        }
+        // "Physio-Termin" = kein Therapeut → nil
+        
+        return (therapist: therapist, notes: notesPart)
+    }
     
 }
