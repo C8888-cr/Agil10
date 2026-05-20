@@ -2,131 +2,187 @@
 //  AppointmentYearView.swift
 //  Agil10.0
 //
-//  Created by Christiane Roth on 10.05.26.
-//
-
-
-//
-//  AppointmentYearView.swift
-//  Agil10.0
-//
-//  Jahresansicht – 12 Mini-Monate. Tap auf einen Monat → AppointmentMonthView.
+//  Jahresansicht – Exakt wie Apple Calendar.
+//  Mit Sticky Header, Navigation zu MonthView.
 //
 
 import SwiftUI
 
 struct AppointmentYearView: View {
 
-    @StateObject var viewModel: AppointmentPlannerViewModel
-    @State private var displayedYear: Int = Calendar.current.component(.year, from: Date())
-    @State private var selectedMonth: Date? = nil
+    @ObservedObject var viewModel: AppointmentPlannerViewModel
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var themeManager: ThemeManager
+    
+    var onMonthSelected: (Date) -> Void
+    var onCloseAll: () -> Void
 
-    private let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+    @State private var scrollPosition: String? = nil
+    
+    private let calendar: Calendar = {
+        var cal = Calendar.current
+        cal.firstWeekday = 2 // Montag
+        return cal
+    }()
+    
+    private var currentYear: Int {
+        calendar.component(.year, from: Date())
+    }
+    
+    // Jahre: -2 bis +2 um aktuelles Jahr
+    private var yearsToDisplay: [Int] {
+        Array((currentYear - 2)...(currentYear + 2))
+    }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Jahr-Navigation
-                    HStack {
-                        Button { displayedYear -= 1 } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.title3)
-                        }
-                        Spacer()
-                        Text(String(displayedYear))
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Spacer()
-                        Button { displayedYear += 1 } label: {
-                            Image(systemName: "chevron.right")
-                                .font(.title3)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .foregroundStyle(themeManager.currentTheme.accentColor)
+            ZStack(alignment: .top) {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
 
-                    // 12 Mini-Monate
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(1...12, id: \.self) { month in
-                            miniMonth(month: month)
-                                .onTapGesture {
-                                    var components = DateComponents()
-                                    components.year = displayedYear
-                                    components.month = month
-                                    components.day = 1
-                                    if let date = Calendar.current.date(from: components) {
-                                        selectedMonth = date
-                                    }
-                                }
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 40) {
+                        ForEach(yearsToDisplay, id: \.self) { year in
+                            yearSection(year: year)
+                                .id(String(year))
                         }
+                        Spacer().frame(height: 80)
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
                 }
-                .padding(.vertical)
+                .scrollPosition(id: $scrollPosition)
+
+                // Sticky Header
+                stickyHeader
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Termin planen")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Abbrechen") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Heute") {
-                        displayedYear = Calendar.current.component(.year, from: Date())
-                        selectedMonth = Date()
+                // < Zurück Button
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        // Zurück zu MonthView mit aktuellem Jahr/Monat
+                        var components = DateComponents()
+                        components.year = currentYear
+                        components.month = calendar.component(.month, from: Date())
+                        components.day = 1
+                        if let date = calendar.date(from: components) {
+                            onMonthSelected(date)
+                        }
+                    } label: {
+                        HStack(spacing: 2) {
+                            Image(systemName: "chevron.left")
+                                .font(.body.weight(.semibold))
+                        }
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
+                        .frame(width: 32, height: 32)
+                        .glassEffect(in: Circle())
                     }
-                    .foregroundStyle(themeManager.currentTheme.accentColor)
+                }
+
+                // X Button
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        onCloseAll()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(themeManager.currentTheme.accentColor)
+                            .frame(width: 32, height: 32)
+                            .glassEffect(in: Circle())
+                    }
                 }
             }
-            .navigationDestination(item: $selectedMonth) { month in
-                AppointmentMonthView(
-                    viewModel: viewModel,
-                    initialMonth: month
-                )
+            .onAppear {
+                // Scroll zu aktuellem Jahr
+                DispatchQueue.main.async {
+                    scrollPosition = String(currentYear)
+                }
             }
         }
     }
 
-    // MARK: - Mini-Monat
-    private func miniMonth(month: Int) -> some View {
-        let monthName = DateFormatter().monthSymbols[month - 1]
-        let isCurrentMonth = isCurrent(month: month)
+    // MARK: - Sticky Header (Heute Button)
 
-        return GeometryReader { geo in
-            // Schriftgröße basierend auf verfügbarer Breite
-            let cellWidth = (geo.size.width - 16) / 7   // 7 Spalten, etwas Innenrand
-            let dayFontSize = max(8, min(14, cellWidth * 0.55))
-            let headerFontSize = max(11, min(18, geo.size.width * 0.12))
+    private var stickyHeader: some View {
+        VStack {
+            Spacer()
+            HStack {
+                Button {
+                    withAnimation {
+                        scrollPosition = String(currentYear)
+                    }
+                } label: {
+                    Text("Heute")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .glassEffect(in: Capsule())
+                }
+                .padding(.leading, 16)
+                .padding(.bottom, 20)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(monthName)
-                    .font(.system(size: headerFontSize, weight: .semibold))
-                    .foregroundStyle(isCurrentMonth ? themeManager.currentTheme.accentColor : .primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-
-                miniMonthGrid(month: month, dayFontSize: dayFontSize)
+                Spacer()
             }
-            .padding(8)
-            .frame(width: geo.size.width, height: geo.size.width, alignment: .topLeading)
-            .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(8)
         }
-        .aspectRatio(1, contentMode: .fit)   // Quadrat erzwingen
     }
 
-    private func miniMonthGrid(month: Int, dayFontSize: CGFloat) -> some View {
-        let calendar = Calendar.current
+    // MARK: - Jahr-Sektion
+
+    private func yearSection(year: Int) -> some View {
+        let isCurrentYear = year == currentYear
+
+        return VStack(alignment: .leading, spacing: 12) {
+            // Jahr
+            Text(String(year))
+                .font(.system(size: 28, weight: .bold))
+                .foregroundStyle(isCurrentYear ? themeManager.currentTheme.accentColor : .primary)
+
+            Divider()
+
+            // 4 Reihen à 3 Monate
+            VStack(spacing: 16) {
+                ForEach(0..<4, id: \.self) { row in
+                    HStack(alignment: .top, spacing: 8) {
+                        ForEach(0..<3, id: \.self) { col in
+                            let month = row * 3 + col + 1
+                            if month <= 12 {
+                                miniMonthView(year: year, month: month)
+                                    .frame(maxWidth: .infinity)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        handleMonthTap(year: year, month: month)
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Mini-Monats-Grid
+
+    private func miniMonthView(year: Int, month: Int) -> some View {
+        let monthName = monthFormatter.monthSymbols[month - 1]
+        let isCurrentMonth = isCurrent(year: year, month: month)
+
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(monthName)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(isCurrentMonth ? themeManager.currentTheme.accentColor : .primary)
+
+            monthGrid(year: year, month: month)
+        }
+    }
+
+    // MARK: - Monats-Grid (7 Spalten, mit Offset)
+
+    private func monthGrid(year: Int, month: Int) -> some View {
         var components = DateComponents()
-        components.year = displayedYear
+        components.year = year
         components.month = month
         components.day = 1
 
@@ -135,37 +191,80 @@ struct AppointmentYearView: View {
             return AnyView(EmptyView())
         }
 
-        let weekdayOfFirst = calendar.component(.weekday, from: firstOfMonth)
-        let leadingEmpties = (weekdayOfFirst + 5) % 7  // Montag-Start
+        // Wochentag des 1. (Montag = 0, Sonntag = 6)
+        let weekdayRaw = calendar.component(.weekday, from: firstOfMonth)
+        let offset = (weekdayRaw + 5) % 7
 
-        let cells: [Int?] = Array(repeating: nil, count: leadingEmpties)
-            + range.map { Optional($0) }
+        // Leere Zellen + Tage
+        var cells: [Int?] = Array(repeating: nil, count: offset)
+        cells += range.map { Optional($0) }
 
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 1), count: 7)
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
 
         return AnyView(
-            LazyVGrid(columns: columns, spacing: 2) {
+            LazyVGrid(columns: columns, spacing: 1) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
                     if let day = day {
-                        Text("\(day)")
-                            .font(.system(size: dayFontSize))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                            .frame(maxWidth: .infinity)
-                            .foregroundStyle(.primary)
+                        dayCell(day: day, year: year, month: month)
                     } else {
-                        Color.clear
+                        Text("")
+                            .font(.system(size: 10))
+                            .frame(height: 14)
                     }
                 }
             }
         )
     }
-    
-    
-    private func isCurrent(month: Int) -> Bool {
+
+    // MARK: - Tag-Zelle
+
+    private func dayCell(day: Int, year: Int, month: Int) -> some View {
+        let isToday = isToday(day: day, year: year, month: month)
+
+        return ZStack {
+            if isToday {
+                Circle()
+                    .fill(themeManager.currentTheme.accentColor)
+                    .frame(width: 18, height: 18)
+            }
+
+            Text("\(day)")
+                .font(.system(size: 10, weight: isToday ? .semibold : .regular))
+                .foregroundStyle(isToday ? .white : .primary)
+        }
+        .frame(height: 14)
+    }
+
+    // MARK: - Handler
+
+    private func handleMonthTap(year: Int, month: Int) {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = 1
+        if let date = calendar.date(from: components) {
+            onMonthSelected(date)
+        }
+    }
+
+    // MARK: - Helper
+
+    private func isToday(day: Int, year: Int, month: Int) -> Bool {
         let now = Date()
-        let cal = Calendar.current
-        return cal.component(.year, from: now) == displayedYear
-            && cal.component(.month, from: now) == month
+        return calendar.component(.year, from: now) == year
+            && calendar.component(.month, from: now) == month
+            && calendar.component(.day, from: now) == day
+    }
+
+    private func isCurrent(year: Int, month: Int) -> Bool {
+        let now = Date()
+        return calendar.component(.year, from: now) == year
+            && calendar.component(.month, from: now) == month
+    }
+
+    private var monthFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "de_DE")
+        return f
     }
 }

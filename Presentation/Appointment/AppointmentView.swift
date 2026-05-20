@@ -205,6 +205,12 @@ struct AppointmentView: View {
     @State private var showProfile = false
     @State private var showSettings = false
     @State private var showReminderSettings = false
+  
+    
+    @State private var dayDate: DayPlannerDate? = nil       // Day-Ebene
+    @State private var showingYear = false                   // Year-Ebene
+    @State private var plannerMonthAnchor: Date = Date()     //
+    @State private var yearMonth: Date? = nil
     
     // 🆕 Planner-ViewModel aus AppDependencies
     @StateObject private var plannerVM = AppDependencies.shared.makeAppointmentPlannerViewModel()
@@ -264,10 +270,57 @@ struct AppointmentView: View {
                 }
             )
         }
-        // 🆕 Calendar-Planner (Year → Month → Day)
-        .sheet(isPresented: $showingPlanner) {
-            AppointmentYearView(viewModel: plannerVM)
-        }
+        // 🆕 Calendar-Planner (Year <- Month → Day)
+        
+       .fullScreenCover(isPresented: $showingPlanner) {
+           AppointmentMonthView(
+               viewModel: plannerVM,
+               initialMonth: plannerMonthAnchor,
+               onDaySelected: { date in
+                   // Month schließen, Day öffnen – im gleichen Render-Cycle
+                   showingPlanner = false
+                   dayDate = DayPlannerDate(date: date)
+               },
+               onYearTapped: {
+                   showingPlanner = false
+                   showingYear = true
+               },
+               onCloseAll: {
+                   showingPlanner = false
+               }
+           )
+       }
+       .fullScreenCover(item: $dayDate) { wrapper in
+           AppointmentDayView(
+               viewModel: plannerVM,
+               initialDay: wrapper.date,
+               onBackToMonth: { lastDay in
+                   // Day schließen, Month wieder öffnen – mit Monat des angeschauten Tags
+                   plannerMonthAnchor = lastDay
+                   dayDate = nil
+                   showingPlanner = true
+               },
+               onCloseAll: {
+                   dayDate = nil
+               }
+           )
+       }
+   
+       .fullScreenCover(isPresented: $showingYear) {
+           AppointmentYearView(
+               viewModel: plannerVM,
+               onMonthSelected: { selectedMonth in
+                   // YearView schließen, MonthView mit Monat öffnen
+                   plannerMonthAnchor = selectedMonth
+                   showingYear = false
+                   showingPlanner = true
+               },
+               onCloseAll: {
+                   showingYear = false
+               }
+           )
+       }
+       
         // Bestehender Manual-Entry (Fallback wenn Permission denied)
         .sheet(isPresented: $showingManualEntry) {
             ManualAppointmentEntryView()
@@ -325,6 +378,10 @@ struct AppointmentView: View {
         case .denied, .restricted, .unknown:
             showingManualEntry = true
         }
+    }
+    private struct DayPlannerDate: Identifiable {
+        let date: Date
+        var id: Date { date }
     }
 }
 

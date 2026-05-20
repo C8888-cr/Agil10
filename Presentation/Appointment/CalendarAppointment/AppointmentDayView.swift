@@ -3,9 +3,7 @@
 //  Agil10.0
 //
 //  Tagesansicht mit Stunden-Raster und Wochen-Leiste oben.
-//  Tap auf freien Slot → neuer Termin
-//  Tap auf Agil-Termin → Edit-Sheet
-//  Long-Press auf Agil-Termin → Kontextmenü „Löschen"
+//  Wird von AppointmentView orchestriert.
 //
 
 import SwiftUI
@@ -21,15 +19,27 @@ struct AppointmentDayView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var appointmentViewModel: AppointmentViewModel
-    
+
+    /// Callback: zurück zur MonthView (mit aktuellem Tag als Anker)
+    var onBackToMonth: (Date) -> Void
+    /// Callback: ganz raus zur AppointmentView
+    var onCloseAll: () -> Void
+
     @Query private var allAppointments: [Appointment]
 
     private let hourHeight: CGFloat = 60
     private let startHour: Int = 6
     private let endHour: Int = 23
 
-    init(viewModel: AppointmentPlannerViewModel, initialDay: Date) {
+    init(
+        viewModel: AppointmentPlannerViewModel,
+        initialDay: Date,
+        onBackToMonth: @escaping (Date) -> Void,
+        onCloseAll: @escaping () -> Void
+    ) {
         self.viewModel = viewModel
+        self.onBackToMonth = onBackToMonth
+        self.onCloseAll = onCloseAll
         _displayedDay = State(initialValue: Calendar.current.startOfDay(for: initialDay))
     }
 
@@ -40,74 +50,129 @@ struct AppointmentDayView: View {
         return f
     }
 
+    private var monthLabel: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "de_DE")
+        f.dateFormat = "MMMM"
+        return f.string(from: displayedDay)
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            weekStrip
+        NavigationStack {
+            VStack(spacing: 0) {
+                weekStrip
 
-            Divider()
+                Divider()
 
-            HStack {
-                Text(dayFormatter.string(from: displayedDay))
-                    .font(.headline)
-                Spacer()
-                if !Calendar.current.isDateInToday(displayedDay) {
-                    Button("Heute") {
-                        displayedDay = Calendar.current.startOfDay(for: Date())
+                HStack {
+                    Text(dayFormatter.string(from: displayedDay))
+                        .font(.headline)
+                    Spacer()
+                    if !Calendar.current.isDateInToday(displayedDay) {
+                        Button("Heute") {
+                            displayedDay = Calendar.current.startOfDay(for: Date())
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
                     }
-                    .font(.subheadline)
-                    .foregroundStyle(themeManager.currentTheme.accentColor)
                 }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
 
-            ScrollView {
-                hourGrid
-                    .padding(.horizontal)
-            }
-        }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
-            await loadEventsForDisplayedWeek()
-        }
-        .onChange(of: displayedDay) { _, _ in
-            Task { await loadEventsForDisplayedWeek() }
-        }
-        // Neu-Termin-Sheet (Tap auf freien Slot)
-        .sheet(item: $prefilledSlot, onDismiss: {
-            Task { await loadEventsForDisplayedWeek() }
-        }) { slot in
-            ManualAppointmentEntryView(prefilledDate: slot.date)
-        }
-        // Edit-Sheet (Tap auf Agil-Termin)
-        .sheet(item: $appointmentToEdit, onDismiss: {
-            Task { await loadEventsForDisplayedWeek() }
-        }) { appt in
-            ManualAppointmentEntryView(appointmentToEdit: appt)
-        }
-        // Lösch-Bestätigung (Long-Press → Kontextmenü → Löschen)
-        .confirmationDialog(
-            "Termin löschen?",
-            isPresented: Binding(
-                get: { appointmentToDelete != nil },
-                set: { if !$0 { appointmentToDelete = nil } }
-            ),
-            presenting: appointmentToDelete
-        ) { appt in
-            Button("Löschen", role: .destructive) {
-                Task {
-                    await appointmentViewModel.deleteAppointment(appt)
-                    appointmentToDelete = nil
-                    await loadEventsForDisplayedWeek()
+                ScrollView {
+                    hourGrid
+                        .padding(.horizontal)
                 }
             }
-            Button("Abbrechen", role: .cancel) {
-                appointmentToDelete = nil
+            .background(Color(.systemBackground))
+            .gesture(
+                DragGesture(minimumDistance: 30)
+                    .onEnded { value in
+                        let horizontal = value.translation.width
+                        let vertical = value.translation.height
+                        guard abs(horizontal) > abs(vertical) * 1.5,
+                              abs(horizontal) > 50 else { return }
+
+                        let cal = Calendar.current
+                        let direction = horizontal < 0 ? 7 : -7
+                        if let newDay = cal.date(byAdding: .day, value: direction, to: displayedDay) {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                displayedDay = cal.startOfDay(for: newDay)
+                            }
+                        }
+                    }
+            )
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                // < Monatsname → zurück zu MonthView
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        onBackToMonth(displayedDay)
+                    } label: {
+                        HStack(spacing: 2) {
+                            Image(systemName: "chevron.left")
+                                .font(.body.weight(.semibold))
+                            Text(monthLabel)
+                                .font(.body.weight(.semibold))
+                        }
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .glassEffect(in: Capsule())
+                    }
+                }
+
+                // X → AppointmentView
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        onCloseAll()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(themeManager.currentTheme.accentColor)
+                            .frame(width: 32, height: 32)
+                            .glassEffect(in: Circle())
+                    }
+                }
             }
-        } message: { _ in
-            Text("Möchtest du diesen Termin wirklich löschen?")
+            .task {
+                await loadEventsForDisplayedWeek()
+            }
+            .onChange(of: displayedDay) { _, _ in
+                Task { await loadEventsForDisplayedWeek() }
+            }
+            .sheet(item: $prefilledSlot, onDismiss: {
+                Task { await loadEventsForDisplayedWeek() }
+            }) { slot in
+                ManualAppointmentEntryView(prefilledDate: slot.date)
+            }
+            .sheet(item: $appointmentToEdit, onDismiss: {
+                Task { await loadEventsForDisplayedWeek() }
+            }) { appt in
+                ManualAppointmentEntryView(appointmentToEdit: appt)
+            }
+            .confirmationDialog(
+                "Termin löschen?",
+                isPresented: Binding(
+                    get: { appointmentToDelete != nil },
+                    set: { if !$0 { appointmentToDelete = nil } }
+                ),
+                presenting: appointmentToDelete
+            ) { appt in
+                Button("Löschen", role: .destructive) {
+                    Task {
+                        await appointmentViewModel.deleteAppointment(appt)
+                        appointmentToDelete = nil
+                        await loadEventsForDisplayedWeek()
+                    }
+                }
+                Button("Abbrechen", role: .cancel) {
+                    appointmentToDelete = nil
+                }
+            } message: { _ in
+                Text("Möchtest du diesen Termin wirklich löschen?")
+            }
         }
     }
 
@@ -253,10 +318,7 @@ struct AppointmentDayView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             if let appt = agilAppt {
-                print("✏️ Tap auf Agil-Termin → Edit-Modus für \(appt.id)")
                 appointmentToEdit = appt
-            } else {
-                print("ℹ️ Tap auf fremden Termin – kein Edit möglich")
             }
         }
         .contextMenu {
@@ -274,9 +336,7 @@ struct AppointmentDayView: View {
     }
 
     // MARK: - Helpers
-    
-    /// Sucht den Agil-Appointment zu einem Kalender-Event (über calendarEventIdentifier).
-    /// Gibt nil zurück bei fremden Terminen (z.B. iCloud-Zahnarzt).
+
     private func agilAppointment(for event: CalendarEvent) -> Appointment? {
         guard let userId = session.currentUser?.id else { return nil }
         return allAppointments.first { appt in
@@ -306,7 +366,6 @@ struct AppointmentDayView: View {
     }
 }
 
-/// Wrapper, damit ein Date als sheet(item:) verwendet werden kann.
 private struct SlotItem: Identifiable {
     let id: Date
     var date: Date { id }
