@@ -1,4 +1,4 @@
-
+/*
 
 import SwiftUI
 import UserNotifications
@@ -98,3 +98,4 @@ struct AppointmentReminderSection: View {
         }
     }
 }
+*/

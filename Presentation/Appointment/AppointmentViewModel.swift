@@ -164,6 +164,17 @@ class AppointmentViewModel: ObservableObject {
             
             print("✅ Email import: \(changes.changesSummary)")
             
+            // 🆕 Notifications neu planen nach Email-Import
+            if let user = currentUser, user.appointmentReminderEnabled {
+                let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                await AppointmentNotificationService.scheduleReminders(
+                    for: allAppointments ?? [],
+                    enabled: true,
+                    reminderTime: user.appointmentReminderTime,
+                    mode: user.appointmentReminderMode
+                )
+            }
+
             return changes
             
         } catch let error as AppointmentError {
@@ -222,6 +233,19 @@ class AppointmentViewModel: ObservableObject {
             
       
             clearErrors()
+
+            // 🆕 Notifications neu planen
+       
+                if let user = currentUser, user.appointmentReminderEnabled {
+                    let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                    await AppointmentNotificationService.scheduleReminders(
+                        for: allAppointments ?? [],
+                        enabled: true,
+                        reminderTime: user.appointmentReminderTime,
+                        mode: user.appointmentReminderMode
+                    )
+                
+            }
             
         } catch {
             // Dein Error-Handling
@@ -321,6 +345,18 @@ class AppointmentViewModel: ObservableObject {
                )
              
                clearErrors()
+                
+               // 🆕 Notifications neu planen (abgesagter Termin wird übersprungen)
+               if let user = currentUser, user.appointmentReminderEnabled {
+                   let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                   await AppointmentNotificationService.scheduleReminders(
+                       for: allAppointments ?? [],
+                       enabled: true,
+                       reminderTime: user.appointmentReminderTime,
+                       mode: user.appointmentReminderMode
+                   )
+               }
+               
            } catch let error as AppointmentError {
                setError(error)
            } catch {
@@ -357,6 +393,21 @@ class AppointmentViewModel: ObservableObject {
         do {
             try await deleteAppointmentUseCase.execute(appointment)
             clearErrors()
+            
+            // 🆕 Notifications neu planen (gelöschter Termin wird entfernt)
+            if let user = currentUser, user.appointmentReminderEnabled {
+                let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                await AppointmentNotificationService.scheduleReminders(
+                    for: allAppointments ?? [],
+                    enabled: true,
+                    reminderTime: user.appointmentReminderTime,
+                    mode: user.appointmentReminderMode
+                )
+            }
+            
+            
+            
+            
         } catch let error as AppointmentError {
             setError(error)
         } catch {

@@ -54,12 +54,14 @@ struct AppointmentReminderSheet: View {
                                 requestPermissionAndEnable()
                             } else {
                                 user.appointmentReminderEnabled = false
-                                AppointmentNotificationService.scheduleReminders(
-                                    for: appointments,
-                                    enabled: true,
-                                    reminderTime: user.appointmentReminderTime,
-                                    mode: user.appointmentReminderMode
-                                )
+                                Task {
+                                    await AppointmentNotificationService.scheduleReminders(
+                                        for: appointments,
+                                        enabled: false,
+                                        reminderTime: user.appointmentReminderTime,
+                                        mode: user.appointmentReminderMode
+                                    )
+                                }
                             }
                         }
                     )) {
@@ -155,9 +157,10 @@ struct AppointmentReminderSheet: View {
         switch option {
         case .morgens:
             user.appointmentReminderMode = "morgens"
-            user.appointmentReminderTime = Calendar.current.date(
-                bySettingHour: 8, minute: 0, second: 0, of: Date()
-            ) ?? Date()
+            var components = DateComponents()
+            components.hour = 8
+            components.minute = 0
+            user.appointmentReminderTime = Calendar.current.date(from: components) ?? Date()
         case .oneHour:
             user.appointmentReminderMode = "1h"
         case .twoHours:
@@ -165,14 +168,32 @@ struct AppointmentReminderSheet: View {
         case .threeHours:
             user.appointmentReminderMode = "3h"
         }
-        AppointmentNotificationService.scheduleReminders(
-            for: appointments,
-            enabled: true,
-            reminderTime: user.appointmentReminderTime,
-            mode: user.appointmentReminderMode    // NEU
-        )
+        
+        Task {
+            await AppointmentNotificationService.scheduleReminders(
+                for: appointments,
+                enabled: true,
+                reminderTime: user.appointmentReminderTime,
+                mode: user.appointmentReminderMode
+            )
+            
+            // Debug: Zeige geplante Notifications
+            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                print("📬 \(requests.count) geplante Notifications:")
+                for request in requests {
+                    if let trigger = request.trigger as? UNCalendarNotificationTrigger,
+                       let date = trigger.nextTriggerDate() {
+                        let formatter = DateFormatter()
+                        formatter.dateFormat = "dd.MM.yyyy HH:mm"
+                        formatter.timeZone = TimeZone.current
+                        print("   → \(formatter.string(from: date)) (lokal)")
+                    }
+                }
+            }
+        }
     }
-
+    
+    
     private func requestPermissionAndEnable() {
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
@@ -180,12 +201,24 @@ struct AppointmentReminderSheet: View {
             DispatchQueue.main.async {
                 if granted {
                     user.appointmentReminderEnabled = true
-                    AppointmentNotificationService.scheduleReminders(
-                        for: appointments,
-                        enabled: true,
-                        reminderTime: user.appointmentReminderTime,
-                        mode: user.appointmentReminderMode    // NEU
-                    )
+                    
+                    // Default auf "morgens" setzen
+                    if user.appointmentReminderMode != "morgens" {
+                        user.appointmentReminderMode = "morgens"
+                        var components = DateComponents()
+                        components.hour = 8
+                        components.minute = 0
+                        user.appointmentReminderTime = Calendar.current.date(from: components) ?? Date()
+                    }
+                    
+                    Task {
+                        await AppointmentNotificationService.scheduleReminders(
+                            for: appointments,
+                            enabled: true,
+                            reminderTime: user.appointmentReminderTime,
+                            mode: user.appointmentReminderMode
+                        )
+                    }
                 } else {
                     user.appointmentReminderEnabled = false
                     showPermissionAlert = true

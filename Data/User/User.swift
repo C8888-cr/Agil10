@@ -61,9 +61,15 @@ final class User {
     
     
     var appointmentReminderEnabled: Bool = false
-    var appointmentReminderTime: Date = Calendar.current.date(
-        bySettingHour: 8, minute: 0, second: 0, of: Date()
-    ) ?? Date()
+    
+    var appointmentReminderTime: Date = {
+        var components = DateComponents()
+        components.hour = 8
+        components.minute = 0
+        components.second = 0
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+    
     var appointmentReminderMode: String = "morgens"
             init(
                 id: UUID = UUID(),
