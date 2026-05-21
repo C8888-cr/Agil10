@@ -38,6 +38,7 @@ final class AppointmentPlannerViewModel: ObservableObject {
         self.calendarSync = calendarSync
         self.getEvents = GetCalendarEventsUseCase(calendarSync: calendarSync)
         self.refreshPermissionState()
+        observeAppointmentChanges()
     }
 
     // MARK: - Permission
@@ -131,10 +132,31 @@ final class AppointmentPlannerViewModel: ObservableObject {
     func refreshMonth(containing date: Date) async {
         let cal = Calendar.current
         let anchor = cal.date(from: cal.dateComponents([.year, .month], from: date)) ?? date
-        loadedMonths.remove(anchor)
+
+        // Cache des 5-Monats-Fensters invalidieren (loadEventsIfNeeded lädt -2…+2 Monate)
+        for offset in -2...2 {
+            if let m = cal.date(byAdding: .month, value: offset, to: anchor) {
+                let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: m)) ?? m
+                loadedMonths.remove(monthStart)
+            }
+        }
+
+        // Events im betroffenen Fenster aus dem Array entfernen,
+        // damit gelöschte Events nicht im Merge-Cache zurückbleiben.
+        guard let windowStart = cal.date(byAdding: .month, value: -2, to: anchor),
+              let windowEnd = cal.date(byAdding: .month, value: 3, to: anchor) else {
+            await loadEventsIfNeeded(around: date)
+            return
+        }
+        events.removeAll { event in
+            event.start < windowEnd && event.end >= windowStart
+        }
+        rebuildDaysWithEventsIndex()
+
         await loadEventsIfNeeded(around: date)
     }
-
+    
+    
     /// Cache leeren – z. B. bei externem Calendar-Change.
     func invalidateCache() {
         loadedMonths.removeAll()
@@ -164,6 +186,24 @@ final class AppointmentPlannerViewModel: ObservableObject {
         return result
     }
 
+    // MARK: - External Change Observation
+
+        /// Lauscht auf Appointment-Änderungen aus anderen ViewModels (z.B. Card-Delete).
+        /// Sorgt dafür, dass alle Views, die plannerVM.events anzeigen, frisch bleiben.
+        private func observeAppointmentChanges() {
+            NotificationCenter.default.addObserver(
+                forName: .appointmentsChanged,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                let affectedDate = notification.userInfo?["date"] as? Date ?? Date()
+                Task { @MainActor [weak self] in
+                    await self?.refreshMonth(containing: affectedDate)
+                }
+            }
+        }
+
+    
     /// Baut den Tages-Index neu auf. O(n) einmalig, statt bei jedem View-Render.
     private func rebuildDaysWithEventsIndex() {
         let cal = Calendar.current

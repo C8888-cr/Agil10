@@ -65,20 +65,19 @@ struct UpdateAppointmentUseCase {
            sync.authorizationStatus == .authorized,
            let eventId = appointment.calendarEventIdentifier {
             do {
-                // Title bauen (analog AddAppointmentUseCase)
-                let baseTitle: String
-                if let therapist = newTherapist, !therapist.isEmpty {
-                    baseTitle = "Physio: \(therapist)"
-                } else {
-                    baseTitle = "Physio-Termin"
-                }
                 
-                let title: String
-                if let notes = newNotes, !notes.isEmpty {
-                    title = "\(baseTitle) – \(notes)"
-                } else {
-                    title = baseTitle
-                }
+                
+                
+                
+                // Title bauen (analog AddAppointmentUseCase)
+                let title = AppointmentCalendarTitleBuilder.build(
+                                    therapist: newTherapist,
+                                    notes: newNotes
+                                )
+                
+                
+                
+                
             
                 let endDate = newDate.addingTimeInterval(TimeInterval(newDurationMinutes * 60))
                 let location = appointment.displayLocation

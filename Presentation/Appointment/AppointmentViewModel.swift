@@ -405,6 +405,13 @@ class AppointmentViewModel: ObservableObject {
             try await deleteAppointmentUseCase.execute(appointment)
             clearErrors()
             
+            // 🆕 Planner-Cache invalidieren (DayView zeigt sonst gelöschten Termin)
+                       NotificationCenter.default.post(
+                           name: .appointmentsChanged,
+                           object: nil,
+                           userInfo: ["date": appointment.date]
+                       )
+            
             // 🆕 Notifications neu planen (gelöschter Termin wird entfernt)
             if let user = currentUser, user.appointmentReminderEnabled {
                 let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
