@@ -276,11 +276,13 @@ struct AppointmentMonthView: View {
     }
 
     private func dayCell(date: Date) -> some View {
-        let dayNumber = calendar.component(.day, from: date)
-        let isToday = calendar.isDateInToday(date)
-        let isWeekend = isWeekendDay(date)
-        let hasEvents = !viewModel.events(on: date).isEmpty
-
+            let dayNumber = calendar.component(.day, from: date)
+            let isToday = calendar.isDateInToday(date)
+            let isWeekend = isWeekendDay(date)
+            let dayKey = calendar.startOfDay(for: date)
+            let hasEvents = viewModel.daysWithEventsIndex.contains(dayKey)
+        
+        
         return VStack(spacing: 4) {
             ZStack {
                 if isToday {
@@ -309,14 +311,18 @@ struct AppointmentMonthView: View {
     // MARK: - Sichtbaren Monat tracken
 
     private func updateVisibleMonth(from frames: [MonthFrame]) {
-        let sorted = frames.sorted { $0.minY < $1.minY }
-        let pivot = sorted.last(where: { $0.minY < stickyHeaderHeight }) ?? sorted.first
-        guard let pivot else { return }
+            let sorted = frames.sorted { $0.minY < $1.minY }
+            let pivot = sorted.last(where: { $0.minY < stickyHeaderHeight }) ?? sorted.first
+            guard let pivot else { return }
 
-        if !calendar.isDate(pivot.monthStart, equalTo: visibleMonth, toGranularity: .month) {
-            visibleMonth = pivot.monthStart
+            if !calendar.isDate(pivot.monthStart, equalTo: visibleMonth, toGranularity: .month) {
+                visibleMonth = pivot.monthStart
+                // Lazy Load: Events für den neuen Monat ± 1 nachladen (no-op wenn schon im Cache)
+                Task {
+                    await viewModel.loadEventsIfNeeded(around: pivot.monthStart)
+                }
+            }
         }
-    }
 
     private func weeksOfMonth(_ monthStart: Date) -> [[Date]] {
         guard let range = calendar.range(of: .day, in: .month, for: monthStart) else { return [] }
@@ -382,11 +388,9 @@ struct AppointmentMonthView: View {
     }
 
     private func loadEvents() async {
-        let now = Date()
-        guard let start = calendar.date(byAdding: .year, value: -2, to: now),
-              let end   = calendar.date(byAdding: .year, value:  2, to: now) else { return }
-        await viewModel.loadEvents(from: start, to: end)
-    }
+            // Nur den initialen Monat ± 1 laden – Rest kommt lazy beim Scrollen
+            await viewModel.loadEventsIfNeeded(around: initialMonth)
+        }
 }
 
 private struct MonthFrame: Equatable {

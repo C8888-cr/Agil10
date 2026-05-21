@@ -42,7 +42,7 @@ struct AppointmentReminderSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showPermissionAlert = false
     @EnvironmentObject var themeManager: ThemeManager
-
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -66,19 +66,19 @@ struct AppointmentReminderSheet: View {
                         }
                     )) {
                         HStack(spacing: 12) {
-                               Image(systemName: "bell.badge.fill")
-                                   .symbolRenderingMode(.monochrome)
-                                   .foregroundStyle(themeManager.currentTheme.accentColor)
-                               Text("Erinnerungen aktiv")
-                                   .foregroundStyle(.primary)
-                           }
-                       }
-                       .tint(themeManager.currentTheme.accentColor)
+                            Image(systemName: "bell.badge.fill")
+                                .symbolRenderingMode(.monochrome)
+                                .foregroundStyle(themeManager.currentTheme.accentColor)
+                            Text("Erinnerungen aktiv")
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    .tint(themeManager.currentTheme.accentColor)
                 } header: {
                     Label("Termin-Erinnerungen", systemImage: "calendar.badge.clock")
                         .foregroundStyle(themeManager.currentTheme.accentColor)
                 }
-
+                
                 if user.appointmentReminderEnabled {
                     Section {
                         ForEach(AppointmentReminderOption.allCases, id: \.self) { option in
@@ -178,16 +178,16 @@ struct AppointmentReminderSheet: View {
             )
             
             // Debug: Zeige geplante Notifications
-            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-                print("📬 \(requests.count) geplante Notifications:")
-                for request in requests {
-                    if let trigger = request.trigger as? UNCalendarNotificationTrigger,
-                       let date = trigger.nextTriggerDate() {
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "dd.MM.yyyy HH:mm"
-                        formatter.timeZone = TimeZone.current
-                        print("   → \(formatter.string(from: date)) (lokal)")
-                    }
+            let requests = await UNUserNotificationCenter.current().pendingNotificationRequests()
+            print("📬 \(requests.count) geplante Notifications:")
+            for request in requests {
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger,
+                   let date = trigger.nextTriggerDate() {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "dd.MM.yyyy HH:mm"
+                    formatter.timeZone = TimeZone.current
+                    print("   → \(formatter.string(from: date)) (lokal)")
+                
                 }
             }
         }
@@ -195,34 +195,32 @@ struct AppointmentReminderSheet: View {
     
     
     private func requestPermissionAndEnable() {
-        UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound, .badge]
-        ) { granted, _ in
-            DispatchQueue.main.async {
-                if granted {
-                    user.appointmentReminderEnabled = true
-                    
-                    // Default auf "morgens" setzen
-                    if user.appointmentReminderMode != "morgens" {
-                        user.appointmentReminderMode = "morgens"
-                        var components = DateComponents()
-                        components.hour = 8
-                        components.minute = 0
-                        user.appointmentReminderTime = Calendar.current.date(from: components) ?? Date()
-                    }
-                    
-                    Task {
-                        await AppointmentNotificationService.scheduleReminders(
-                            for: appointments,
-                            enabled: true,
-                            reminderTime: user.appointmentReminderTime,
-                            mode: user.appointmentReminderMode
-                        )
-                    }
-                } else {
-                    user.appointmentReminderEnabled = false
-                    showPermissionAlert = true
+        Task {
+            let granted = try? await UNUserNotificationCenter.current().requestAuthorization(
+                options: [.alert, .sound, .badge]
+            )
+            
+            if granted == true {
+                user.appointmentReminderEnabled = true
+                
+                // Default auf "morgens" setzen
+                if user.appointmentReminderMode != "morgens" {
+                    user.appointmentReminderMode = "morgens"
+                    var components = DateComponents()
+                    components.hour = 8
+                    components.minute = 0
+                    user.appointmentReminderTime = Calendar.current.date(from: components) ?? Date()
                 }
+                
+                await AppointmentNotificationService.scheduleReminders(
+                    for: appointments,
+                    enabled: true,
+                    reminderTime: user.appointmentReminderTime,
+                    mode: user.appointmentReminderMode
+                )
+            } else {
+                user.appointmentReminderEnabled = false
+                showPermissionAlert = true
             }
         }
     }

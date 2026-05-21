@@ -28,8 +28,12 @@ struct AppointmentDayView: View {
     @Query private var allAppointments: [Appointment]
 
     private let hourHeight: CGFloat = 60
-    private let startHour: Int = 6
+    private let startHour: Int = 0
     private let endHour: Int = 23
+
+    private var allDayEvents: [CalendarEvent] {
+        viewModel.events(on: displayedDay).filter { $0.isAllDay }
+    }
 
     init(
         viewModel: AppointmentPlannerViewModel,
@@ -64,24 +68,37 @@ struct AppointmentDayView: View {
 
                 Divider()
 
-                HStack {
-                    Text(dayFormatter.string(from: displayedDay))
-                        .font(.headline)
-                    Spacer()
-                    if !Calendar.current.isDateInToday(displayedDay) {
-                        Button("Heute") {
-                            displayedDay = Calendar.current.startOfDay(for: Date())
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(themeManager.currentTheme.accentColor)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
+                dayHeader
 
-                ScrollView {
-                    hourGrid
-                        .padding(.horizontal)
+                allDayStrip
+
+                Divider()
+
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        hourGrid
+                            .padding(.horizontal)
+                    }
+                    .onAppear {
+                        let cal = Calendar.current
+                        let targetHour: Int = cal.isDateInToday(displayedDay)
+                            ? cal.component(.hour, from: Date())
+                            : 8
+                        DispatchQueue.main.async {
+                            withAnimation(.none) {
+                                proxy.scrollTo("hour-\(targetHour)", anchor: .top)
+                            }
+                        }
+                    }
+                    .onChange(of: displayedDay) { _, newDay in
+                        let cal = Calendar.current
+                        let targetHour: Int = cal.isDateInToday(newDay)
+                            ? cal.component(.hour, from: Date())
+                            : 8
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            proxy.scrollTo("hour-\(targetHour)", anchor: .top)
+                        }
+                    }
                 }
             }
             .background(Color(.systemBackground))
@@ -102,10 +119,27 @@ struct AppointmentDayView: View {
                         }
                     }
             )
+            .overlay(alignment: .bottomLeading) {
+                if !Calendar.current.isDateInToday(displayedDay) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            displayedDay = Calendar.current.startOfDay(for: Date())
+                        }
+                    } label: {
+                        Text("Heute")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(themeManager.currentTheme.accentColor)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                            .glassEffect(in: Capsule())
+                    }
+                    .padding(.leading, 16)
+                    .padding(.bottom, 20)
+                }
+            }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // < Monatsname → zurück zu MonthView
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         onBackToMonth(displayedDay)
@@ -123,7 +157,6 @@ struct AppointmentDayView: View {
                     }
                 }
 
-                // X → AppointmentView
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         onCloseAll()
@@ -137,18 +170,18 @@ struct AppointmentDayView: View {
                 }
             }
             .task {
-                await loadEventsForDisplayedWeek()
+                await viewModel.loadEventsIfNeeded(around: displayedDay)
             }
             .onChange(of: displayedDay) { _, _ in
-                Task { await loadEventsForDisplayedWeek() }
+                Task { await viewModel.loadEventsIfNeeded(around: displayedDay) }
             }
             .sheet(item: $prefilledSlot, onDismiss: {
-                Task { await loadEventsForDisplayedWeek() }
+                Task { await viewModel.refreshMonth(containing: displayedDay) }
             }) { slot in
                 ManualAppointmentEntryView(prefilledDate: slot.date)
             }
             .sheet(item: $appointmentToEdit, onDismiss: {
-                Task { await loadEventsForDisplayedWeek() }
+                Task { await viewModel.refreshMonth(containing: displayedDay) }
             }) { appt in
                 ManualAppointmentEntryView(appointmentToEdit: appt)
             }
@@ -164,7 +197,7 @@ struct AppointmentDayView: View {
                     Task {
                         await appointmentViewModel.deleteAppointment(appt)
                         appointmentToDelete = nil
-                        await loadEventsForDisplayedWeek()
+                        await viewModel.refreshMonth(containing: displayedDay)
                     }
                 }
                 Button("Abbrechen", role: .cancel) {
@@ -173,6 +206,48 @@ struct AppointmentDayView: View {
             } message: { _ in
                 Text("Möchtest du diesen Termin wirklich löschen?")
             }
+        }
+    }
+
+    // MARK: - Tages-Header
+
+    private var dayHeader: some View {
+        Text(dayFormatter.string(from: displayedDay).capitalized)
+            .font(.headline)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .background(Color(.systemBackground))
+    }
+
+    // MARK: - Ganztägig-Leiste
+
+    @ViewBuilder
+    private var allDayStrip: some View {
+        if !allDayEvents.isEmpty {
+            HStack(alignment: .top, spacing: 8) {
+                Text("Ganztägig")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 60, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(allDayEvents) { event in
+                        Text(event.title)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color("Blau").opacity(0.18))
+                            .cornerRadius(6)
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background(Color(.systemBackground))
         }
     }
 
@@ -272,6 +347,7 @@ struct AppointmentDayView: View {
             }
         }
         .frame(height: hourHeight)
+        .id("hour-\(hour)")
     }
 
     private func eventBlock(_ event: CalendarEvent) -> some View {
@@ -286,10 +362,12 @@ struct AppointmentDayView: View {
         let endMinutes = eventEndOnDay.timeIntervalSince(startOfDay) / 60
 
         let topOffset = CGFloat(startMinutes) * (hourHeight / 60) - baseOffset
-        let height = max(20, CGFloat(endMinutes - startMinutes) * (hourHeight / 60))
 
         let color = Color("Blau")
         let agilAppt = agilAppointment(for: event)
+
+        let rawHeight = CGFloat(endMinutes - startMinutes) * (hourHeight / 60)
+        let height: CGFloat = max(hourHeight, rawHeight)
 
         return HStack(spacing: 4) {
             Rectangle()
@@ -300,7 +378,7 @@ struct AppointmentDayView: View {
                     .font(.caption)
                     .fontWeight(.semibold)
                     .lineLimit(1)
-                Text("\(event.start.formatted(.dateTime.hour().minute())) – \(event.end.formatted(.dateTime.hour().minute()))")
+                Text(timeRangeText(event: event, agilAppt: agilAppt))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -345,6 +423,19 @@ struct AppointmentDayView: View {
         }
     }
 
+    /// Zeigt die echte Termindauer an, nicht die ggf. gestreckte Apple-Event-Dauer.
+    private func timeRangeText(event: CalendarEvent, agilAppt: Appointment?) -> String {
+        let start = event.start.formatted(.dateTime.hour().minute())
+        let endDate: Date
+        if let appt = agilAppt {
+            endDate = event.start.addingTimeInterval(TimeInterval(appt.durationMinutes * 60))
+        } else {
+            endDate = event.end
+        }
+        let end = endDate.formatted(.dateTime.hour().minute())
+        return "\(start) – \(end)"
+    }
+
     private func makeDate(hour: Int, minute: Int) -> Date {
         let cal = Calendar.current
         return cal.date(
@@ -353,16 +444,6 @@ struct AppointmentDayView: View {
             second: 0,
             of: displayedDay
         ) ?? displayedDay
-    }
-
-    private func loadEventsForDisplayedWeek() async {
-        let cal = Calendar.current
-        let weekday = cal.component(.weekday, from: displayedDay)
-        let mondayOffset = (weekday + 5) % 7
-        let monday = cal.date(byAdding: .day, value: -mondayOffset, to: displayedDay) ?? displayedDay
-        let weekStart = cal.startOfDay(for: monday)
-        let weekEnd = cal.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
-        await viewModel.loadEvents(from: weekStart, to: weekEnd)
     }
 }
 

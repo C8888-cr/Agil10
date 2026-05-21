@@ -2,14 +2,6 @@
 //  AppointmentPlannerViewModel.swift
 //  Agil10.0
 //
-//  Created by Christiane Roth on 10.05.26.
-//
-
-
-//
-//  AppointmentPlannerViewModel.swift
-//  Agil10.0
-//
 //  Lädt Kalender-Events und Agil-Termine, kombiniert sie für die Anzeige.
 //
 
@@ -24,12 +16,19 @@ final class AppointmentPlannerViewModel: ObservableObject {
     @Published var permissionState: PermissionState = .unknown
     @Published var errorMessage: String?
 
+    /// Cache: Welche Monatsanker wurden bereits geladen?
+    private var loadedMonths: Set<Date> = []
+
+    /// Vorberechneter Index: Welche Tage haben Events?
+    /// Wird einmal nach jedem Load gefüllt – O(1) Lookup statt O(n) Filter.
+    @Published private(set) var daysWithEventsIndex: Set<Date> = []
+
     enum PermissionState {
-        case unknown          // App weiß noch nichts
-        case needsOnboarding  // notDetermined → erst Erklärungs-Karte zeigen
-        case authorized       // alles gut, Daten laden
-        case denied           // User hat Nein gesagt → Fallback-Modus
-        case restricted       // System-Verbot
+        case unknown
+        case needsOnboarding
+        case authorized
+        case denied
+        case restricted
     }
 
     private let getEvents: GetCalendarEventsUseCase
@@ -69,8 +68,6 @@ final class AppointmentPlannerViewModel: ObservableObject {
     }
 
     func skipOnboarding() {
-        // User will ohne Kalender → Fallback-Modus.
-        // Status bleibt .needsOnboarding, aber wir merken uns "skipped"
         permissionState = .denied
     }
 
@@ -83,11 +80,65 @@ final class AppointmentPlannerViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            events = try await getEvents.execute(from: start, to: end)
+            let newEvents = try await getEvents.execute(from: start, to: end)
+            var byId = Dictionary(uniqueKeysWithValues: events.map { ($0.id, $0) })
+            for ev in newEvents { byId[ev.id] = ev }
+            events = Array(byId.values)
+            rebuildDaysWithEventsIndex()
         } catch {
             errorMessage = error.localizedDescription
-            events = []
         }
+    }
+
+    /// Lädt einen Monat ± 2 (also 5 Monate), wenn der Anker-Monat noch nicht im Cache ist.
+    /// Events werden zum bestehenden Array hinzugefügt (deduped), nicht ersetzt.
+    func loadEventsIfNeeded(around monthAnchor: Date) async {
+        guard permissionState == .authorized else { return }
+
+        let cal = Calendar.current
+        let anchor = cal.date(from: cal.dateComponents([.year, .month], from: monthAnchor)) ?? monthAnchor
+
+        guard !loadedMonths.contains(anchor) else { return }
+
+        guard let start = cal.date(byAdding: .month, value: -2, to: anchor),
+              let end = cal.date(byAdding: .month, value: 3, to: anchor) else { return }
+
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let newEvents = try await getEvents.execute(from: start, to: end)
+
+            var byId = Dictionary(uniqueKeysWithValues: events.map { ($0.id, $0) })
+            for ev in newEvents { byId[ev.id] = ev }
+            events = Array(byId.values)
+
+            rebuildDaysWithEventsIndex()
+
+            for offset in -2...2 {
+                if let m = cal.date(byAdding: .month, value: offset, to: anchor) {
+                    let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: m)) ?? m
+                    loadedMonths.insert(monthStart)
+                }
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Invalidiert gezielt einen Monat und lädt ihn neu.
+    /// Wird aufgerufen nachdem ein Termin gespeichert/geändert/gelöscht wurde.
+    func refreshMonth(containing date: Date) async {
+        let cal = Calendar.current
+        let anchor = cal.date(from: cal.dateComponents([.year, .month], from: date)) ?? date
+        loadedMonths.remove(anchor)
+        await loadEventsIfNeeded(around: date)
+    }
+
+    /// Cache leeren – z. B. bei externem Calendar-Change.
+    func invalidateCache() {
+        loadedMonths.removeAll()
+        events = []
     }
 
     // MARK: - Helper für Tagesansicht
@@ -111,5 +162,21 @@ final class AppointmentPlannerViewModel: ObservableObject {
             result.insert(day)
         }
         return result
+    }
+
+    /// Baut den Tages-Index neu auf. O(n) einmalig, statt bei jedem View-Render.
+    private func rebuildDaysWithEventsIndex() {
+        let cal = Calendar.current
+        var days = Set<Date>()
+        for event in events {
+            var day = cal.startOfDay(for: event.start)
+            let lastDay = cal.startOfDay(for: event.end)
+            while day <= lastDay {
+                days.insert(day)
+                guard let next = cal.date(byAdding: .day, value: 1, to: day) else { break }
+                day = next
+            }
+        }
+        daysWithEventsIndex = days
     }
 }

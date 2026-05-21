@@ -1,5 +1,5 @@
 import Foundation
-import UserNotifications
+@preconcurrency import UserNotifications
 
 struct AppointmentNotificationService {
 
@@ -38,25 +38,32 @@ struct AppointmentNotificationService {
             guard appointment.date > now,
                   appointment.status != .cancelled else { continue }
 
+            // 🆕 Daten vorher extrahieren (außerhalb Closure)
+            let appointmentId = appointment.id
+            let appointmentDate = appointment.date
+            let appointmentTherapist = appointment.therapist
+            let appointmentTimeString = appointment.timeString
+            let appointmentDateString = appointment.dateString
+            let appointmentDuration = appointment.durationMinutes
+
             // Feuerzeitpunkt je nach Modus berechnen
             let fireDate: Date?
             switch mode {
             case "morgens":
-                // Hole Stunde/Minute aus reminderTime (DateComponents-basiert)
                 let hour = calendar.component(.hour, from: reminderTime)
                 let minute = calendar.component(.minute, from: reminderTime)
                 fireDate = calendar.date(
                     bySettingHour: hour,
                     minute: minute,
                     second: 0,
-                    of: appointment.date
+                    of: appointmentDate
                 )
             case "1h":
-                fireDate = calendar.date(byAdding: .hour, value: -1, to: appointment.date)
+                fireDate = calendar.date(byAdding: .hour, value: -1, to: appointmentDate)
             case "2h":
-                fireDate = calendar.date(byAdding: .hour, value: -2, to: appointment.date)
+                fireDate = calendar.date(byAdding: .hour, value: -2, to: appointmentDate)
             case "3h":
-                fireDate = calendar.date(byAdding: .hour, value: -3, to: appointment.date)
+                fireDate = calendar.date(byAdding: .hour, value: -3, to: appointmentDate)
             default:
                 fireDate = nil
             }
@@ -65,7 +72,9 @@ struct AppointmentNotificationService {
 
             let content = UNMutableNotificationContent()
             content.title = "Termin heute"
-            content.body = "\(appointment.timeString) Uhr – \(appointment.therapist ?? "kein Therapeut")"
+            let endTime = appointmentDate.addingTimeInterval(TimeInterval(appointmentDuration * 60))
+            let endTimeString = endTime.formatted(.dateTime.hour().minute())
+            content.body = "\(appointmentTimeString) – \(endTimeString) Uhr – \(appointmentTherapist ?? "agil")"
             content.sound = .default
 
             let components = calendar.dateComponents(
@@ -78,19 +87,19 @@ struct AppointmentNotificationService {
                 repeats: false
             )
 
-            let identifier = "\(identifierPrefix)\(appointment.id.uuidString)"
+            let identifier = "\(identifierPrefix)\(appointmentId.uuidString)"
             let request = UNNotificationRequest(
                 identifier: identifier,
                 content: content,
                 trigger: trigger
             )
 
-            center.add(request) { error in
-                if let error {
-                    print("❌ Termin-Notification Fehler: \(error)")
-                } else {
-                    print("🔔 Erinnerung geplant: \(appointment.therapist ?? "kein Therapeut") am \(appointment.dateString) um \(fireDate)")
-                }
+            // 🆕 await statt completion handler
+            do {
+                try await center.add(request)
+                print("🔔 Erinnerung geplant: \(appointmentTherapist ?? "kein Therapeut") am \(appointmentDateString) um \(fireDate)")
+            } catch {
+                print("❌ Termin-Notification Fehler: \(error)")
             }
         }
     }

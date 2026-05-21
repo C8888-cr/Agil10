@@ -284,10 +284,21 @@ class AppointmentViewModel: ObservableObject {
                 newDurationMinutes: durationMinutes
             )
             clearErrors()
-        } catch {
-            setError(.saveFailed(error.localizedDescription))
-        }
-    }
+                        
+                        // Notifications neu planen
+                        if let user = currentUser, user.appointmentReminderEnabled {
+                            let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                            await AppointmentNotificationService.scheduleReminders(
+                                for: allAppointments ?? [],
+                                enabled: true,
+                                reminderTime: user.appointmentReminderTime,
+                                mode: user.appointmentReminderMode
+                            )
+                        }
+                    } catch {
+                        setError(.saveFailed(error.localizedDescription))
+                    }
+                }
     
     /// Termin hinzufügen
        func addAppointment(_ appointment: Appointment) async {
@@ -547,6 +558,8 @@ class AppointmentViewModel: ObservableObject {
             let titleChanged = !event.title.contains(appointment.therapist ?? "")
             let dateChanged = abs(event.start.timeIntervalSince(appointment.date)) > 60 // Toleranz 1 Min
             let durationChanged = durationMinutes != appointment.durationMinutes
+            print("🔍 Sync-Check \(appointment.id): agil=\(appointment.durationMinutes) apple=\(durationMinutes) changed=\(durationChanged)")
+            
             
             if dateChanged || durationChanged || titleChanged {
                 appointment.date = event.start

@@ -79,7 +79,7 @@ struct UpdateAppointmentUseCase {
                 } else {
                     title = baseTitle
                 }
-                
+            
                 let endDate = newDate.addingTimeInterval(TimeInterval(newDurationMinutes * 60))
                 let location = appointment.displayLocation
                 

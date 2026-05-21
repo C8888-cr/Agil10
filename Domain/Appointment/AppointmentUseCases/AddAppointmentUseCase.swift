@@ -69,8 +69,8 @@ struct AddAppointmentUseCase {
                if let sync = calendarSync, sync.authorizationStatus == .authorized {
                    do {
                        let endDate = savedAppointment.date.addingTimeInterval(
-                                 TimeInterval(savedAppointment.durationMinutes * 60)
-                                 )
+                           TimeInterval(savedAppointment.durationMinutes * 60)
+                       )
                        let location = savedAppointment.displayLocation
                        
                        
