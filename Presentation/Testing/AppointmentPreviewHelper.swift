@@ -110,7 +110,9 @@ struct PreviewHelper {
             parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase(
                 repository: repository,
                 emailParser: emailParser,
-                detectChangesUseCase: detectChangesUseCase
+                detectChangesUseCase: detectChangesUseCase,
+                session: sessionManager,
+                        addAppointmentUseCase: addAppointmentUseCase
             )
         )
     }

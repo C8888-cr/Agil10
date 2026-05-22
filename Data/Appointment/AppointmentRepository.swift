@@ -117,10 +117,12 @@ class AppointmentRepository: AppointmentRepositoryProtocol {
     func checkDuplicate(date: Date, therapist: String) async throws -> Bool {
         let appointments = try await fetchAll()  // ✅ Nutzt fetchAll (filtered nach userId)
         
-        let isDuplicate = appointments.contains { existing in
-            Calendar.current.isDate(existing.date, inSameDayAs: date) &&
-            existing.therapist == therapist
-        }
+        // Duplikat = Termin zum exakt selben Zeitpunkt (Tag + Uhrzeit auf die
+                // Minute). Konsistent mit DetectAppointmentChangesUseCase.isSameAppointment.
+                // Der Therapeut ist KEIN Kriterium – er darf sich ändern.
+                let isDuplicate = appointments.contains { existing in
+                    Calendar.current.isDate(existing.date, equalTo: date, toGranularity: .minute)
+                }
         
         if isDuplicate {
             print("⚠️ Duplicate found: \(therapist) on \(date)")

@@ -11,20 +11,26 @@ import SwiftData
 class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtocol {
     
     // MARK: - Dependencies
-    private let repository: AppointmentRepository
-    private let emailParser: EmailParserService
-    private let detectChangesUseCase: DetectAppointmentChangesUseCase
-    
-    // MARK: - Init
-    init(
-        repository: AppointmentRepository,
-        emailParser: EmailParserService,
-        detectChangesUseCase: DetectAppointmentChangesUseCase
-    ) {
-        self.repository = repository
-        self.emailParser = emailParser
-        self.detectChangesUseCase = detectChangesUseCase
-    }
+        private let repository: AppointmentRepository
+        private let emailParser: EmailParserService
+        private let detectChangesUseCase: DetectAppointmentChangesUseCase
+        private let session: SessionManager
+        private let addAppointmentUseCase: AddAppointmentUseCase
+        
+        // MARK: - Init
+        init(
+            repository: AppointmentRepository,
+            emailParser: EmailParserService,
+            detectChangesUseCase: DetectAppointmentChangesUseCase,
+            session: SessionManager,
+            addAppointmentUseCase: AddAppointmentUseCase
+        ) {
+            self.repository = repository
+            self.emailParser = emailParser
+            self.detectChangesUseCase = detectChangesUseCase
+            self.session = session
+            self.addAppointmentUseCase = addAppointmentUseCase
+        }
     
     // MARK: - Execute
     func execute(emailText: String) async throws -> AppointmentChanges {
@@ -38,16 +44,30 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
         let existingAppointments = try await repository.fetchAll()
         
         // 4️⃣ Änderungen erkennen
-        let changes = detectChangesUseCase.execute(
+        var changes = detectChangesUseCase.execute(
             parsedAppointments: parsedAppointments,
             emailHash: emailHash,
             existingAppointments: existingAppointments
         )
         
-        // 5️⃣ Neue Termine speichern
-        for appointment in changes.added {
-            try await repository.save(appointment)
-        }
+        // 5️⃣ Neue Termine über AddAppointmentUseCase anlegen
+                //    (legt zusätzlich den Apple-Kalender-Event an → sichtbar in Agil & Apple).
+                //    userId muss VOR dem Anlegen gesetzt sein (AddAppointmentUseCase
+                //    greift mit force-unwrap auf userId zu).
+                //    Fehler pro Termin werden gesammelt, der Import läuft weiter.
+                let userId = await MainActor.run { session.currentUser?.id }
+                var stillAdded: [Appointment] = []
+                for appointment in changes.added {
+                    appointment.userId = userId
+                    do {
+                        try await addAppointmentUseCase.execute(appointment)
+                        stillAdded.append(appointment)
+                    } catch {
+                        print("⚠️ Termin konnte nicht angelegt werden: \(error)")
+                        changes.failed.append(appointment)
+                    }
+                }
+                changes.added = stillAdded
         
         // 6️⃣ Geänderte und abgesagte speichern
         for appointment in changes.modified + changes.cancelled {

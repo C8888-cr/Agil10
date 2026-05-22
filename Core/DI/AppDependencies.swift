@@ -89,10 +89,12 @@ class AppDependencies: ObservableObject {
         repository: appointmentRepository
     )
     lazy var parseAppointmentsFromEmailUseCase = ParseAppointmentsFromEmailUseCase(
-        repository: appointmentRepository,
-        emailParser: emailParser,
-        detectChangesUseCase: detectAppointmentChangesUseCase
-    )
+            repository: appointmentRepository,
+            emailParser: emailParser,
+            detectChangesUseCase: detectAppointmentChangesUseCase,
+            session: sessionManager,
+            addAppointmentUseCase: addAppointmentUseCase
+        )
     lazy var updateAppointmentUseCase = UpdateAppointmentUseCase(
         repository: appointmentRepository,
         calendarSync: calendarSync

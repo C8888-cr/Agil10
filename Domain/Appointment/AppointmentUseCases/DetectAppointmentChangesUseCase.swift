@@ -24,16 +24,17 @@ struct DetectAppointmentChangesUseCase {
             if let existing = findMatchingAppointment(parsed, in: futureAppointments) {
                 // ✅ Hat sich WIRKLICH was geändert? (nicht nur emailUID)
                 if hasChanges(parsed, comparedTo: existing) {
-                    // ✅ Änderungen übernehmen
-                    existing.date = parsed.date
-                    existing.locationName = parsed.locationName
-                    existing.locationAddress = parsed.locationAddress
-                    existing.notes = parsed.notes
-                    existing.status = .modified
-                    existing.isHighlighted = true
-                    existing.lastModified = Date()
-                    existing.emailUID = emailHash
-                    changes.modified.append(existing)
+                                    // ✅ Änderungen übernehmen
+                                    existing.date = parsed.date
+                                    existing.therapist = parsed.therapist
+                                    existing.locationName = parsed.locationName
+                                    existing.locationAddress = parsed.locationAddress
+                                    existing.notes = parsed.notes
+                                    existing.status = .modified
+                                    existing.isHighlighted = true
+                                    existing.lastModified = Date()
+                                    existing.emailUID = emailHash
+                                    changes.modified.append(existing)
                 
             } else {
                           // ✅ NEU: Unverändert
@@ -73,12 +74,13 @@ struct DetectAppointmentChangesUseCase {
     }
     
     private func isSameAppointment(
-        _ a: Appointment,
-        as b: Appointment
-    ) -> Bool {
-        Calendar.current.isDate(a.date, inSameDayAs: b.date) &&
-        a.therapist?.compare(b.therapist ?? "", options: .caseInsensitive) == .orderedSame
-       }
+            _ a: Appointment,
+            as b: Appointment
+        ) -> Bool {
+            // Identität eines Termins = Zeitpunkt (Tag + Uhrzeit auf die Minute).
+            // Der Therapeut ist KEIN Match-Kriterium – er darf sich ändern.
+            Calendar.current.isDate(a.date, equalTo: b.date, toGranularity: .minute)
+        }
     
     // ✅ NEU: Prüft ob sich Details geändert haben
     private func hasChanges(
@@ -100,20 +102,34 @@ struct DetectAppointmentChangesUseCase {
         
         
         // Notizen geändert?
-        if parsed.notes != existing.notes {
-            return true
-        }
-        
-        return false
-    }
+                if parsed.notes != existing.notes {
+                    return true
+                }
+                
+                // Therapeut geändert? (case-insensitiv; nil ↔ Name zählt auch)
+                if !sameTherapist(parsed.therapist, existing.therapist) {
+                    return true
+                }
+                
+                return false
+            }
+            
+            /// Vergleicht zwei optionale Therapeuten-Namen case-insensitiv.
+            /// nil und "" gelten als gleich; nil ↔ Name als Änderung.
+            private func sameTherapist(_ a: String?, _ b: String?) -> Bool {
+                let lhs = (a ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+                let rhs = (b ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+                return lhs == rhs
+            }
 }
 struct AppointmentChanges: Identifiable {
     let id = UUID()
     
     var added: [Appointment] = []
-    var modified: [Appointment] = []
-    var cancelled: [Appointment] = []
-    var unchanged: [Appointment] = []
+        var modified: [Appointment] = []
+        var cancelled: [Appointment] = []
+        var unchanged: [Appointment] = []
+        var failed: [Appointment] = []   // Import angelegt, aber Anlegen schlug fehl
     
     
     var hasChanges: Bool {

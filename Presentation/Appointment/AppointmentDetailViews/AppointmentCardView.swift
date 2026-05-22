@@ -395,7 +395,7 @@ struct AppointmentCardView: View {
             }
             
             Spacer()
-            
+      /*
             // MARK: - Actions Menu (ohne Löschen — das geht jetzt per Swipe)
             Menu {
                 // ✅ Absagen (nur wenn noch nicht abgesagt)
@@ -421,7 +421,10 @@ struct AppointmentCardView: View {
                     .foregroundColor(.secondary)
                     .font(.title3)
             }
+       */
         }
+       
+       
         .dynamicTypeSize(.small ... .large)
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
@@ -439,8 +442,9 @@ struct AppointmentCardView: View {
                     .padding(8)
             }
         }
+       
     }
-    
+  
     // MARK: - Delete Background
     private var deleteBackground: some View {
         RoundedRectangle(cornerRadius: 12)

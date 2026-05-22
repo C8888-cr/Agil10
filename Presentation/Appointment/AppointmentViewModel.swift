@@ -152,15 +152,17 @@ class AppointmentViewModel: ObservableObject {
             // ✅ Use Case aufrufen (parsed + speichert + DetectChanges)
             let changes = try await parseAppointmentsFromEmailUseCase.execute(emailText: emailText)
             
-            // ✅ User zu ALLEN neuen/geänderten Terminen hinzufügen
-            for apt in changes.added + changes.modified + changes.cancelled {
-                apt.userId = user.id
-                print("   → \(apt.therapist ?? "-") | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
-            }
-            
-            // ✅ Liste refreshen
-            
-            clearErrors()
+            // userId für added wird jetzt im UseCase gesetzt.
+                        // modified/cancelled arbeiten auf bestehenden Objekten (userId schon vorhanden).
+
+                        // Agil-Kalender (Planner) refreshen → neue Apple-Events werden sichtbar
+                        NotificationCenter.default.post(
+                            name: .appointmentsChanged,
+                            object: nil,
+                            userInfo: ["date": Date()]
+                        )
+                        
+                        clearErrors()
             
             print("✅ Email import: \(changes.changesSummary)")
             
