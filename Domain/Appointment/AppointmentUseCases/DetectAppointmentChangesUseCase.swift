@@ -47,19 +47,20 @@ struct DetectAppointmentChangesUseCase {
                   }
               }
         
-        // Gelöschte Termine erkennen (NUR zukünftige!)
-        for existing in futureAppointments where existing.emailUID != nil {
-            let stillExists = parsedAppointments.contains { parsed in
-                isSameAppointment(parsed, as: existing)
-            }
-            
-            if !stillExists {
-                existing.status = .cancelled
-                existing.isHighlighted = true
-                existing.lastModified = Date()
-                changes.cancelled.append(existing)
-            }
-        }
+        // Verschwundene Termine erkennen (NUR zukünftige!)
+                // WICHTIG: Hier wird NICHTS am Termin verändert – kein Status, kein
+                // Highlight. Der Detektor schlägt nur vor. Die endgültige Entscheidung
+                // (behalten als .cancelled / löschen) trifft der User im Sheet,
+                // ausgeführt wird sie danach im ViewModel (Schritt C2).
+                for existing in futureAppointments where existing.emailUID != nil {
+                    let stillExists = parsedAppointments.contains { parsed in
+                        isSameAppointment(parsed, as: existing)
+                    }
+                    
+                    if !stillExists {
+                        changes.cancelled.append(existing)
+                    }
+                }
         
         return changes
     }

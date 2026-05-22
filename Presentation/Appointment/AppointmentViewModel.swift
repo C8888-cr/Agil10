@@ -349,27 +349,14 @@ class AppointmentViewModel: ObservableObject {
            
            
            do {
+                          // CancelAppointmentUseCase setzt Status + benennt den
+                          // Apple-Event selbst um (Single Source of Truth).
                           try await cancelAppointmentUseCase.execute(
                               appointment: appointment,
                               reason: reason,
                               userEmail: userEmail,
                               userName: userName,
                               practiceEmail: practiceEmail
-                          )
-
-                          // Apple-Kalender-Event auf "Physio agil: Abgesagt" umbenennen.
-                          // Status steht bereits auf .cancelled → UpdateUseCase + Builder
-                          // erzeugen automatisch den richtigen Titel. Termindaten unverändert.
-                          _ = try? await updateAppointmentUseCase.execute(
-                              appointment,
-                              newDate: appointment.date,
-                              newTherapist: appointment.therapist,
-                              newLocationName: appointment.locationName,
-                              newLocationAddress: appointment.locationAddress,
-                              newLatitude: appointment.locationLatitude,
-                              newLongitude: appointment.locationLongitude,
-                              newNotes: appointment.notes,
-                              newDurationMinutes: appointment.durationMinutes
                           )
 
                           clearErrors()

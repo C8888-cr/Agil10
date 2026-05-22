@@ -76,9 +76,10 @@ class AppDependencies: ObservableObject {
         repository: appointmentRepository
     )
     lazy var cancelAppointmentUseCase = CancelAppointmentUseCase(
-        repository: appointmentRepository,
-        emailService: emailService
-    )
+            repository: appointmentRepository,
+            emailService: emailService,
+            calendarSync: calendarSync
+        )
     lazy var detectAppointmentChangesUseCase = DetectAppointmentChangesUseCase(
         repository: appointmentRepository
     )
