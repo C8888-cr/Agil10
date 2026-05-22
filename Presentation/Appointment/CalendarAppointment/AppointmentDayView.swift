@@ -363,9 +363,13 @@ struct AppointmentDayView: View {
 
         let topOffset = CGFloat(startMinutes) * (hourHeight / 60) - baseOffset
 
-        let color = Color("Blau")
         let agilAppt = agilAppointment(for: event)
-
+                let isCancelled = agilAppt?.status == .cancelled
+                let color = isCancelled ? Color.red : Color("Blau")
+        let displayTitle: String = {
+                    guard let appt = agilAppt, appt.status == .cancelled else { return event.title }
+                    return AppointmentCalendarTitleBuilder.build(for: appt)
+                }()
         let rawHeight = CGFloat(endMinutes - startMinutes) * (hourHeight / 60)
         let height: CGFloat = max(hourHeight, rawHeight)
 
@@ -374,10 +378,10 @@ struct AppointmentDayView: View {
                 .fill(color)
                 .frame(width: 3)
             VStack(alignment: .leading, spacing: 2) {
-                Text(event.title)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
+                Text(displayTitle)
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .lineLimit(1)
                 Text(timeRangeText(event: event, agilAppt: agilAppt))
                     .font(.caption2)
                     .foregroundStyle(.secondary)

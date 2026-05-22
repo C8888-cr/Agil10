@@ -347,15 +347,30 @@ class AppointmentViewModel: ObservableObject {
            
            
            do {
-               try await cancelAppointmentUseCase.execute(
-                   appointment: appointment,
-                   reason: reason,
-                   userEmail: userEmail,
-                   userName: userName,
-                   practiceEmail: practiceEmail
-               )
-             
-               clearErrors()
+                          try await cancelAppointmentUseCase.execute(
+                              appointment: appointment,
+                              reason: reason,
+                              userEmail: userEmail,
+                              userName: userName,
+                              practiceEmail: practiceEmail
+                          )
+
+                          // Apple-Kalender-Event auf "Physio agil: Abgesagt" umbenennen.
+                          // Status steht bereits auf .cancelled → UpdateUseCase + Builder
+                          // erzeugen automatisch den richtigen Titel. Termindaten unverändert.
+                          _ = try? await updateAppointmentUseCase.execute(
+                              appointment,
+                              newDate: appointment.date,
+                              newTherapist: appointment.therapist,
+                              newLocationName: appointment.locationName,
+                              newLocationAddress: appointment.locationAddress,
+                              newLatitude: appointment.locationLatitude,
+                              newLongitude: appointment.locationLongitude,
+                              newNotes: appointment.notes,
+                              newDurationMinutes: appointment.durationMinutes
+                          )
+
+                          clearErrors()
                 
                // 🆕 Notifications neu planen (abgesagter Termin wird übersprungen)
                if let user = currentUser, user.appointmentReminderEnabled {
@@ -555,10 +570,15 @@ class AppointmentViewModel: ObservableObject {
         var changed = 0
         
         for appointment in appointments {
-            guard let eventId = appointment.calendarEventIdentifier,
-                  let event = events.first(where: { $0.id == eventId }) else {
-                continue
-            }
+                    // Abgesagte Termine sind "eingefroren": Status ist Single Source
+                    // of Truth in Agil, der geparste Apple-Titel darf ihn nicht
+                    // überschreiben (sonst würden Therapeut/Notiz genullt).
+                    guard appointment.status != .cancelled else { continue }
+
+                    guard let eventId = appointment.calendarEventIdentifier,
+                          let event = events.first(where: { $0.id == eventId }) else {
+                        continue
+                    }
             
             // Vergleichen: hat sich was geändert?
             let durationMinutes = Int(event.end.timeIntervalSince(event.start) / 60)

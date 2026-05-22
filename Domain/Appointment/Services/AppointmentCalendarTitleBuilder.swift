@@ -27,4 +27,13 @@ enum AppointmentCalendarTitleBuilder {
         }
         return base
     }
+    
+    //// Titel anhand des Appointment-Status – bei .cancelled wird "Abgesagt"
+    /// gesetzt, Therapeut & Notizen entfallen dann bewusst.
+    static func build(for appointment: Appointment) -> String {
+        if appointment.status == .cancelled {
+            return "\(baseLabel): Abgesagt"
+        }
+        return build(therapist: appointment.therapist, notes: appointment.notes)
+    }
 }

@@ -69,12 +69,9 @@ struct UpdateAppointmentUseCase {
                 
                 
                 
-                // Title bauen (analog AddAppointmentUseCase)
-                let title = AppointmentCalendarTitleBuilder.build(
-                                    therapist: newTherapist,
-                                    notes: newNotes
-                                )
-                
+                // Title bauen – status-bewusst (Snippet 1).
+                                // Bei .cancelled liefert der Builder "Physio agil: Abgesagt".
+                                let title = AppointmentCalendarTitleBuilder.build(for: appointment)
                 
                 
                 
