@@ -622,4 +622,59 @@ class AppointmentViewModel: ObservableObject {
         return (therapist: therapist, notes: notesPart)
     }
     
+    /// Arbeitet die im Import-Sheet getroffenen Entscheidungen ab.
+        /// - keep:   abgesagte Termine, die als .cancelled behalten werden
+        /// - delete: abgesagte Termine, die ganz gelöscht werden
+        /// Cache-Refresh und Notification-Neuplanung passieren einmal am Ende
+        /// (Batch), nicht pro Termin.
+        func applyImportDecisions(keep: [Appointment], delete: [Appointment]) async {
+            // 1. Behalten → Status auf .cancelled + Apple-Event umbenennen.
+            //    executeFromEmailImport verschickt bewusst KEINE Email.
+            for appointment in keep {
+                do {
+                    try await cancelAppointmentUseCase.executeFromEmailImport(appointment: appointment)
+                } catch {
+                    print("⚠️ Import-Absage fehlgeschlagen: \(error)")
+                }
+            }
+
+            // 2. Löschen → Apple-Event (best effort) + Termin aus Agil entfernen.
+            for appointment in delete {
+                if let eventId = appointment.calendarEventIdentifier,
+                   let calendarSync = calendarSync,
+                   calendarSync.authorizationStatus == .authorized {
+                    do {
+                        try await calendarSync.deleteEvent(identifier: eventId)
+                    } catch {
+                        // Kein Hard-Fail – Termin wird trotzdem aus Agil gelöscht.
+                        print("⚠️ Apple-Event-Löschung fehlgeschlagen: \(error)")
+                    }
+                }
+                do {
+                    try await deleteAppointmentUseCase.execute(appointment)
+                } catch {
+                    print("⚠️ Termin-Löschung fehlgeschlagen: \(error)")
+                }
+            }
+
+            // 3. Einmaliger Abschluss für den ganzen Batch.
+            NotificationCenter.default.post(
+                name: .appointmentsChanged,
+                object: nil,
+                userInfo: ["date": Date()]
+            )
+
+            if let user = currentUser, user.appointmentReminderEnabled {
+                let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                await AppointmentNotificationService.scheduleReminders(
+                    for: allAppointments ?? [],
+                    enabled: true,
+                    reminderTime: user.appointmentReminderTime,
+                    mode: user.appointmentReminderMode
+                )
+            }
+
+            clearErrors()
+        }
+    
 }
