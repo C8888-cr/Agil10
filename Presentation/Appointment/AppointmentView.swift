@@ -325,10 +325,11 @@ struct AppointmentView: View {
         .sheet(isPresented: $showingManualEntry) {
             ManualAppointmentEntryView()
         }
-        .sheet(item: $importResults) { changes in
-            ImportResultsView(changes: changes)
-                .presentationDetents([.medium, .large])
-        }
+        .fullScreenCover(item: $importResults) { changes in
+                    ImportResultsView(changes: changes) { keep, delete in
+                        Task { await viewModel.applyImportDecisions(keep: keep, delete: delete) }
+                    }
+                }
         .sheet(isPresented: $showingEmailImport) {
             EmailImportView(
                 emailText: $emailText,
