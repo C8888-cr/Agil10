@@ -11,7 +11,7 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-
+/*
 struct AppointmentDetailView: View {
     @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) private var modelContext
@@ -239,7 +239,7 @@ struct AppointmentDetailView: View {
                                 }
                             }
 
-
+*/
 
 struct CancelAppointmentView: View {
     @EnvironmentObject var session: SessionManager

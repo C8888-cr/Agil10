@@ -19,24 +19,31 @@ struct LocationSection: View {
     
     @State private var showingFullMap = false
     
+    @EnvironmentObject var themeManager: ThemeManager
+    private var accent: Color { themeManager.currentTheme.accentColor }
+       
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             Label("Ort", systemImage: "mappin.circle.fill")
                 .font(.headline)
+                .foregroundStyle(accent.opacity(0.7))
             
             // Location Name
             if let locationName = appointment.locationName {
                 Text(locationName)
-                    .font(.title3)
-                    .fontWeight(.medium)
+                    .font(.title3.bold())
+                    .foregroundStyle(accent)
+                
+                 
+                   
             }
             
             // Address
             if let address = appointment.locationAddress {
                 HStack(spacing: 8) {
                     Image(systemName: "location.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(accent.opacity(0.7))
                         .font(.caption)
                     
                     Text(address)
@@ -74,7 +81,7 @@ struct LocationSection: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .background(accent)
                         .cornerRadius(10)
                     }
                     
