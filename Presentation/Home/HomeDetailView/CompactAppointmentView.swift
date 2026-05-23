@@ -13,8 +13,8 @@ struct CompactAppointmentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
                 Image(systemName: "calendar")
                     .font(.caption)
                     .foregroundColor(themeManager.currentTheme.accentColor)
@@ -22,7 +22,7 @@ struct CompactAppointmentView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            HStack(spacing: 12) {
+            HStack(alignment: .top, spacing: 14) {
                 if appointment.isToday {
                     Text(appointment.timeString)
                         .font(.title3)
@@ -38,15 +38,22 @@ struct CompactAppointmentView: View {
                             .fontWeight(.medium)
                     }
                 }
+
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(themeManager.currentTheme.accentColor)
+                    .frame(width: 3)
+
+              
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(appointment.therapist ?? "")
-                        .font(appointment.isToday ? .caption : .caption2)
-                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
                     if let location = appointment.locationName, !location.isEmpty {
                         Text(location)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.currentTheme.accentColor)
                     }
                     if let notes = appointment.notes, !notes.isEmpty {
                         Text(notes)
