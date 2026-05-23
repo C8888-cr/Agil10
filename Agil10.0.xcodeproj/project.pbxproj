@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5600F2DE2F772E8900BF72DE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5600F2DD2F772E8900BF72DE /* FirebaseAuth */; };
+		56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 56703F402FC1695B0084B2BA /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +30,7 @@
 
 /* Begin PBXFileReference section */
 		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
+		56703F402FC1695B0084B2BA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		56F4C5E12ECDB52C00417181 /* Agil10.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Agil10.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -106,6 +108,7 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
+				56703F402FC1695B0084B2BA /* Localizable.xcstrings */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				5636C5552F837CAB0011D0CF /* Domain */,
 				5636C6E32F842E0D0011D0CF /* Data */,
@@ -235,6 +238,7 @@
 			knownRegions = (
 				en,
 				Base,
+				de,
 			);
 			mainGroup = 56F4C5D82ECDB52C00417181;
 			minimizedProjectReferenceProxies = 1;
@@ -258,6 +262,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,6 +381,7 @@
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -434,6 +440,7 @@
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -451,6 +458,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Agil10-0-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "agil home";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Agil fügt neue Praxistermine zu deinem Kalender hinzu. Es werden keine bestehenden Kalenderdaten gelesen oder an Server übertragen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Agil nutzt die Kamera ausschließlich zur Aufnahme deiner Übungsvideos. Die Aufnahmen werden lokal auf deinem Gerät gespeichert und nicht an Server übertragen.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Agil verwendet Face ID, um deine Praxisdaten vor unbefugtem Zugriff zu schützen. Die biometrischen Daten verlassen niemals dein Gerät — sie werden ausschließlich von iOS in der Secure Enclave verarbeitet.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Agil nutzt das Mikrofon ausschließlich für die Tonspur deiner Übungsvideos. Die Aufnahmen verbleiben lokal auf deinem Gerät.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -484,6 +497,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Agil10-0-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "agil home";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.";
+				INFOPLIST_KEY_NSCalendarsWriteOnlyAccessUsageDescription = "Agil fügt neue Praxistermine zu deinem Kalender hinzu. Es werden keine bestehenden Kalenderdaten gelesen oder an Server übertragen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Agil nutzt die Kamera ausschließlich zur Aufnahme deiner Übungsvideos. Die Aufnahmen werden lokal auf deinem Gerät gespeichert und nicht an Server übertragen.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Agil verwendet Face ID, um deine Praxisdaten vor unbefugtem Zugriff zu schützen. Die biometrischen Daten verlassen niemals dein Gerät — sie werden ausschließlich von iOS in der Secure Enclave verarbeitet.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Agil nutzt das Mikrofon ausschließlich für die Tonspur deiner Übungsvideos. Die Aufnahmen verbleiben lokal auf deinem Gerät.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

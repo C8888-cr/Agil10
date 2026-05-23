@@ -2,43 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict/>
-    </array>
-    
-    <key>LSApplicationQueriesSchemes</key>
-    <array>
-        <string>mailto</string>
-        <string>googlegmail</string>
-        <string>ms-outlook</string>
-        <string>ymail</string>
-        <string>webdemail</string>
-        <string>gmxmail</string>
-    </array>
-    
-    <!-- Kamera -->
-    <key>NSCameraUsageDescription</key>
-    <string>Agil nutzt die Kamera ausschließlich zur Aufnahme deiner Übungsvideos. Die Aufnahmen werden lokal auf deinem Gerät gespeichert und nicht an Server übertragen.</string>
-    
-    <!-- Mikrofon -->
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Agil nutzt das Mikrofon ausschließlich für die Tonspur deiner Übungsvideos. Die Aufnahmen verbleiben lokal auf deinem Gerät.</string>
-    
-    <!-- Face ID -->
-    <key>NSFaceIDUsageDescription</key>
-    <string>Agil verwendet Face ID, um deine Praxisdaten vor unbefugtem Zugriff zu schützen. Die biometrischen Daten verlassen niemals dein Gerät — sie werden ausschließlich von iOS in der Secure Enclave verarbeitet.</string>
-    
-    <!-- Kalender Vollzugriff (iOS 17+) -->
-    <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.</string>
-    
-    <!-- Kalender Schreibzugriff (iOS 17+) -->
-    <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
-    <string>Agil fügt neue Praxistermine zu deinem Kalender hinzu. Es werden keine bestehenden Kalenderdaten gelesen oder an Server übertragen.</string>
-    
-    <!-- Kalender (iOS 16 und älter) -->
-    <key>NSCalendarsUsageDescription</key>
-    <string>Agil greift auf deinen Kalender zu, um Praxistermine anzuzeigen und zu verwalten. Alle Termine werden ausschließlich lokal auf deinem Gerät verarbeitet.</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict/>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mailto</string>
+		<string>googlegmail</string>
+		<string>ms-outlook</string>
+		<string>ymail</string>
+		<string>webdemail</string>
+		<string>gmxmail</string>
+	</array>
 </dict>
 </plist>
