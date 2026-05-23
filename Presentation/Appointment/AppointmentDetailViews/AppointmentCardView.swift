@@ -426,10 +426,21 @@ struct AppointmentCardView: View {
        
        
         .dynamicTypeSize(.small ... .large)
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .cornerRadius(12)
-        .overlay(alignment: .bottomTrailing) {
+                .padding()
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.5), Color.white.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 0.8
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: 4)
+                .overlay(alignment: .bottomTrailing) {
             if appointment.status == .cancelled {
                 Text("Abgesagt")
                     .font(.caption)
