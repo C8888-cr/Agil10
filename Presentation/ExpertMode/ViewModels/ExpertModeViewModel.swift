@@ -254,6 +254,7 @@ final class ExpertModeViewModel: ObservableObject {
 
 import Foundation
 import Combine
+import AVFoundation
 
 @MainActor
 final class ExpertModeViewModel: ObservableObject {
@@ -268,7 +269,10 @@ final class ExpertModeViewModel: ObservableObject {
     /// Ob das Trainingsvideo neben der Pille angezeigt wird.
     /// Single Source of Truth für die Video-Sichtbarkeit.
     @Published private(set) var isVideoVisible: Bool
-
+    /// Ob das Trainingsvideo im Hochformat (Portrait) gefilmt wurde.
+        /// Wird beim Erscheinen asynchron aus dem AVAsset ermittelt.
+        /// Default true = Hochformat (häufigster Fall), bis geklärt.
+        @Published private(set) var isPortraitVideo: Bool = true
     // MARK: - Context
     let video: Video
     let videoTitle: String
@@ -367,6 +371,44 @@ final class ExpertModeViewModel: ObservableObject {
             guard canToggleVideo else { return }
             isVideoVisible.toggle()
         }
+    
+    
+    /// Liest das Seitenverhältnis der Videodatei aus und setzt
+        /// isPortraitVideo. Asynchron — dauert nur Sekundenbruchteile.
+        func detectVideoOrientation() async {
+            let fileService = VideoFileService()
+            guard let url = fileService.getVideoURL(for: video.videoFileName) else {
+                print("⚠️ detectVideoOrientation: Video-URL nicht gefunden")
+                return
+            }
+
+            let asset = AVURLAsset(url: url)
+            do {
+                guard let track = try await asset.loadTracks(withMediaType: .video).first else {
+                    print("⚠️ detectVideoOrientation: keine Videospur gefunden")
+                    return
+                }
+                let naturalSize = try await track.load(.naturalSize)
+                let transform = try await track.load(.preferredTransform)
+
+                // Transform auf die Größe anwenden → tatsächlich sichtbare Maße.
+                let resolution = naturalSize.applying(transform)
+                let width = abs(resolution.width)
+                let height = abs(resolution.height)
+
+                let portrait = height >= width
+                isPortraitVideo = portrait
+
+                print("🎬 Video-Format: \(width)x\(height) → \(portrait ? "HOCHFORMAT" : "QUERFORMAT")")
+            } catch {
+                print("⚠️ detectVideoOrientation Fehler: \(error.localizedDescription)")
+            }
+        }
+    
+    
+    
+    
+    
     private func bindUseCase() {
         useCase.$state
             .receive(on: DispatchQueue.main)

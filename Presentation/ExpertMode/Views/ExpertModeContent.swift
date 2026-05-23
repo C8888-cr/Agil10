@@ -583,10 +583,13 @@ struct ExpertModeContent: View {
                 }
             }
             .onAppear {
-                if liveValuesOrientationIsLandscape != isLandscape {
-                    resetLiveValues()
-                }
-            }
+                            if liveValuesOrientationIsLandscape != isLandscape {
+                                resetLiveValues()
+                            }
+                        }
+                        .task {
+                            await viewModel.detectVideoOrientation()
+                        }
         }
     }
 

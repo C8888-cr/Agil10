@@ -297,7 +297,7 @@ struct HomeView: View {
         
         
         
-        .sheet(isPresented: $showPlayAllSession) {
+        .fullScreenCover(isPresented: $showPlayAllSession) {
             PlayAllSessionView(
                 schedules: progressVM.todaysSchedules,
                 session: session,
