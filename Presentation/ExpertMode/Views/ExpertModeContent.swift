@@ -444,30 +444,40 @@ struct ExpertModeContent: View {
         verticalSizeClass == .compact
     }
 
+    /// Ob der Video-Hintergrund aktuell sichtbar ist.
+    private var showsVideo: Bool {
+        viewModel.isVideoFeatureEnabled && viewModel.isVideoVisible
+    }
+
+    /// Passt das Video-Format zur Geräte-Orientierung → Overlay,
+    /// sonst geteiltes Layout.
+    private var usesSplitLayout: Bool {
+        guard showsVideo else { return false }
+        let videoPortrait = viewModel.isPortraitVideo
+        let devicePortrait = !isLandscape
+        return videoPortrait != devicePortrait
+    }
+
+    /// Im geteilten Layout: wird vertikal geteilt (Video oben)?
+    /// Das ist der Fall bei quer gefilmtem Video.
+    private var splitIsVertical: Bool {
+        !viewModel.isPortraitVideo
+    }
+
     // MARK: - 🎛 Stellschrauben (Layout-Definition)
-    //
-    // Pillen-Urzustände, getrennt nach Orientierung und Video-Zustand.
-    // Der Verschiebe-Slider verändert nur die Live-Werte (mit Video),
-    // nicht diese Defaults.
     private enum Tuning {
 
-        // ── HOCHFORMAT ──
-        // Mit Video: Pille seitlich rechts.
+        // ── HOCHFORMAT, Overlay ──
         static let portraitPillHeightWithVideo: CGFloat = 0.46
         static let portraitPillWidthWithVideo: CGFloat = 0.42
         static let portraitPillXWithVideo: CGFloat = 0.70
         static let portraitPillYWithVideo: CGFloat = 0.62
-        // Ohne Video: Pille mittig, groß, weiter oben.
         static let portraitPillHeightNoVideo: CGFloat = 0.60
         static let portraitPillWidthNoVideo: CGFloat = 0.42
         static let portraitPillXNoVideo: CGFloat = 0.50
         static let portraitPillYNoVideo: CGFloat = 0.48
 
-      
-        
-        // ── QUERFORMAT ──
-        // Quer ist der Bildschirm niedrig → Pille muss prozentual
-        // deutlich höher sein, um nicht winzig zu wirken.
+        // ── QUERFORMAT, Overlay ──
         static let landscapePillHeightWithVideo: CGFloat = 0.78
         static let landscapePillWidthWithVideo: CGFloat = 0.42
         static let landscapePillXWithVideo: CGFloat = 0.78
@@ -477,10 +487,31 @@ struct ExpertModeContent: View {
         static let landscapePillXNoVideo: CGFloat = 0.50
         static let landscapePillYNoVideo: CGFloat = 0.46
 
-        // ── Long-Bar (Hoch/Runter-Linie) ──
-        // Breite als Faktor der Pillenbreite.
-        // Ohne Video darf die Linie schön weit rausragen,
-        // mit Video wird sie gekürzt (stört sonst im Bild).
+        // ── GETEILTES Layout ──
+        // Anteil fürs Video (Rest = Pillenbereich).
+        static let splitVideoRatio: CGFloat = 0.60
+
+        // Geteilt VERTIKAL (quer gefilmtes Video oben, Pille unten).
+        // Pillenbereich ist breit & niedrig → Pille eher klein, hoch
+        // gesetzt, damit sie nicht in die Satz-Info unten rutscht.
+        static let splitVertPillHeight: CGFloat = 0.80
+        static let splitVertPillWidth: CGFloat = 0.42
+        static let splitVertPillX: CGFloat = 0.50
+        static let splitVertPillY: CGFloat = 0.20
+
+        // Geteilt HORIZONTAL (hoch gefilmtes Video links, Pille rechts).
+        // Pillenbereich ist schmal & hoch → Pille groß, etwas links
+        // (wegen der Buttons oben), Gesamt-Anzeige bleibt sichtbar.
+        static let splitHorizPillHeight: CGFloat = 0.66
+        static let splitHorizPillWidth: CGFloat = 0.42
+        static let splitHorizPillX: CGFloat = 0.44
+        static let splitHorizPillY: CGFloat = 0.54
+
+        // ── Video-Card (geteiltes Layout) ──
+        static let cardCornerRadius: CGFloat = 22
+        static let cardPadding: CGFloat = 12
+
+        // ── Long-Bar ──
         static let longBarFactorNoVideo: CGFloat = 2.0
         static let longBarFactorWithVideo: CGFloat = 1.25
 
@@ -489,24 +520,55 @@ struct ExpertModeContent: View {
         static let topBarTopPadding: CGFloat = 8
     }
 
-    /// Ob der Video-Hintergrund aktuell sichtbar ist.
-    private var showsVideo: Bool {
-        viewModel.isVideoFeatureEnabled && viewModel.isVideoVisible
-    }
-
-    // MARK: - Verschiebe-Slider (Live-Anpassung, nur mit Video)
-    //
-    // Starten beim jeweiligen Urzustand "mit Video". Werden nicht
-    // gespeichert — beim nächsten Start gilt wieder der Urzustand.
+    // MARK: - Verschiebe-Slider (Live-Anpassung)
     @State private var livePillHeight: CGFloat = Tuning.portraitPillHeightWithVideo
     @State private var livePillWidth: CGFloat = Tuning.portraitPillWidthWithVideo
     @State private var livePillX: CGFloat = Tuning.portraitPillXWithVideo
     @State private var livePillY: CGFloat = Tuning.portraitPillYWithVideo
     @State private var showAdjustPanel: Bool = false
-    /// Merkt sich, ob die Live-Werte schon zur aktuellen Orientierung passen.
-    @State private var liveValuesOrientationIsLandscape: Bool = false
+    @State private var liveContextKey: String = ""
 
-    // Effektive Pillen-Parameter — abhängig von Orientierung + Video.
+    /// Schlüssel des aktuellen Layout-Kontexts.
+    private var contextKey: String {
+        if usesSplitLayout {
+            return splitIsVertical ? "splitVert" : "splitHoriz"
+        }
+        return isLandscape ? "landscape" : "portrait"
+    }
+
+    /// Urzustand "mit Video" für den aktuellen Kontext.
+    private func withVideoDefaults() -> (h: CGFloat, w: CGFloat, x: CGFloat, y: CGFloat) {
+        if usesSplitLayout {
+            if splitIsVertical {
+                return (Tuning.splitVertPillHeight, Tuning.splitVertPillWidth,
+                        Tuning.splitVertPillX, Tuning.splitVertPillY)
+            } else {
+                return (Tuning.splitHorizPillHeight, Tuning.splitHorizPillWidth,
+                        Tuning.splitHorizPillX, Tuning.splitHorizPillY)
+            }
+        } else if isLandscape {
+            return (Tuning.landscapePillHeightWithVideo,
+                    Tuning.landscapePillWidthWithVideo,
+                    Tuning.landscapePillXWithVideo,
+                    Tuning.landscapePillYWithVideo)
+        } else {
+            return (Tuning.portraitPillHeightWithVideo,
+                    Tuning.portraitPillWidthWithVideo,
+                    Tuning.portraitPillXWithVideo,
+                    Tuning.portraitPillYWithVideo)
+        }
+    }
+
+    private func resetLiveValues() {
+        let d = withVideoDefaults()
+        livePillHeight = d.h
+        livePillWidth = d.w
+        livePillX = d.x
+        livePillY = d.y
+        liveContextKey = contextKey
+    }
+
+    // Effektive Pillen-Parameter.
     private var pillHeightRatio: CGFloat {
         if showsVideo { return livePillHeight }
         return isLandscape ? Tuning.landscapePillHeightNoVideo : Tuning.portraitPillHeightNoVideo
@@ -524,49 +586,26 @@ struct ExpertModeContent: View {
         return isLandscape ? Tuning.landscapePillYNoVideo : Tuning.portraitPillYNoVideo
     }
 
-    /// Urzustand "mit Video" für die aktuelle Orientierung.
-    private func withVideoDefaults() -> (h: CGFloat, w: CGFloat, x: CGFloat, y: CGFloat) {
-        if isLandscape {
-            return (Tuning.landscapePillHeightWithVideo,
-                    Tuning.landscapePillWidthWithVideo,
-                    Tuning.landscapePillXWithVideo,
-                    Tuning.landscapePillYWithVideo)
-        } else {
-            return (Tuning.portraitPillHeightWithVideo,
-                    Tuning.portraitPillWidthWithVideo,
-                    Tuning.portraitPillXWithVideo,
-                    Tuning.portraitPillYWithVideo)
-        }
-    }
-
-    /// Setzt die Live-Werte auf den Urzustand der aktuellen Orientierung.
-    private func resetLiveValues() {
-        let d = withVideoDefaults()
-        livePillHeight = d.h
-        livePillWidth = d.w
-        livePillX = d.x
-        livePillY = d.y
-        liveValuesOrientationIsLandscape = isLandscape
-    }
-
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
 
             ZStack {
-                backgroundLayer
-                bottomGradient(in: size)
-                pillCluster(in: size)
-
-                if viewModel.isInRest {
-                    restOverlay
-                        .frame(maxWidth: size.width * 0.8)
-                        .position(x: size.width / 2, y: size.height * pillCenterY)
-                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                if usesSplitLayout {
+                    splitLayout(in: size)
+                } else {
+                    overlayLayout(in: size)
                 }
 
                 bottomControls
                 topBar
+
+                if viewModel.isInRest {
+                    restOverlay
+                        .frame(maxWidth: size.width * 0.8)
+                        .position(x: size.width / 2, y: size.height / 2)
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                }
 
                 if showsVideo && showAdjustPanel {
                     adjustPanel(in: size)
@@ -574,26 +613,126 @@ struct ExpertModeContent: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.spring(response: 0.5, dampingFraction: 0.85), value: showsVideo)
+            .animation(.spring(response: 0.5, dampingFraction: 0.85), value: usesSplitLayout)
             .animation(.spring(response: 0.45, dampingFraction: 0.8), value: viewModel.isInRest)
-            // Dreht der Nutzer das Gerät, passen die Live-Werte nicht
-            // mehr → auf den Urzustand der neuen Orientierung setzen.
-            .onChange(of: isLandscape) { _, newValue in
-                if newValue != liveValuesOrientationIsLandscape {
+            .onChange(of: contextKey) { _, newKey in
+                if newKey != liveContextKey {
                     resetLiveValues()
                 }
             }
             .onAppear {
-                            if liveValuesOrientationIsLandscape != isLandscape {
-                                resetLiveValues()
-                            }
-                        }
-                        .task {
-                            await viewModel.detectVideoOrientation()
-                        }
+                if liveContextKey != contextKey {
+                    resetLiveValues()
+                }
+            }
+            .task {
+                await viewModel.detectVideoOrientation()
+            }
         }
     }
 
-    // MARK: - Background Layer
+    // MARK: - Overlay Layout
+
+    private func overlayLayout(in size: CGSize) -> some View {
+        ZStack {
+            backgroundLayer
+            bottomGradient(in: size)
+            pillClusterArea(width: size.width, height: size.height)
+        }
+    }
+
+    // MARK: - Split Layout
+
+    private func splitLayout(in size: CGSize) -> some View {
+        Group {
+            if splitIsVertical {
+                // Video quer → Video oben (Card), Pille unten.
+                VStack(spacing: 0) {
+                    videoCard(
+                        width: size.width,
+                        height: size.height * Tuning.splitVideoRatio
+                    )
+                    pillClusterArea(
+                        width: size.width,
+                        height: size.height * (1 - Tuning.splitVideoRatio)
+                    )
+                }
+            } else {
+                // Video hoch → Video links (Card), Pille rechts.
+                HStack(spacing: 0) {
+                    videoCard(
+                        width: size.width * Tuning.splitVideoRatio,
+                        height: size.height
+                    )
+                    pillClusterArea(
+                        width: size.width * (1 - Tuning.splitVideoRatio),
+                        height: size.height
+                    )
+                }
+            }
+        }
+    }
+
+    /// Video als schwebende Card — Ecken, Rand und Shadow sitzen
+        /// direkt am Videobild (Card = so groß wie das Video selbst).
+        private func videoCard(width: CGFloat, height: CGFloat) -> some View {
+            let shape = RoundedRectangle(cornerRadius: Tuning.cardCornerRadius,
+                                         style: .continuous)
+
+            return ExpertVideoLoopPlayer(
+                video: viewModel.video,
+                isPlaying: viewModel.isVideoPlaying
+            )
+            .aspectRatio(viewModel.isPortraitVideo ? 9.0/16.0 : 16.0/9.0,
+                         contentMode: .fit)
+            // Card-Optik direkt aufs Video — keine größere schwarze Fläche.
+            .clipShape(shape)
+            .overlay(
+                shape.stroke(.white.opacity(0.12), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.6), radius: 16, y: 6)
+            // Innerhalb des zugewiesenen Bereichs zentrieren, mit Rand.
+            .padding(Tuning.cardPadding)
+            .frame(width: width, height: height)
+        }
+
+    // MARK: - Pill Cluster
+    //
+    // Bekommt eine Bereichsgröße zugewiesen, positioniert die Pille
+    // relativ zu DIESEM Bereich (kein absoluter Offset).
+
+    private func pillClusterArea(width: CGFloat, height: CGFloat) -> some View {
+        let pillHeight = height * pillHeightRatio
+        let pillWidth = pillHeight * pillWidthRatio
+
+        let longBarFactor = showsVideo
+            ? Tuning.longBarFactorWithVideo
+            : Tuning.longBarFactorNoVideo
+        let longBarWidth = pillWidth * longBarFactor
+
+        let centerX = width * pillCenterX
+        let centerY = height * pillCenterY
+
+        return ZStack {
+            VStack(spacing: 6) {
+                totalBlock
+
+                ZStack {
+                    pillView
+                        .frame(width: pillWidth, height: pillHeight)
+
+                    if viewModel.isLongBarVisible {
+                        longBar(width: longBarWidth, pillHeight: pillHeight)
+                    }
+                }
+            }
+            .frame(width: max(pillWidth, longBarWidth))
+            .position(x: centerX, y: centerY)
+        }
+        .frame(width: width, height: height)
+    }
+
+    // MARK: - Background Layer (Overlay-Modus)
 
     @ViewBuilder
     private var backgroundLayer: some View {
@@ -629,7 +768,7 @@ struct ExpertModeContent: View {
         .allowsHitTesting(false)
     }
 
-    // MARK: - Top Bar (Pfeil zurück + Slider-Icon + Video-Button)
+    // MARK: - Top Bar
 
     private var topBar: some View {
         VStack {
@@ -648,7 +787,6 @@ struct ExpertModeContent: View {
                 Spacer()
 
                 HStack(spacing: 10) {
-                    // Verschiebe-Panel öffnen — nur sinnvoll mit Video.
                     if viewModel.canToggleVideo && showsVideo {
                         Button {
                             showAdjustPanel.toggle()
@@ -662,7 +800,6 @@ struct ExpertModeContent: View {
                         .accessibilityLabel("Pille anpassen")
                     }
 
-                    // Video ein-/ausblenden.
                     if viewModel.canToggleVideo {
                         Button {
                             viewModel.toggleVideo()
@@ -684,38 +821,6 @@ struct ExpertModeContent: View {
         }
         .padding(.horizontal)
         .padding(.top, Tuning.topBarTopPadding)
-    }
-
-    // MARK: - Pill Cluster (Pille + kg-Anzeige wandern gemeinsam)
-
-    private func pillCluster(in size: CGSize) -> some View {
-        let pillHeight = size.height * pillHeightRatio
-        let pillWidth = pillHeight * pillWidthRatio
-
-        // Long-Bar: ohne Video lang, mit Video gekürzt.
-        let longBarFactor = showsVideo
-            ? Tuning.longBarFactorWithVideo
-            : Tuning.longBarFactorNoVideo
-        let longBarWidth = pillWidth * longBarFactor
-
-        let centerX = size.width * pillCenterX
-        let centerY = size.height * pillCenterY
-
-        return VStack(spacing: 6) {
-            totalBlock
-
-            // Pille zuerst, Long-Bar danach → Long-Bar liegt VOR der Pille.
-            ZStack {
-                pillView
-                    .frame(width: pillWidth, height: pillHeight)
-
-                if viewModel.isLongBarVisible {
-                    longBar(width: longBarWidth, pillHeight: pillHeight)
-                }
-            }
-        }
-        .frame(width: max(pillWidth, longBarWidth))
-        .position(x: centerX, y: centerY)
     }
 
     // MARK: - Total Block
@@ -954,16 +1059,13 @@ struct ExpertModeContent: View {
         .shadow(color: .black.opacity(0.25), radius: 8, y: 2)
     }
 
-    // MARK: - Bottom Controls (Info Row + Button)
+    // MARK: - Bottom Controls (Satz-Info, global ganz unten)
 
     private var bottomControls: some View {
         VStack {
             Spacer()
-            VStack(spacing: 12) {
-                bottomInfoRow
-            //    primaryButton
-            }
-            .padding(.horizontal)
+            bottomInfoRow
+                .padding(.horizontal)
         }
     }
 
@@ -1009,27 +1111,15 @@ struct ExpertModeContent: View {
             alignment: .top
         )
         .padding(.top, 8)
+        .padding(.bottom, 8)
     }
 
-    private var primaryButton: some View {
-        Button {
-            viewModel.onPrimaryButtonTapped()
-        } label: {
-            Text(viewModel.primaryButtonTitle)
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-        }
-        .buttonStyle(.glassProminent)
-    }
-
-    // MARK: - Verschiebe-Panel (Pille anpassen)
+    // MARK: - Verschiebe-Panel
 
     private func adjustPanel(in size: CGSize) -> some View {
         let shape = RoundedRectangle(cornerRadius: 20, style: .continuous)
-        // Querformat: kompakter (schmaler, weniger Abstand nach unten).
         let panelMaxWidth: CGFloat = isLandscape ? 360 : .infinity
-        let panelBottomPadding: CGFloat = isLandscape ? 84 : 140
+        let panelBottomPadding: CGFloat = isLandscape ? 84 : 120
 
         return VStack {
             Spacer()
@@ -1050,8 +1140,8 @@ struct ExpertModeContent: View {
 
                 adjustSlider("Größe",  value: $livePillHeight, range: 0.30...0.90)
                 adjustSlider("Breite", value: $livePillWidth,  range: 0.30...0.60)
-                adjustSlider("Links/Rechts", value: $livePillX, range: 0.25...0.85)
-                adjustSlider("Hoch/Runter",  value: $livePillY, range: 0.25...0.75)
+                adjustSlider("Links/Rechts", value: $livePillX, range: 0.20...0.85)
+                adjustSlider("Hoch/Runter",  value: $livePillY, range: 0.20...0.80)
             }
             .padding(isLandscape ? 12 : 16)
             .frame(maxWidth: panelMaxWidth)
