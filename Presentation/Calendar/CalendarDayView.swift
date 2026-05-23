@@ -153,7 +153,7 @@ struct CalendarDayView: View {
                     onTapAppointment: { selectedAppointment = $0 }
                 )
                 .padding(.horizontal, 16)
-                .padding(.top, 12)
+                .padding(.top, -16)
                 
                 ExercisesForDateView(
                     selectedDate: calendarViewModel.selectedDate,

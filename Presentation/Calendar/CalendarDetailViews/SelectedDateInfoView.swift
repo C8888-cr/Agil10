@@ -30,26 +30,15 @@ struct SelectedDateInfoView: View {
                                 .font(.headline)
                                 .foregroundColor(.secondary)
                         } else {
-                            ForEach(appointments) { appt in
-                                HStack(spacing: 6) {
-                                    Image(systemName: "")
-                                        .foregroundColor(themeManager.currentTheme.accentColor)
-                                    Text("\(appt.date.timeString) – \(appt.therapist ?? "kein Therapeut")")
-                                        .font(.headline)
-                                        .foregroundColor(.secondary)
-                                    
-                                    if let notes = appt.notes, !notes.isEmpty {
-                                                  Text(notes)
-                                            .font(.caption)
-                                                   .foregroundColor(.secondary)
-                                                   .italic()
-                                                   .lineLimit(2)
-                                                   .truncationMode(.tail)
+                                                  ForEach(appointments) { appt in
+                                                      AppointmentBody(appointment: appt)
+                                                          .contentShape(Rectangle())
+                                                          .onTapGesture { onTapAppointment(appt) }
+                                                  }
                                               }
-                                }
-                                .onTapGesture { onTapAppointment(appt) }
-                            }
-                        }
+                        
+                        
+                        
                     }
      
      Spacer()
@@ -57,10 +46,7 @@ struct SelectedDateInfoView: View {
 
      }
      }
-     .padding()
-     .background(Color(.systemBackground))
-     .cornerRadius(16)
-     .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+         .glassCard()
      }
      }
      
