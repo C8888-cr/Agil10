@@ -313,7 +313,10 @@ struct ProfileView: View {
                 } // ScrollView
             } // ZStack
             .navigationTitle("")
+            
             .navigationBarTitleDisplayMode(.inline)
+            
+
             .onAppear { debugUserInDatabase() }
             .alert("Alle Daten löschen?", isPresented: $showResetAlert) {
                 Button("Abbrechen", role: .cancel) { }
@@ -327,6 +330,7 @@ struct ProfileView: View {
             } message: {
                 Text("Dein Account und alle Daten werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.")
             }
+            
         } // NavigationStack
     }
     

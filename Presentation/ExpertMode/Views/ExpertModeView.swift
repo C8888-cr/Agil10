@@ -16,7 +16,7 @@ struct ExpertModeView: View {
         lastTrainingTotalKg: Int? = nil
     ) {
         _viewModel = StateObject(wrappedValue: ExpertModeViewModel(
-            videoTitle: video.title,
+            video: video,
             tempoProtocol: tempoProtocol,
             weightKg: weightKg,
             lastTrainingTotalKg: lastTrainingTotalKg

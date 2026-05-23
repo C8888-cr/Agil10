@@ -29,7 +29,7 @@ struct VideoPickerSheet: View {
                 contentView
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Übung auswählen")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // ✅ NEU: Zurück-Pfeil links
@@ -40,7 +40,7 @@ struct VideoPickerSheet: View {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
                                 .font(.body.weight(.semibold))
-                            Text("Zurück")
+                            Text("")
                         }
                         .foregroundStyle(themeManager.currentTheme.accentColor)
                     }

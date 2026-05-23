@@ -200,7 +200,7 @@ struct HomeView: View {
                 }
             }
         
-            .sheet(item: $selectedVideoForConfig) { video in
+            .fullScreenCover(item: $selectedVideoForConfig) { video in
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: settingsVM.preferences.activeMode,
@@ -267,7 +267,7 @@ struct HomeView: View {
   
     // ⭐️ VIDEO PLAYER SHEET
         // ✅ Neu
-        .sheet(item: $videoPlayerItem) { item in
+        .fullScreenCover(item: $videoPlayerItem) { item in
             VideoPlayerView(
                 video: item.video,
                 scheduleId: item.scheduleId,
@@ -277,7 +277,7 @@ struct HomeView: View {
         }
         
         
-        .sheet(item: $expertSession) { item in
+        .fullScreenCover(item: $expertSession) { item in
             ExpertModePlayerView(
                 video: item.video,
                 tempoProtocol: item.tempoProtocol,
@@ -286,7 +286,7 @@ struct HomeView: View {
                 repsOverride: item.schedule.reps,
                 restOverride: item.schedule.customPauseSeconds,
                 lastTrainingTotalKg: nil,
-                videoDuringTraining: settingsVM.preferences.videoDuringTraining,
+                videoDuringTraining: .toggleable,
                 scheduleId: item.schedule.id,
                 progressViewModel: progressVM,
                 session: session
