@@ -368,9 +368,10 @@ struct LibraryView: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .symbolRenderingMode(.hierarchical)
+                        .foregroundColor(themeManager.currentTheme.accentColor)
+                        .font(.title3)
                 }
-                
+             
    
                 // Filter-Button
                 Button {
@@ -381,6 +382,7 @@ struct LibraryView: View {
                           "line.3.horizontal.decrease.circle")
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(viewModel.hasActiveFilters ? themeManager.currentTheme.accentColor : .primary)
+                    .font(.title3)
                 }
             }
         }
