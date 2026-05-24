@@ -21,31 +21,49 @@ struct DetectAppointmentChangesUseCase {
         
         // Neue und geänderte Termine erkennen
         for parsed in parsedAppointments {
-            if let existing = findMatchingAppointment(parsed, in: futureAppointments) {
-                // ✅ Hat sich WIRKLICH was geändert? (nicht nur emailUID)
-                if hasChanges(parsed, comparedTo: existing) {
-                                    // ✅ Änderungen übernehmen
-                                    existing.date = parsed.date
-                                    existing.therapist = parsed.therapist
-                                    existing.locationName = parsed.locationName
-                                    existing.locationAddress = parsed.locationAddress
-                                    existing.notes = parsed.notes
-                                    existing.status = .modified
-                                    existing.isHighlighted = true
-                                    existing.lastModified = Date()
-                                    existing.emailUID = emailHash
-                                    changes.modified.append(existing)
-                
-            } else {
-                          // ✅ NEU: Unverändert
-                          changes.unchanged.append(existing)
-                      }
-                  } else {
-                      // Neuer Termin
-                      parsed.emailUID = emailHash
-                      changes.added.append(parsed)
-                  }
-              }
+                    if let existing = findMatchingAppointment(parsed, in: futureAppointments) {
+                        if existing.status == .cancelled {
+                            // ✅ Regel 3 – Reaktivierung:
+                            // Ein abgesagter Termin taucht in einer neuen Email wieder auf.
+                            // Allein das Wieder-Auftauchen ist eine Änderung → zurück auf
+                            // .confirmed, Felder übernehmen, ab in changes.modified.
+                            // Der modified-Pfad benennt den Apple-Event automatisch
+                            // von "Abgesagt" zurück auf den echten Titel.
+                            existing.date = parsed.date
+                            existing.therapist = parsed.therapist
+                            existing.locationName = parsed.locationName
+                            existing.locationAddress = parsed.locationAddress
+                            existing.notes = parsed.notes
+                            existing.status = .confirmed
+                            existing.isHighlighted = true
+                            existing.lastModified = Date()
+                            existing.emailUID = emailHash
+                            changes.modified.append(existing)
+
+                        } else if hasChanges(parsed, comparedTo: existing) {
+                            // ✅ Änderungen übernehmen
+                            existing.date = parsed.date
+                            existing.therapist = parsed.therapist
+                            existing.locationName = parsed.locationName
+                            existing.locationAddress = parsed.locationAddress
+                            existing.notes = parsed.notes
+                            existing.status = .modified
+                            existing.isHighlighted = true
+                            existing.lastModified = Date()
+                            existing.emailUID = emailHash
+                            changes.modified.append(existing)
+
+                        } else {
+                            // ✅ Unverändert
+                            changes.unchanged.append(existing)
+                        }
+                    } else {
+                        // Neuer Termin
+                        parsed.emailUID = emailHash
+                        changes.added.append(parsed)
+                    }
+                }
+        
         
         // Verschwundene Termine erkennen (NUR zukünftige!)
                 // WICHTIG: Hier wird NICHTS am Termin verändert – kein Status, kein
