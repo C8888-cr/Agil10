@@ -75,7 +75,7 @@ final class Appointment {
         locationLatitude: Double? = nil,
         locationLongitude: Double? = nil,
         notes: String? = nil,
-        durationMinutes: Int = 45,
+        durationMinutes: Int = 20,
         emailUID: String? = nil,
         status: AppointmentStatus = .scheduled,
         userId: UUID,

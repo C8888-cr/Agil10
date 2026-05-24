@@ -37,18 +37,36 @@ struct ImportResultsView: View {
 
                 if !changes.cancelled.isEmpty {
                     Section {
-                        ForEach(changes.cancelled) { appointment in
-                            VStack(alignment: .leading, spacing: 8) {
-                                AppointmentSummaryRow(appointment: appointment)
-                                Picker("", selection: decisionBinding(for: appointment)) {
-                                    Text("Behalten").tag(Decision.keep)
-                                    Text("Löschen").tag(Decision.delete)
-                                }
-                                .pickerStyle(.segmented)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    } header: {
+                                            ForEach(changes.cancelled) { appointment in
+                                                VStack(alignment: .leading, spacing: 10) {
+                                                    AppointmentSummaryRow(appointment: appointment)
+                                                    
+                                                    
+                                                    HStack(spacing: 8) {
+                                                                                        decisionButton(
+                                                                                            title: "Behalten",
+                                                                                            systemImage: "checkmark",
+                                                                                            isSelected: decisions[appointment.id] == .keep,
+                                                                                            selectedColor: .accentColor
+                                                                                        ) {
+                                                                                            decisions[appointment.id] = .keep
+                                                                                        }
+                                                                                        decisionButton(
+                                                                                            title: "Löschen",
+                                                                                            systemImage: "trash",
+                                                                                            isSelected: decisions[appointment.id] == .delete,
+                                                                                            selectedColor: .red
+                                                                                        ) {
+                                                                                            decisions[appointment.id] = .delete
+                                                                                        }
+                                                                                    }
+                                                    
+                                                    
+                                                    
+                                                }
+                                                .padding(.vertical, 4)
+                                            }
+                                        } header: {
                         Text("Abgesagte Termine (\(changes.cancelled.count))")
                     } footer: {
                         HStack {
@@ -84,14 +102,34 @@ struct ImportResultsView: View {
 
     // MARK: - Helpers
 
-    /// Binding, das den Picker direkt mit dem decisions-Dictionary verbindet.
-    private func decisionBinding(for appointment: Appointment) -> Binding<Decision> {
-        Binding(
-            get: { decisions[appointment.id] ?? .keep },
-            set: { decisions[appointment.id] = $0 }
-        )
-    }
-
+    /// Ein Entscheidungs-Button. Gewählt = farbige Füllung,
+        /// nicht gewählt = Liquid-Glass-Outline (sichtbar "noch nicht entschieden").
+    /// Ein Entscheidungs-Button im System-Glas-Stil.
+        /// Gewählt = farbiger Text + Symbol, nicht gewählt = gedämpft ohne Symbol.
+        @ViewBuilder
+        private func decisionButton(
+            title: String,
+            systemImage: String,
+            isSelected: Bool,
+            selectedColor: Color,
+            action: @escaping () -> Void
+        ) -> some View {
+            Button(action: action) {
+                HStack(spacing: 6) {
+                    if isSelected {
+                        Image(systemName: systemImage)
+                    }
+                    Text(title)
+                        .fontWeight(isSelected ? .semibold : .regular)
+                }
+                .font(.subheadline)
+                .foregroundStyle(isSelected ? selectedColor : Color.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.glass)
+        }
+    
     private func setAll(_ decision: Decision) {
         for appointment in changes.cancelled {
             decisions[appointment.id] = decision
