@@ -48,11 +48,14 @@ struct LibraryView: View {
                 toolbarContent
             }
         // Sheet hinzufügen:
-        .fullScreenCover(isPresented: $showCamera) {
-            CameraVideoPickerView { url in
-                viewModel.handleCameraVideo(url: url)
-            }
-        }
+            .fullScreenCover(isPresented: $showCamera) {
+                        PortraitLockedView {
+                            CameraVideoPickerView { url in
+                                viewModel.handleCameraVideo(url: url)
+                            }
+                        }
+                        .ignoresSafeArea()
+                    }
         
             .searchable(
                 text: $viewModel.searchText,
