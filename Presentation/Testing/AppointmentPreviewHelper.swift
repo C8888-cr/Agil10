@@ -74,11 +74,20 @@ struct PreviewHelper {
             repository: repository,
             calendarSync: nil  // im Preview kein Calendar-Sync nötig
         )
-        
+
         let detectChangesUseCase = DetectAppointmentChangesUseCase(
             repository: repository
         )
-        
+        // RICHTIG
+        let icsParser = ICSParserService(session: sessionManager)
+        let parseAppointmentsFromICSUseCase = ParseAppointmentsFromICSUseCase(
+            repository: repository,
+            icsParser: icsParser,
+            detectChangesUseCase: detectChangesUseCase,
+            session: sessionManager,
+            addAppointmentUseCase: addAppointmentUseCase,
+            updateAppointmentUseCase: updateAppointmentUseCase
+        )
         let sampleAppointments = createSampleAppointments()
         for appointment in sampleAppointments {
             context.insert(appointment)
@@ -113,8 +122,10 @@ struct PreviewHelper {
                 detectChangesUseCase: detectChangesUseCase,
                 session: sessionManager,
                         addAppointmentUseCase: addAppointmentUseCase,
+                
                 updateAppointmentUseCase: updateAppointmentUseCase
-            )
+            ),
+            parseAppointmentsFromICSUseCase: parseAppointmentsFromICSUseCase
         )
     }
     

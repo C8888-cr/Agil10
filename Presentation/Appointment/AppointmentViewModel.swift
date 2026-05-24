@@ -1,4 +1,4 @@
-// Features/Appointments/ViewModels/AppointmentViewModel.swift
+
 import Foundation
 import SwiftData
 
@@ -26,7 +26,9 @@ class AppointmentViewModel: ObservableObject {
     private let addAppointmentUseCase: AddAppointmentUseCase
     private let emailService: EmailService
     private let deleteAppointmentUseCase: DeleteAppointmentUseCase
+
     private let parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase
+    private let parseAppointmentsFromICSUseCase: ParseAppointmentsFromICSUseCase
     private let calendarSync: CalendarSyncService?
     private let updateAppointmentUseCase: UpdateAppointmentUseCase
 
@@ -70,9 +72,9 @@ class AppointmentViewModel: ObservableObject {
             emailService: EmailService,
             markAsNotifiedUseCase: MarkAsNotifiedUseCase,
             loadAppointmentsUseCase: LoadAppointmentsUseCase,
-        //    parseEmailUseCase: ParseEmailUseCase,
             deleteAppointmentUseCase: DeleteAppointmentUseCase,
             parseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCase,
+            parseAppointmentsFromICSUseCase: ParseAppointmentsFromICSUseCase,
             calendarSync: CalendarSyncService? = nil
         
         ) {
@@ -87,9 +89,9 @@ class AppointmentViewModel: ObservableObject {
             self.emailService = emailService
             self.markAsNotifiedUseCase = markAsNotifiedUseCase
             self.loadAppointmentsUseCase = loadAppointmentsUseCase
-          //  self.parseEmailUseCase = parseEmailUseCase
             self.deleteAppointmentUseCase = deleteAppointmentUseCase
             self.parseAppointmentsFromEmailUseCase = parseAppointmentsFromEmailUseCase
+            self.parseAppointmentsFromICSUseCase = parseAppointmentsFromICSUseCase
             self.calendarSync = calendarSync
             //  Live-Sync starten wichtig um updates von appleCalender zu erhalten
             setupCalendarObserver()        }
@@ -99,42 +101,7 @@ class AppointmentViewModel: ObservableObject {
       }
     
     // MARK: - Public Methods
- /*
-        /// Email-Import
-    func parseAppointmentsFromEmailOld(_ emailText: String) async {
-        // ✅ User prüfen
-          guard let user = currentUser else {
-              setError(.parsingFailed("Kein User eingeloggt"))
-              return
-          }
-        print("👤 Current User: \(user.id)")
-        
-        isLoading = true
-        do {
-            let appointments = try await parseEmailUseCase.execute(emailText)  // ✅ [Appointment]
-            print("📧 Parsed \(appointments.count) appointments")
-            
-            
-            // ✅ User zuweisen
-                for apt in appointments {
-                    apt.userId = user.id
-                    print("   → \(apt.therapist) | userId set to: \(apt.userId?.uuidString ?? "FAIL")")
-                }
-                
-                await loadAppointments()
-            clearErrors()
-            print("✅ Imported: \(appointments.count) appointments")  // ✅ FIX!
-        } catch let error as AppointmentError {
-            setError(error)
-        } catch let error as ValidationError {
-            validationError = error
-            showingError = true
-        } catch {
-            setError(.parsingFailed(error.localizedDescription))
-        }
-        isLoading = false
-    }
-*/
+
     /// Email-Import mit Changes-Detection
     func parseAppointmentsFromEmail(_ emailText: String) async throws -> AppointmentChanges {
         // ✅ User prüfen
@@ -191,24 +158,72 @@ class AppointmentViewModel: ObservableObject {
             throw error
         }
     }
-     /// Termine neu laden
-/*     func loadAppointments() async {
-         guard let user = currentUser else {
-                appointments = []
-                return
+    
+    // NEU – komplette neue Methode
+        /// ICS-Import mit Changes-Detection.
+        /// Gegenstück zu parseAppointmentsFromEmail – Quelle ist der Inhalt
+        /// einer .ics-Datei. Wirft ICSImportError.notAnAgilFile, wenn die Datei
+        /// kein Agil-Kennzeichen hat und allowNonAgil = false ist.
+        func parseAppointmentsFromICS(
+            _ icsText: String,
+            allowNonAgil: Bool = false
+        ) async throws -> AppointmentChanges {
+
+            guard let user = currentUser else {
+                setError(.parsingFailed("Kein User eingeloggt"))
+                throw AppointmentError.parsingFailed("Kein User eingeloggt")
             }
-         isLoading = true
-         do {
-             appointments = try await loadAppointmentsUseCase.execute(for: user)
-             clearErrors()
-         } catch let error as AppointmentError {
-            setError(error)
-         } catch {
-             setError(.saveFailed(error.localizedDescription))
-         }
-         isLoading = false
-     }
- */
+
+            print("👤 Current User: \(user.id)")
+
+            isLoading = true
+            defer { isLoading = false }
+
+            do {
+                let changes = try await parseAppointmentsFromICSUseCase.execute(
+                    icsText: icsText,
+                    allowNonAgil: allowNonAgil
+                )
+
+                // Agil-Kalender (Planner) refreshen → neue Apple-Events sichtbar
+                NotificationCenter.default.post(
+                    name: .appointmentsChanged,
+                    object: nil,
+                    userInfo: ["date": Date()]
+                )
+
+                clearErrors()
+                print("✅ ICS import: \(changes.changesSummary)")
+
+                // Notifications neu planen nach ICS-Import
+                if let user = currentUser, user.appointmentReminderEnabled {
+                    let allAppointments = try? await loadAppointmentsUseCase.execute(for: user)
+                    await AppointmentNotificationService.scheduleReminders(
+                        for: allAppointments ?? [],
+                        enabled: true,
+                        reminderTime: user.appointmentReminderTime,
+                        mode: user.appointmentReminderMode
+                    )
+                }
+
+                return changes
+
+            } catch let error as AppointmentError {
+                setError(error)
+                throw error
+            } catch let error as ValidationError {
+                validationError = error
+                showingError = true
+                throw error
+            } catch {
+                // Fängt auch ICSImportError.notAnAgilFile – die UI entscheidet,
+                // ob sie mit allowNonAgil: true erneut aufruft.
+                setError(.parsingFailed(error.localizedDescription))
+                throw error
+            }
+        }
+    
+    
 
     func addAppointmentManual(
         date: Date,

@@ -210,7 +210,8 @@ class AppDependencies: ObservableObject {
         loadAppointmentsUseCase: loadAppointmentsUseCase,
         deleteAppointmentUseCase: deleteAppointmentUseCase,
         parseAppointmentsFromEmailUseCase: parseAppointmentsFromEmailUseCase,
-        calendarSync: calendarSync 
+        parseAppointmentsFromICSUseCase: parseAppointmentsFromICSUseCase,
+        calendarSync: calendarSync
     )
     
     // MARK: - Calendar ViewModels (Factory)
