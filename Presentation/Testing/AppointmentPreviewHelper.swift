@@ -112,7 +112,8 @@ struct PreviewHelper {
                 emailParser: emailParser,
                 detectChangesUseCase: detectChangesUseCase,
                 session: sessionManager,
-                        addAppointmentUseCase: addAppointmentUseCase
+                        addAppointmentUseCase: addAppointmentUseCase,
+                updateAppointmentUseCase: updateAppointmentUseCase
             )
         )
     }

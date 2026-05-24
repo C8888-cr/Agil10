@@ -16,20 +16,24 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
         private let detectChangesUseCase: DetectAppointmentChangesUseCase
         private let session: SessionManager
         private let addAppointmentUseCase: AddAppointmentUseCase
-        
+        private let updateAppointmentUseCase: UpdateAppointmentUseCase
+    
+    
         // MARK: - Init
         init(
             repository: AppointmentRepository,
             emailParser: EmailParserService,
             detectChangesUseCase: DetectAppointmentChangesUseCase,
             session: SessionManager,
-            addAppointmentUseCase: AddAppointmentUseCase
+            addAppointmentUseCase: AddAppointmentUseCase,
+            updateAppointmentUseCase: UpdateAppointmentUseCase
         ) {
             self.repository = repository
             self.emailParser = emailParser
             self.detectChangesUseCase = detectChangesUseCase
             self.session = session
             self.addAppointmentUseCase = addAppointmentUseCase
+            self.updateAppointmentUseCase = updateAppointmentUseCase
         }
     
     // MARK: - Execute
@@ -69,10 +73,33 @@ class ParseAppointmentsFromEmailUseCase: ParseAppointmentsFromEmailUseCaseProtoc
                 }
                 changes.added = stillAdded
         
-        // 6️⃣ Geänderte und abgesagte speichern
-        for appointment in changes.modified + changes.cancelled {
-            try await repository.save(appointment)
-        }
+        // 6️⃣ Geänderte Termine über UpdateAppointmentUseCase aktualisieren.
+                //    Aktualisiert zusätzlich den Apple-Kalender-Event (Titel mit neuem
+                //    Therapeut etc.) → Agil- und Apple-Kalender stimmen wieder.
+                //    Fehler pro Termin werden geloggt, der Import läuft weiter.
+                //    Werte kommen aus dem Objekt – der Detektor hat sie schon gesetzt.
+                for appointment in changes.modified {
+                    do {
+                        _ = try await updateAppointmentUseCase.execute(
+                            appointment,
+                            newDate: appointment.date,
+                            newTherapist: appointment.therapist,
+                            newLocationName: appointment.locationName,
+                            newLocationAddress: appointment.locationAddress,
+                            newLatitude: appointment.locationLatitude,
+                            newLongitude: appointment.locationLongitude,
+                            newNotes: appointment.notes,
+                            newDurationMinutes: appointment.durationMinutes
+                        )
+                    } catch {
+                        print("⚠️ Geänderter Termin konnte nicht aktualisiert werden: \(error)")
+                    }
+                }
+
+                // 6b️⃣ Abgesagte Termine: vorerst nur speichern (Apple-Sync kommt später).
+                for appointment in changes.cancelled {
+                    try await repository.save(appointment)
+                }
         
         print("✅ Email import completed: \(changes.added.count) added, \(changes.modified.count) modified, \(changes.cancelled.count) cancelled")
         
