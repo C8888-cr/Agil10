@@ -12,7 +12,8 @@ struct DetectAppointmentChangesUseCase {
     func execute(
         parsedAppointments: [Appointment],
         emailHash: String,
-        existingAppointments: [Appointment]
+        existingAppointments: [Appointment],
+        matchByUID: Bool = false
     ) -> AppointmentChanges {
         var changes = AppointmentChanges()
         
@@ -21,7 +22,8 @@ struct DetectAppointmentChangesUseCase {
         
         // Neue und geänderte Termine erkennen
         for parsed in parsedAppointments {
-                    if let existing = findMatchingAppointment(parsed, in: futureAppointments) {
+            // NEU
+            if let existing = findMatchingAppointment(parsed, in: futureAppointments, matchByUID: matchByUID) {
                         if existing.status == .cancelled {
                             // ✅ Regel 3 – Reaktivierung:
                             // Ein abgesagter Termin taucht in einer neuen Email wieder auf.
@@ -57,11 +59,15 @@ struct DetectAppointmentChangesUseCase {
                             // ✅ Unverändert
                             changes.unchanged.append(existing)
                         }
-                    } else {
-                        // Neuer Termin
-                        parsed.emailUID = emailHash
-                        changes.added.append(parsed)
-                    }
+                        // NEU
+                        } else {
+                            // Neuer Termin. Bei ICS hat der Parser die echte UID schon gesetzt –
+                            // die darf NICHT mit dem Email-Hash überschrieben werden.
+                            if !matchByUID {
+                                parsed.emailUID = emailHash
+                            }
+                            changes.added.append(parsed)
+                        }
                 }
         
         
@@ -71,8 +77,9 @@ struct DetectAppointmentChangesUseCase {
                 // (behalten als .cancelled / löschen) trifft der User im Sheet,
                 // ausgeführt wird sie danach im ViewModel (Schritt C2).
                 for existing in futureAppointments where existing.emailUID != nil {
+                    // NEU
                     let stillExists = parsedAppointments.contains { parsed in
-                        isSameAppointment(parsed, as: existing)
+                        isSameAppointment(parsed, as: existing, matchByUID: matchByUID)
                     }
                     
                     if !stillExists {
@@ -83,22 +90,34 @@ struct DetectAppointmentChangesUseCase {
         return changes
     }
     
+    // NEU
     private func findMatchingAppointment(
         _ appointment: Appointment,
-        in list: [Appointment]
+        in list: [Appointment],
+        matchByUID: Bool
     ) -> Appointment? {
         list.first { existing in
-            isSameAppointment(appointment, as: existing)
+            isSameAppointment(appointment, as: existing, matchByUID: matchByUID)
         }
     }
     
+    // NEU
+    // NEU (final)
     private func isSameAppointment(
             _ a: Appointment,
-            as b: Appointment
+            as b: Appointment,
+            matchByUID: Bool
         ) -> Bool {
-            // Identität eines Termins = Zeitpunkt (Tag + Uhrzeit auf die Minute).
+            // ICS-Modus: stabile UID vergleichen. Eine Verschiebung behält die
+            // UID -> wird korrekt als "geändert" erkannt, nicht als abgesagt+neu.
+            if matchByUID,
+               let uidA = a.emailUID, !uidA.isEmpty,
+               let uidB = b.emailUID, !uidB.isEmpty {
+                return uidA == uidB
+            }
+            // Email-Modus (Standard): Identität = Zeitpunkt auf die Minute.
             // Der Therapeut ist KEIN Match-Kriterium – er darf sich ändern.
-            Calendar.current.isDate(a.date, equalTo: b.date, toGranularity: .minute)
+            return Calendar.current.isDate(a.date, equalTo: b.date, toGranularity: .minute)
         }
     
     // ✅ NEU: Prüft ob sich Details geändert haben
