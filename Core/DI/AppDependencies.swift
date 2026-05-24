@@ -51,6 +51,8 @@ class AppDependencies: ObservableObject {
     let emailService: EmailService
     // MARK: - Calendar Sync
     lazy var calendarSync: CalendarSyncService = EventKitCalendarSync()
+    // NEU – bei "MARK: - Services" einfügen
+    lazy var icsParser: ICSParserService = ICSParserService(session: sessionManager)
     
     // MARK: - Repositories
     lazy var appointmentRepository = AppointmentRepository(
@@ -97,6 +99,15 @@ class AppDependencies: ObservableObject {
             addAppointmentUseCase: addAppointmentUseCase,
             updateAppointmentUseCase: updateAppointmentUseCase
         )
+   
+    lazy var parseAppointmentsFromICSUseCase = ParseAppointmentsFromICSUseCase(
+        repository: appointmentRepository,
+        icsParser: icsParser,
+        detectChangesUseCase: detectAppointmentChangesUseCase,
+        session: sessionManager,
+        addAppointmentUseCase: addAppointmentUseCase,
+        updateAppointmentUseCase: updateAppointmentUseCase
+    )
     lazy var updateAppointmentUseCase = UpdateAppointmentUseCase(
         repository: appointmentRepository,
         calendarSync: calendarSync
