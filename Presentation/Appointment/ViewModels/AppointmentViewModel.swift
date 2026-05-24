@@ -163,10 +163,9 @@ class AppointmentViewModel: ObservableObject {
         /// ICS-Import mit Changes-Detection.
         /// Gegenstück zu parseAppointmentsFromEmail – Quelle ist der Inhalt
         /// einer .ics-Datei. Wirft ICSImportError.notAnAgilFile, wenn die Datei
-        /// kein Agil-Kennzeichen hat und allowNonAgil = false ist.
+        /// kein Agil-Kennzeichen hat
         func parseAppointmentsFromICS(
-            _ icsText: String,
-            allowNonAgil: Bool = false
+            _ icsText: String
         ) async throws -> AppointmentChanges {
 
             guard let user = currentUser else {
@@ -181,8 +180,7 @@ class AppointmentViewModel: ObservableObject {
 
             do {
                 let changes = try await parseAppointmentsFromICSUseCase.execute(
-                    icsText: icsText,
-                    allowNonAgil: allowNonAgil
+                    icsText: icsText
                 )
 
                 // Agil-Kalender (Planner) refreshen → neue Apple-Events sichtbar
@@ -217,7 +215,7 @@ class AppointmentViewModel: ObservableObject {
                 throw error
             } catch {
                 // Fängt auch ICSImportError.notAnAgilFile – die UI entscheidet,
-                // ob sie mit allowNonAgil: true erneut aufruft.
+              
                 setError(.parsingFailed(error.localizedDescription))
                 throw error
             }

@@ -22,6 +22,11 @@ struct AgilApp: App {
          
                 .environmentObject(dependencies.sessionManager)
                 .environmentObject(dependencies.appointmentViewModel)
+                .environmentObject(dependencies.icsImportCoordinator)
+                .onOpenURL { url in
+    // Per "Öffnen mit" empfangene .ics an den Coordinator geben.
+                dependencies.icsImportCoordinator.handleIncomingURL(url)
+                                }
                 .environmentObject(dependencies.calendarViewModel)
                 .environmentObject(dependencies.progressViewModel)
                 .environmentObject(dependencies.settingsViewModel)
@@ -30,7 +35,8 @@ struct AgilApp: App {
                 .environment(\.modelContext, dependencies.modelContext)
                 .dynamicTypeSize(...DynamicTypeSize.xLarge)
         }
-        .onChange(of: scenePhase) { _, newPhase in       // ← HIER, an die WindowGroup!
+
+                .onChange(of: scenePhase) { _, newPhase in
                    print("🔄 ScenePhase: \(newPhase)")
                    switch newPhase {
                    case .background:

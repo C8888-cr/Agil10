@@ -20,5 +20,26 @@
 		<string>webdemail</string>
 		<string>gmxmail</string>
 	</array>
+    
+    <key>NSCameraUsageDescription</key>
+    <string>Wir benötigen die Kamera für Videoaufnahmen.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Wir benötigen das Mikrofon für Videoaufnahmen mit Ton.</string>
+    <key>CFBundleDocumentTypes</key>
+        <array>
+            <dict>
+                <key>CFBundleTypeName</key>
+                <string>iCalendar-Datei</string>
+                <key>CFBundleTypeRole</key>
+                <string>Viewer</string>
+                <key>LSHandlerRank</key>
+                <string>Alternate</string>
+                <key>LSItemContentTypes</key>
+                <array>
+                    <string>com.apple.ical.ics</string>
+                </array>
+            </dict>
+        </array>
+
 </dict>
 </plist>

@@ -72,17 +72,16 @@ class ParseAppointmentsFromICSUseCase {
     /// Parst eine .ics-Datei und verarbeitet die erkannten Änderungen.
     /// - Parameters:
     ///   - icsText: Roher Inhalt der .ics-Datei.
-    ///   - allowNonAgil: Wenn false und die Datei kein Agil-Kennzeichen hat,
-    ///     wird `ICSImportError.notAnAgilFile` geworfen. Die UI kann nach
-    ///     einer Nutzer-Bestätigung erneut mit `true` aufrufen.
+    ///   -
     /// - Returns: Erkannte Änderungen (added / modified / cancelled).
-    func execute(icsText: String, allowNonAgil: Bool = false) async throws -> AppointmentChanges {
+    func execute(icsText: String) async throws -> AppointmentChanges {
 
         // 1️⃣ ICS parsen
         let parseResult = await icsParser.parseAppointments(from: icsText)
 
         // 2️⃣ Herkunfts-Check – fremde Datei nur mit ausdrücklichem OK importieren
-        guard parseResult.looksLikeAgil || allowNonAgil else {
+        guard parseResult.looksLikeAgil
+        else {
             throw ICSImportError.notAnAgilFile
         }
         let parsedAppointments = parseResult.appointments
