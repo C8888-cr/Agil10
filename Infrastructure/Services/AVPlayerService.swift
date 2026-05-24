@@ -1,22 +1,20 @@
-//
-//  AVPlayerService.swift
-//  Agil
-//
-//  Created by Christiane Roth on 26.11.25.
-//
-
-
 import Foundation
 import AVFoundation
 import Combine
+import UIKit
+
+
 @MainActor
 final class AVPlayerService: ObservableObject {
     // MARK: - Published Properties
     
     @Published private(set) var player: AVPlayer?
     @Published private(set) var playerItem: AVPlayerItem?
-    @Published private(set) var state: PlayerState = .idle
+    @Published private(set) var state: PlayerState = .idle {
+        didSet { updateIdleTimer() }
+    }
     @Published private(set) var progress: VideoProgress = .zero
+    
     
     // MARK: - Private Properties
     
@@ -206,6 +204,16 @@ final class AVPlayerService: ObservableObject {
     
     private func handlePlaybackFinished() {
         state = .ended
+    }
+    
+    
+    
+    
+    // MARK: - Idle Timer
+
+    /// Verhindert Bildschirm-Dimmen/-Sperren während der Wiedergabe.
+    private func updateIdleTimer() {
+        UIApplication.shared.isIdleTimerDisabled = (state == .playing)
     }
     
     // MARK: - Cleanup
