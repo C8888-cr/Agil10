@@ -6,10 +6,7 @@
 	<array>
 		<string>en</string>
 		<string>de</string>
-	</array>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict/>
+	
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
