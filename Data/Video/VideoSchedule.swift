@@ -192,7 +192,10 @@ final class VideoSchedule {
         user: User? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
-        expertPauseSeconds: Int? = nil,        
+        expertPauseSeconds: Int? = nil,
+        mobilitySets: Int? = nil,
+               mobilityReps: Int? = nil,
+               mobilityPauseSeconds: Int? = nil,
         recurrenceRule: RecurrenceRule = .single,
         recurrenceGroupID: UUID? = nil
     ) {
@@ -209,7 +212,10 @@ final class VideoSchedule {
         self.user = user
         self.sets = sets
         self.reps = reps
-        self.expertPauseSeconds = expertPauseSeconds        // 🆕
+        self.expertPauseSeconds = expertPauseSeconds
+        self.mobilitySets = mobilitySets
+                self.mobilityReps = mobilityReps
+                self.mobilityPauseSeconds = mobilityPauseSeconds
         self.recurrenceRuleRaw = recurrenceRule.rawValue
         self.recurrenceGroupID = recurrenceGroupID
     }
