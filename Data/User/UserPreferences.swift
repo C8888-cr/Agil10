@@ -13,10 +13,26 @@ import Foundation
 final class UserPreferences {
     @Attribute(.unique) var id: UUID
     
-    // NEU: Expertenmodus
-    var expertModeEnabled: Bool = false
-    var videoDuringTrainingRaw: String = VideoDuringTrainingMode.alwaysOn.rawValue
 
+        // Trainingsmodus (Standard / Experte / Mobility)
+    var workoutModusRaw: String = WorkoutModus.standard.rawValue
+
+        /// Aktiver Trainingsmodus. Single Source of Truth für die Modus-Wahl.
+        var workoutModus: WorkoutModus {
+            get { WorkoutModus(rawValue: workoutModusRaw) ?? .expert }
+            set { workoutModusRaw = newValue.rawValue }
+        }
+
+        /// Übergangs-Property: alter Bool-Zugriff, abgeleitet aus workoutModus.
+        /// Hält bestehenden Code lauffähig, bis alle Aufrufstellen umgestellt sind.
+        /// TODO: nach dem Umbau entfernen.
+        var expertModeEnabled: Bool {
+            workoutModus == .expert
+        }
+
+        var videoDuringTrainingRaw: String = VideoDuringTrainingMode.alwaysOn.rawValue
+    
+    
     var videoDuringTraining: VideoDuringTrainingMode {
         get { VideoDuringTrainingMode(rawValue: videoDuringTrainingRaw) ?? .alwaysOn }
         set { videoDuringTrainingRaw = newValue.rawValue }

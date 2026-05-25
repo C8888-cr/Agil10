@@ -26,6 +26,12 @@ struct ProfileSettingsView: View {
     }
 
     var body: some View {
+        
+        
+        
+        
+        
+        
         NavigationStack {
             ZStack {
                 Color(.systemGroupedBackground)
@@ -72,36 +78,32 @@ struct ProfileSettingsView: View {
                             }
                         }
 
-                        // MARK: - Training / Expertenmodus
+                        // MARK: - Training / Trainingsmodus
                         if let user = currentUser, user.preferences != nil {
                             InfoCard {
                                 VStack(spacing: 0) {
                                     HStack {
                                         Label {
-                                            Text("Expertenmodus").foregroundStyle(.secondary)
+                                            Text("Trainingsmodus").foregroundStyle(.secondary)
                                         } icon: {
                                             Image(systemName: "dumbbell.fill")
                                                 .foregroundStyle(themeManager.currentTheme.accentColor.opacity(0.7))
                                         }
                                         Spacer()
-                                        Toggle("", isOn: Binding(
-                                            get: { settingsVM.preferences.expertModeEnabled },
-                                            set: { newValue in
-                                                settingsVM.preferences.expertModeEnabled = newValue
-                                                try? settingsVM.modelContext.save()
-                                            }
-                                        ))
-                                        .labelsHidden()
-                                        .tint(themeManager.currentTheme.accentColor)
                                     }
 
-                                    if settingsVM.preferences.expertModeEnabled {
-                                        Text("Bei Krafttraining wird der Trainingsmodus mit Tempo-Vorgabe und Gewichts-Tracking angezeigt.")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.top, 8)
+                                    VStack(spacing: 8) {
+                                        ForEach(WorkoutModus.selectableCases) { modus in
+                                            modusRow(modus)
+                                        }
                                     }
+                                    .padding(.top, 12)
+
+                                    Text(settingsVM.preferences.workoutModus.settingsHint)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.top, 8)
                                 }
                             }
                         }
@@ -124,4 +126,32 @@ struct ProfileSettingsView: View {
             }
         }
     }
+    
+    @ViewBuilder
+    private func modusRow(_ modus: WorkoutModus) -> some View {
+        let isSelected = settingsVM.preferences.workoutModus == modus
+        Button {
+            settingsVM.setWorkoutModus(modus)
+        } label: {
+            HStack {
+                Text(modus.displayName)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(
+                isSelected ? themeManager.currentTheme.accentColor.opacity(0.12)
+                           : Color(.systemGray6),
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
 }

@@ -96,8 +96,9 @@ struct FeedbackScaleSheet: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { g in
-                        value = min(1.0, max(0.0, g.location.x / width))
-                    }
+                                            guard width > 0 else { return }
+                                            value = min(1.0, max(0.0, g.location.x / width))
+                                        }
             )
         }
         .frame(height: barHeight)
@@ -106,14 +107,14 @@ struct FeedbackScaleSheet: View {
     /// Hält den Indikator-Kreis innerhalb der Leiste.
     private func clampedOffset(for value: Double, in width: CGFloat) -> CGFloat {
         let knob = barHeight - 12
-        let usable = width - knob
-        return knob / 2 + CGFloat(value) * usable - knob / 2
+        let usable = max(0, width - knob)
+        let safeValue = min(1, max(0, value))
+        return CGFloat(safeValue) * usable
     }
 }
 
 #Preview("FeedbackScaleSheet") {
-    Color.black
-        .sheet(isPresented: .constant(true)) {
-            FeedbackScaleSheet { print("Wert: \($0)") }
-        }
+    FeedbackScaleSheet { print("Wert: \($0)") }
+        .frame(width: 390, height: 280)
+        .environmentObject(ThemeManager())
 }

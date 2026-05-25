@@ -153,7 +153,7 @@ class SettingsViewModel: ObservableObject {
         print("🔍 === END DEBUG ===")
     }
     
-    // In SettingsViewModel — neue Funktionen
+
     
     func addVideoWithScope(
            _ video: Video,
@@ -359,7 +359,7 @@ class SettingsViewModel: ObservableObject {
         }
         return dates
     }
-    // In SettingsViewModel ergänzen — nach saveGoal()
+
 
     func updateRecurrenceRule(_ rule: RecurrenceRule, forDayIndex dayIndex: Int, user: User) {
         guard let goal = preferences.getGoalFor(dayOfWeek: dayIndex) else { return }
@@ -765,4 +765,15 @@ class SettingsViewModel: ObservableObject {
             self.error = error
         }
     }
+    // Trainingsmodus wechseln (Standard / Mobility / Experte)
+    func setWorkoutModus(_ modus: WorkoutModus) {
+        preferences.workoutModus = modus
+        do {
+            try modelContext.save()
+            NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
+        } catch {
+            self.error = error
+        }
+    }
+    
 }
