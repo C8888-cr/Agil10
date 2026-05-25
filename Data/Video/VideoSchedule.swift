@@ -14,10 +14,15 @@ final class VideoSchedule {
     var orderIndex: Int
     var startTime: Date?
     
-    // Training Details (Expert Mode)
-    var sets: Int?
-    var reps: Int?
-    var expertPauseSeconds: Int?
+        // Training Details (Expert Mode)
+        var sets: Int?
+        var reps: Int?
+        var expertPauseSeconds: Int?
+
+        // Training Details (Mobility Mode) 
+        var mobilitySets: Int?
+        var mobilityReps: Int?
+        var mobilityPauseSeconds: Int?
     
     //mobility Mode
     var mobilityFeedback: Double?
