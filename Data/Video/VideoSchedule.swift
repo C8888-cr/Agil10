@@ -19,6 +19,9 @@ final class VideoSchedule {
     var reps: Int?
     var expertPauseSeconds: Int?
     
+    //mobility Mode
+    var mobilityFeedback: Double?
+    
     // Standard-Modus Settings
     var customRepetitions: Int?
     var customPauseSeconds: Int?

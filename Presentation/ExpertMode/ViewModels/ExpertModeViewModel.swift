@@ -236,6 +236,19 @@ final class ExpertModeViewModel: ObservableObject {
         }
         showRatingSheet = false
     }
+    
+    //  Mobility-Feedback speichern
+    func saveFeedbackScale(_ value: Double) {
+        if let scheduleId,
+           let progressVM = progressViewModel,
+           let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+           let user = session?.currentUser {
+            schedule.mobilityFeedback = min(1.0, max(0.0, value))
+            progressVM.updateSchedule(schedule, for: user)
+            print("📊 Mobility-Feedback gespeichert: \(value)")
+        }
+        showFeedbackScaleSheet = false
+    }
 
     private func triggerPlusPopup() {
         popupDismissTask?.cancel()
