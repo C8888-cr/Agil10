@@ -126,7 +126,10 @@ final class ProgressViewModel: ObservableObject {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
-        expertPauseSeconds: Int? = nil,        // 🆕
+        expertPauseSeconds: Int? = nil,
+        mobilitySets: Int? = nil,
+        mobilityReps: Int? = nil,
+        mobilityPauseSeconds: Int? = nil,
         weightKg: Int? = nil,
         notes: String? = nil
     ) {
@@ -149,7 +152,10 @@ final class ProgressViewModel: ObservableObject {
                     customLoopDuration: customLoopDuration,
                     sets: sets,
                     reps: reps,
-                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    expertPauseSeconds: expertPauseSeconds,
+                    mobilitySets: mobilitySets,
+                    mobilityReps: mobilityReps,
+                    mobilityPauseSeconds: mobilityPauseSeconds,
                     weightKg: weightKg
                 )
             } else {
@@ -166,7 +172,10 @@ final class ProgressViewModel: ObservableObject {
                     customLoopDuration: customLoopDuration,
                     sets: sets,
                     reps: reps,
-                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    expertPauseSeconds: expertPauseSeconds,
+                    mobilitySets: mobilitySets,
+                    mobilityReps: mobilityReps,
+                    mobilityPauseSeconds: mobilityPauseSeconds,
                     weightKg: weightKg,
                     notes: notes
                 )
