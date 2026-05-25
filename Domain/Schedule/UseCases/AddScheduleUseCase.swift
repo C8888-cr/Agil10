@@ -24,7 +24,10 @@ final class AddScheduleUseCase {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
-        expertPauseSeconds: Int? = nil,        
+        expertPauseSeconds: Int? = nil,
+        mobilitySets: Int? = nil,
+                mobilityReps: Int? = nil,
+                mobilityPauseSeconds: Int? = nil,
         weightKg: Int? = nil,
         notes: String? = nil
     ) throws {
@@ -49,7 +52,10 @@ final class AddScheduleUseCase {
             user: userInContext,
             sets: sets,
             reps: reps,
-            expertPauseSeconds: expertPauseSeconds
+            expertPauseSeconds: expertPauseSeconds,
+            mobilitySets: mobilitySets,
+                       mobilityReps: mobilityReps,
+                       mobilityPauseSeconds: mobilityPauseSeconds
         )
         schedule.notes = notes
         schedule.weightKg = weightKg
