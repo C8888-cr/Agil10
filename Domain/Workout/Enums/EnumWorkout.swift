@@ -8,7 +8,7 @@
 import Foundation
 
 enum WorkoutModus: String, Codable, CaseIterable, Identifiable {
-    case pain = "schmerz"
+    case mobility = "mobility"
     case reha = "reha"
     case strength = "kraftaufbau"
     case expert = "experte"
@@ -17,7 +17,7 @@ enum WorkoutModus: String, Codable, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .pain:     return "Schmerzreduktion"
+        case .mobility: return "Mobility"
         case .reha:     return "Reha"
         case .strength: return "Kraftaufbau"
         case .expert:   return "Experte"
@@ -29,10 +29,10 @@ enum WorkoutModus: String, Codable, CaseIterable, Identifiable {
     /// TempoProtocol tatsächlich noch seinem Preset entspricht.
     var tempoPreset: (concentric: Int, hold: Int, eccentric: Int) {
         switch self {
-        case .pain:     return (3, 1, 3)    // langsam, bewusst
+        case .mobility:     return (3, 0, 3)    // langsam, bewusst
         case .reha:     return (2, 1, 2)    // moderat
-        case .strength: return (2, 0, 2)    // standard
-        case .expert:   return (2, 0, 3)    // Hypertrophie: exzentrisch betont
+        case .strength: return (1, 0, 1)    // standard
+        case .expert:   return (1, 0, 2)    // Hypertrophie: exzentrisch betont
         }
     }
     
