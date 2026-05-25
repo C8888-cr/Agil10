@@ -26,6 +26,8 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var error: Error?
     @Published private(set) var watchProgress: Double = 0.0 //für ProgressRing
     @Published var showRatingSheet = false
+ 
+    @Published var showFeedbackScaleSheet = false
     
     // MARK: - Private Properties
     private var lastUpdateTime = Date()
@@ -37,7 +39,8 @@ final class VideoPlayerViewModel: ObservableObject {
     private let fileService: VideoFileService
     private let progressViewModel: ProgressViewModel?
     private let scheduleId: UUID?
-    
+
+    private let completionStyle: SessionCompletionStyle
     private var cancellables = Set<AnyCancellable>()
     private var controlsTimer: Timer?
     private var pauseTimer: Timer?
@@ -88,10 +91,12 @@ final class VideoPlayerViewModel: ObservableObject {
          scheduleId: UUID? = nil,
          progressViewModel: ProgressViewModel? = nil,
          session: SessionManager,
+         completionStyle: SessionCompletionStyle = .starRating,
          onComplete: (() -> Void)? = nil
     ) {
         self.session = session
         self.scheduleId = scheduleId
+        self.completionStyle = completionStyle
         self.progressViewModel = progressViewModel
         self.video = video
         self.playerService = AVPlayerService()
@@ -401,10 +406,16 @@ final class VideoPlayerViewModel: ObservableObject {
           }
           // ← PlayAll-Modus: kein RatingSheet, direkt weiter
           if onVideoCompleted != nil {
-                 onVideoCompleted?()     // ← DANN goToNext (nach dismiss!)
-             } else {
-                 showRatingSheet = true
-             }
+                      onVideoCompleted?()     // ← DANN goToNext (nach dismiss!)
+                      return
+                  }
+                  // Einzel-Modus: Abschluss-Sheet je nach Modus
+                  switch completionStyle {
+                  case .starRating:
+                      showRatingSheet = true
+                  case .feedbackScale:
+                      showFeedbackScaleSheet = true
+                  }
       }
     
     private func startPauseTimer() {
@@ -645,6 +656,23 @@ final class VideoPlayerViewModel: ObservableObject {
            showRatingSheet = false
            dismissAction?()
        }
+    
+    // NEU:
+        //  Mobility-Feedback speichern
+        func saveFeedbackScale(_ value: Double) {
+            if let scheduleId = scheduleId,
+               let progressVM = progressViewModel,
+               let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }),
+               let user = session.currentUser {
+                schedule.mobilityFeedback = min(1.0, max(0.0, value))
+                progressVM.updateSchedule(schedule, for: user)
+                print("📊 Mobility-Feedback gespeichert: \(value)")
+            }
+            showFeedbackScaleSheet = false
+            dismissAction?()
+        }
+    
+    
     
     // MARK: - Helpers
     

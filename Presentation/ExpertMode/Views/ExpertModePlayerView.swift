@@ -80,17 +80,24 @@ struct ExpertModePlayerView: View {
             Text("Mit welchem Gewicht trainierst du heute?")
         }
         //  Rating-Sheet wie im VideoPlayerView
-        .sheet(isPresented: $viewModel.showRatingSheet, onDismiss: { dismiss() }) {
-            VideoRatingSheet(
-                videoTitle: video.title,
-                onRate: { rating in
-                    viewModel.saveRating(rating)
-                }
-            )
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-        }
-        .environment(\.colorScheme, .dark)
+        //  Rating-Sheet (Expert-Modus)
+              .sheet(isPresented: $viewModel.showRatingSheet, onDismiss: { dismiss() }) {
+                  VideoRatingSheet(
+                      videoTitle: video.title,
+                      onRate: { rating in
+                          viewModel.saveRating(rating)
+                      }
+                  )
+                  .presentationDetents([.medium, .large])
+                  .presentationDragIndicator(.visible)
+              }
+              //  Feedback-Skala (Mobility-Modus)
+              .sheet(isPresented: $viewModel.showFeedbackScaleSheet, onDismiss: { dismiss() }) {
+                  FeedbackScaleSheet { value in
+                      viewModel.saveFeedbackScale(value)
+                  }
+              }
+              .environment(\.colorScheme, .dark)
     }
 
     // MARK: - Intro-Video Overlay
