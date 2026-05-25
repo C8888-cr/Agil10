@@ -231,7 +231,7 @@ struct HomeView: View {
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: settingsVM.preferences.activeMode,
-                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,
+                    workoutModus: settingsVM.preferences.workoutModus,
                     initialRepetitions: playbackSettings.repetitions,
                     initialLoopDuration: playbackSettings.loopDurationSeconds,
                     initialPause: playbackSettings.pauseSeconds,

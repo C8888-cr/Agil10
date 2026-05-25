@@ -167,7 +167,7 @@ struct WeekPlannerSheet: View {
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: "single",
-                    expertModeEnabled: expertModeEnabled,
+                    workoutModus: settingsVM.preferences.workoutModus,
                     onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                         let planned = PlannedVideo(
                             video: video,

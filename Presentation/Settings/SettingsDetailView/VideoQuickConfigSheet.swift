@@ -10,7 +10,7 @@ import SwiftData
 struct VideoQuickConfigSheet: View {
     let video: Video
     let activeMode: String
-    let expertModeEnabled: Bool
+      let workoutModus: WorkoutModus
     @EnvironmentObject var themeManager: ThemeManager
     
     
@@ -36,7 +36,7 @@ struct VideoQuickConfigSheet: View {
     init(
         video: Video,
         activeMode: String = "single",
-        expertModeEnabled: Bool = false,
+        workoutModus: WorkoutModus = .standard,
         initialRepetitions: Int? = nil,
         initialLoopDuration: Int? = nil,
         initialPause: Int? = nil,
@@ -49,7 +49,7 @@ struct VideoQuickConfigSheet: View {
     ) {
         self.video = video
         self.activeMode = activeMode
-        self.expertModeEnabled = expertModeEnabled
+        self.workoutModus = workoutModus
         self.onAdd = onAdd
         self.onCancel = onCancel
         
@@ -74,14 +74,16 @@ struct VideoQuickConfigSheet: View {
     // MARK: - Mode Detection
 
     /// Expertenmodus = global an + Übung passt + Tempo dynamic
-    private var isExpertDynamicMode: Bool {
-        expertModeEnabled
-        && video.category == .strength
-        && video.tempoProtocol?.subtype == .dynamic
-    }
-
+    /// Sätze/Wdh-Modus = Expert oder Mobility + Übung pill-fähig.
+       private var usesSetsRepsMode: Bool {
+           (workoutModus == .expert || workoutModus == .mobility)
+           && video.category == .strength
+           && video.tempoProtocol?.subtype == .dynamic
+       }
+    
+    
     private var showsWeightSection: Bool {
-        isExpertDynamicMode    
+        usesSetsRepsMode
     }
 
     private var parsedWeight: Int? {
@@ -93,7 +95,7 @@ struct VideoQuickConfigSheet: View {
     // MARK: - Total Duration
 
     private var totalSeconds: Int {
-        if isExpertDynamicMode, let tempo = video.tempoProtocol {
+        if usesSetsRepsMode, let tempo = video.tempoProtocol {
             // Expert-Berechnung
             let cycle = tempo.cycleDurationSec
             let workPerSet = repsPerSet * cycle
@@ -112,11 +114,11 @@ struct VideoQuickConfigSheet: View {
         
         let _ = print("""
               🔍 Sheet Debug:
-                 expertModeEnabled = \(expertModeEnabled)
+                 usesSetsRepsMode = \(usesSetsRepsMode)
                  video.category = \(video.category)
                  tempoProtocol nil? = \(video.tempoProtocol == nil)
                  subtype = \(String(describing: video.tempoProtocol?.subtype))
-                 isExpertDynamicMode = \(isExpertDynamicMode)
+                 usesSetsRepsMode = \(usesSetsRepsMode)
               """)
         
         NavigationStack {
@@ -127,7 +129,7 @@ struct VideoQuickConfigSheet: View {
                     weightSection
                 }
 
-                if isExpertDynamicMode {
+                if usesSetsRepsMode {
                     expertSetsRepsSection
                     expertPauseSection
                 } else {
@@ -151,9 +153,9 @@ struct VideoQuickConfigSheet: View {
                         // Im Expert-Modus: nur sets/reps/expertPause füllen
                         // Im Standard: nur repetitions/loop/pause
                         // Die jeweils anderen Werte bleiben unangetastet (= nil im Callback)
-                        let setsValue = isExpertDynamicMode ? sets : nil
-                        let repsValue = isExpertDynamicMode ? repsPerSet : nil
-                        let expertPauseValue = isExpertDynamicMode ? expertPauseSeconds : nil
+                        let setsValue = usesSetsRepsMode ? sets : nil
+                        let repsValue = usesSetsRepsMode ? repsPerSet : nil
+                        let expertPauseValue = usesSetsRepsMode ? expertPauseSeconds : nil
                         
                         onAdd(
                             repetitions,
@@ -423,7 +425,7 @@ private extension Int {
         Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }
-
+/*
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
@@ -447,9 +449,9 @@ private extension Int {
         subtype: .dynamic
     )
 
-    return VideoQuickConfigSheet(
+    VideoQuickConfigSheet(
         video: video,
-        expertModeEnabled: true,
+        workoutModus: .expert,
         onAdd: { reps, loop, pause, mode, weight, sets, repsPerSet, expertPause in
             print("reps:\(reps) loop:\(loop) pause:\(pause) mode:\(mode) weight:\(String(describing: weight)) sets:\(String(describing: sets)) repsPerSet:\(String(describing: repsPerSet)) expertPause:\(String(describing: expertPause))")
         },
@@ -458,3 +460,4 @@ private extension Int {
     .modelContainer(container)
     .environmentObject(ThemeManager())
 }
+*/
