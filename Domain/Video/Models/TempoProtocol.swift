@@ -1,10 +1,3 @@
-//
-//  TempoProtocol.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 19.04.26.
-//
-
 
 //
 //  TempoProtocol.swift
@@ -66,9 +59,9 @@ final class TempoProtocol {
     // MARK: - Init
     
     init(
-        concentricSec: Int = 2,
+        concentricSec: Int = 1,
         holdSec: Int = 0,
-        eccentricSec: Int = 3,
+        eccentricSec: Int = 2,
         sets: Int = 3,
         reps: Int = 12,
         restBetweenSetsSec: Int = 60,

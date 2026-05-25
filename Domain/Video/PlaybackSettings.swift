@@ -15,11 +15,11 @@ struct PlaybackSettings {
     init(
         mode: PlaybackMode = .normal,
         speed: PlaybackSpeed = .normal,
-        repetitions: Int = 1,
-        pauseSeconds: Int = 30,
+        repetitions: Int = PlaybackDefaults.repetitions,
+        pauseSeconds: Int = PlaybackDefaults.pauseSeconds,
         volume: Float = 1.0,
         isMuted: Bool = false,
-        loopDurationSeconds: Int = 0
+        loopDurationSeconds: Int = PlaybackDefaults.loopDurationSeconds
     ) {
         self.mode = mode
         self.speed = speed

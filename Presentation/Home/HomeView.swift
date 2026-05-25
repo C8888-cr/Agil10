@@ -124,11 +124,11 @@ struct HomeView: View {
                     onAddVideo: {
                         activeSheet = .videoPicker
                     },
-                    onRate: { schedule, rating in  // ← NEU
+                    onRate: { schedule, rating in
                            schedule.rating = rating
                            progressVM.updateSchedule(schedule, for: session.currentUser!)
                        },
-                    onPlayAll: {                    // ← NEU
+                    onPlayAll: {
                         showPlayAllSession = true
                     }
                 )
@@ -204,14 +204,14 @@ struct HomeView: View {
                 VideoQuickConfigSheet(
                     video: video,
                     activeMode: settingsVM.preferences.activeMode,
-                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,        // 🆕
+                    expertModeEnabled: settingsVM.preferences.expertModeEnabled,
                     initialRepetitions: playbackSettings.repetitions,
                     initialLoopDuration: playbackSettings.loopDurationSeconds,
                     initialPause: playbackSettings.pauseSeconds,
                     initialWeightKg: pendingEditWeightKg,
                     initialSets: editingSchedule?.sets,
                     initialRepsPerSet: editingSchedule?.reps,
-                    initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,    // 🆕
+                    initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,
                     onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
                         print("🏋️ HomeView onAdd erhält weight=\(String(describing: weight))")
                         
@@ -220,7 +220,7 @@ struct HomeView: View {
                             // Bestehenden Schedule editieren — nur die Werte des aktiven Modus überschreiben
                             if settingsVM.preferences.expertModeEnabled,
                                schedule.video?.tempoProtocol?.subtype == .dynamic {
-                                // 🆕 Expert: nur Expert-Felder überschreiben, Standard-Felder unangetastet
+                                // Expert: nur Expert-Felder überschreiben, Standard-Felder unangetastet
                                 schedule.sets = sets
                                 schedule.reps = repsPerSet
                                 schedule.expertPauseSeconds = expertPause
@@ -246,7 +246,7 @@ struct HomeView: View {
                                 customLoopDuration: loopDuration,
                                 sets: sets,
                                 reps: repsPerSet,
-                                expertPauseSeconds: expertPause,                       // 🆕
+                                expertPauseSeconds: expertPause,
                                 weightKg: weight
                             )
                             progressVM.loadToday(for: session.currentUser!, date: pendingDate)

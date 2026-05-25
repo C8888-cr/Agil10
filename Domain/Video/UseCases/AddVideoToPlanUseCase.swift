@@ -19,7 +19,7 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int? = nil,
         sets: Int? = nil,
         reps: Int? = nil,
-        expertPauseSeconds: Int? = nil,        // 🆕
+        expertPauseSeconds: Int? = nil,
         weightKg: Int? = nil
     ) throws {
         guard let userInContext = try repository.fetchUser(by: user.id) else { return }
@@ -38,7 +38,7 @@ final class AddVideoToPlanUseCase {
                 customLoopDuration: customLoopDuration,
                 sets: sets,
                 reps: reps,
-                expertPauseSeconds: expertPauseSeconds,   // 🆕
+                expertPauseSeconds: expertPauseSeconds,
                 weightKg: weightKg
             )
 
@@ -54,7 +54,7 @@ final class AddVideoToPlanUseCase {
                 customLoopDuration: customLoopDuration,
                 sets: sets,
                 reps: reps,
-                expertPauseSeconds: expertPauseSeconds,   // 🆕
+                expertPauseSeconds: expertPauseSeconds,
                 weightKg: weightKg
             )
 
@@ -75,7 +75,7 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int?,
         sets: Int?,
         reps: Int?,
-        expertPauseSeconds: Int?,                        // 🆕
+        expertPauseSeconds: Int?,
         weightKg: Int?
     ) throws {
         let existing = try repository.fetchTemplates(for: user.id, isWeekly: false)
@@ -89,7 +89,7 @@ final class AddVideoToPlanUseCase {
             user: user,
             sets: sets,
             reps: reps,
-            expertPauseSeconds: expertPauseSeconds       // 🆕
+            expertPauseSeconds: expertPauseSeconds
         )
         template.isTemplate = true
         template.isWeeklyTemplate = false
@@ -126,7 +126,7 @@ final class AddVideoToPlanUseCase {
                     user: user,
                     sets: sets,
                     reps: reps,
-                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    expertPauseSeconds: expertPauseSeconds,
                     recurrenceRule: .daily,
                     recurrenceGroupID: groupId
                 )
@@ -154,7 +154,7 @@ final class AddVideoToPlanUseCase {
         customLoopDuration: Int?,
         sets: Int?,
         reps: Int?,
-        expertPauseSeconds: Int?,                        // 🆕
+        expertPauseSeconds: Int?,
         weightKg: Int?
     ) throws {
         let existing = try repository.fetchTemplates(for: user.id, isWeekly: true)
@@ -168,7 +168,7 @@ final class AddVideoToPlanUseCase {
             user: user,
             sets: sets,
             reps: reps,
-            expertPauseSeconds: expertPauseSeconds       // 🆕
+            expertPauseSeconds: expertPauseSeconds
         )
         template.isTemplate = true
         template.isWeeklyTemplate = true
@@ -200,7 +200,7 @@ final class AddVideoToPlanUseCase {
                     user: user,
                     sets: sets,
                     reps: reps,
-                    expertPauseSeconds: expertPauseSeconds,    // 🆕
+                    expertPauseSeconds: expertPauseSeconds,    
                     recurrenceRule: .weekly,
                     recurrenceGroupID: groupId
                 )
