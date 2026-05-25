@@ -106,20 +106,46 @@ struct CalendarDayView: View {
         )
         pendingEditWeightKg = schedule.weightKg
     }
-    
-    private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
-        let expertEnabled = settingsVM.preferences.expertModeEnabled
-        
-        if expertEnabled, let tempo = video.tempoProtocol {
-            expertSession = ExpertSessionItem(
-                schedule: schedule,
-                video: video,
-                tempoProtocol: tempo
-            )
-        } else {
-            videoPlayerItem = VideoPlayerItem(video: video, scheduleId: schedule.id)
+
+        private func handlePlay(_ schedule: VideoSchedule, _ video: Video) {
+            let modus = settingsVM.preferences.workoutModus
+            let style: SessionCompletionStyle =
+                (modus == .mobility) ? .feedbackScale : .starRating
+
+            // Pill-fähig = Kraft + dynamisches TempoProtocol.
+            let pillCapable = schedule.isExpertDynamicCapable
+
+            // Pill-Player nur in Expert/Mobility UND wenn das Video pill-fähig ist.
+            let usesPill = pillCapable && (modus == .expert || modus == .mobility)
+
+            if usesPill {
+                let tempo: TempoProtocol
+                if modus == .mobility {
+                    // Mobility: frisches 3-0-3 / 3 Sätze / 20 Wdh.
+                    tempo = TempoProtocol(
+                        concentricSec: 3, holdSec: 0, eccentricSec: 3,
+                        sets: 3, reps: 20,
+                        restBetweenSetsSec: 60,
+                        subtype: .dynamic
+                    )
+                } else {
+                    // Expert: gespeichertes TempoProtocol des Videos.
+                    tempo = video.tempoProtocol ?? TempoProtocol()
+                }
+                expertSession = ExpertSessionItem(
+                    schedule: schedule,
+                    video: video,
+                    tempoProtocol: tempo,
+                    completionStyle: style
+                )
+            } else {
+                videoPlayerItem = VideoPlayerItem(
+                    video: video,
+                    scheduleId: schedule.id,
+                    completionStyle: style
+                )
+            }
         }
-    }
     
     var body: some View {
         ScrollView {
@@ -299,13 +325,14 @@ struct CalendarDayView: View {
         
         
         .sheet(item: $videoPlayerItem) { item in
-            VideoPlayerView(
-                video: item.video,
-                scheduleId: item.scheduleId,
-                progressViewModel: progressVM,
-                session: session
-            )
-        }
+                   VideoPlayerView(
+                       video: item.video,
+                       scheduleId: item.scheduleId,
+                       progressViewModel: progressVM,
+                       session: session,
+                       completionStyle: item.completionStyle
+                   )
+               }
         
         .sheet(item: $expertSession) { item in
             ExpertModePlayerView(
@@ -317,6 +344,7 @@ struct CalendarDayView: View {
                 restOverride: item.schedule.customPauseSeconds,
                 lastTrainingTotalKg: nil,
                 videoDuringTraining: settingsVM.preferences.videoDuringTraining,
+                completionStyle: item.completionStyle,
                 scheduleId: item.schedule.id,
                 progressViewModel: progressVM,
                 session: session

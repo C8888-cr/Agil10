@@ -214,6 +214,9 @@ final class ExpertModeViewModel: ObservableObject {
                    onWorkoutCompleted?()
                    return
                }
+        
+        print("🏁 ExpertModeViewModel completionStyle: \(completionStyle)")   // ← NEU
+
 
                // Einzel-Modus: Abschluss-Sheet je nach Modus
                switch completionStyle {

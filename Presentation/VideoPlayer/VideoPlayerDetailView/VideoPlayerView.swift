@@ -23,23 +23,25 @@ struct VideoPlayerView: View {
     let onComplete: (() -> Void)?
     
     init(video: Video,
-         scheduleId: UUID? = nil,
-         progressViewModel: ProgressViewModel? = nil,
-         session: SessionManager,
-         onComplete: (() -> Void)? = nil
-    ) {
-        self.video = video
-        self.scheduleId = scheduleId
-        self.onComplete = onComplete
-        self.progressViewModel = progressViewModel
-        _viewModel = StateObject(wrappedValue: VideoPlayerViewModel(
-            video: video,
-            scheduleId: scheduleId,
-            progressViewModel: progressViewModel,
-            session: session,
-            onComplete: onComplete
-        ))
-    }
+             scheduleId: UUID? = nil,
+             progressViewModel: ProgressViewModel? = nil,
+             session: SessionManager,
+             completionStyle: SessionCompletionStyle = .starRating,
+             onComplete: (() -> Void)? = nil
+        ) {
+            self.video = video
+            self.scheduleId = scheduleId
+            self.onComplete = onComplete
+            self.progressViewModel = progressViewModel
+            _viewModel = StateObject(wrappedValue: VideoPlayerViewModel(
+                video: video,
+                scheduleId: scheduleId,
+                progressViewModel: progressViewModel,
+                session: session,
+                completionStyle: completionStyle,
+                onComplete: onComplete
+            ))
+        }
     
     var body: some View {
         ZStack {
@@ -68,16 +70,21 @@ struct VideoPlayerView: View {
             Text(viewModel.error?.localizedDescription ?? "Unbekannter Fehler")
         }
         .sheet(isPresented: $viewModel.showRatingSheet) {
-                   VideoRatingSheet(
-                       videoTitle: video.title,
-                       onRate: { rating in
-                           viewModel.saveRating(rating)
-                       }
-                   )
-                   .presentationDetents([.medium, .large])
-                   .presentationDragIndicator(.visible)
+                          VideoRatingSheet(
+                              videoTitle: video.title,
+                              onRate: { rating in
+                                  viewModel.saveRating(rating)
+                              }
+                          )
+                          .presentationDetents([.medium, .large])
+                          .presentationDragIndicator(.visible)
+                      }
+               .sheet(isPresented: $viewModel.showFeedbackScaleSheet) {
+                   FeedbackScaleSheet { value in
+                       viewModel.saveFeedbackScale(value)
+                   }
                }
-    }
+           }
     
     // MARK: - Player Content
     

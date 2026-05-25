@@ -100,25 +100,52 @@ struct HomeView: View {
                         )
                         pendingEditWeightKg = schedule.weightKg
                     },
-                    
-                    
-                    
+
+                    // NEU:
                     onPlay: { schedule, video in
-                        let expertEnabled = settingsVM.preferences.expertModeEnabled
-                        if expertEnabled, let tempo = video.tempoProtocol {
-                            expertSession = ExpertSessionItem(
-                                schedule: schedule,
-                                video: video,
-                                tempoProtocol: tempo
-                            )
-                        } else {
-                            videoPlayerItem = VideoPlayerItem(
-                                video: video,
-                                scheduleId: schedule.id
-                            )
-                        }
-                    },
-                    
+                                            let modus = settingsVM.preferences.workoutModus
+                                            let style: SessionCompletionStyle =
+                                                (modus == .mobility) ? .feedbackScale : .starRating
+
+                                            print("🎯 onPlay — modus: \(modus), style: \(style), pillCapable: \(schedule.isExpertDynamicCapable)")
+
+                                      
+
+                                            // Pill-fähig = Kraft + dynamisches TempoProtocol.
+                                            let pillCapable = schedule.isExpertDynamicCapable
+
+                                            // Pill-Player nur in Expert/Mobility UND wenn das Video pill-fähig ist.
+                                            let usesPill = pillCapable && (modus == .expert || modus == .mobility)
+
+                                            if usesPill {
+                                                // Mobility: frisches 3-0-3 / 3 Sätze / 20 Wdh.
+                                                // Expert: das gespeicherte TempoProtocol des Videos.
+                                                let tempo: TempoProtocol
+                                                if modus == .mobility {
+                                                    tempo = TempoProtocol(
+                                                        concentricSec: 3, holdSec: 0, eccentricSec: 3,
+                                                        sets: 3, reps: 20,
+                                                        restBetweenSetsSec: 60,
+                                                        subtype: .dynamic
+                                                    )
+                                                } else {
+                                                    tempo = video.tempoProtocol ?? TempoProtocol()
+                                                }
+                                                expertSession = ExpertSessionItem(
+                                                    schedule: schedule,
+                                                    video: video,
+                                                    tempoProtocol: tempo,
+                                                    completionStyle: style
+                                                )
+                                            } else {
+                                                // Standard immer hier; Expert/Mobility bei nicht-pill-fähigen Videos.
+                                                videoPlayerItem = VideoPlayerItem(
+                                                    video: video,
+                                                    scheduleId: schedule.id,
+                                                    completionStyle: style
+                                                )
+                                            }
+                                        },
                     
                     
                     onAddVideo: {
@@ -266,33 +293,33 @@ struct HomeView: View {
         
   
     // ⭐️ VIDEO PLAYER SHEET
-        // ✅ Neu
-        .fullScreenCover(item: $videoPlayerItem) { item in
-            VideoPlayerView(
-                video: item.video,
-                scheduleId: item.scheduleId,
-                progressViewModel: progressVM,
-                session: session
-            )
-        }
+            .fullScreenCover(item: $videoPlayerItem) { item in
+                       VideoPlayerView(
+                           video: item.video,
+                           scheduleId: item.scheduleId,
+                           progressViewModel: progressVM,
+                           session: session,
+                           completionStyle: item.completionStyle
+                       )
+                   }
         
         
         .fullScreenCover(item: $expertSession) { item in
-            ExpertModePlayerView(
-                video: item.video,
-                tempoProtocol: item.tempoProtocol,
-                weightKg: item.schedule.weightKg,
-                setsOverride: item.schedule.sets,
-                repsOverride: item.schedule.reps,
-                restOverride: item.schedule.customPauseSeconds,
-                lastTrainingTotalKg: nil,
-                videoDuringTraining: .toggleable,
-                scheduleId: item.schedule.id,
-                progressViewModel: progressVM,
-                session: session
-              
-            )
-        }
+                   ExpertModePlayerView(
+                       video: item.video,
+                       tempoProtocol: item.tempoProtocol,
+                       weightKg: item.schedule.weightKg,
+                       setsOverride: item.schedule.sets,
+                       repsOverride: item.schedule.reps,
+                       restOverride: item.schedule.customPauseSeconds,
+                       lastTrainingTotalKg: nil,
+                       videoDuringTraining: .toggleable,
+                       completionStyle: item.completionStyle,
+                       scheduleId: item.schedule.id,
+                       progressViewModel: progressVM,
+                       session: session
+                   )
+               }
         
         
         

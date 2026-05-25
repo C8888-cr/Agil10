@@ -6,4 +6,5 @@ struct ExpertSessionItem: Identifiable {
     let schedule: VideoSchedule
     let video: Video
     let tempoProtocol: TempoProtocol
+    let completionStyle: SessionCompletionStyle
 }
