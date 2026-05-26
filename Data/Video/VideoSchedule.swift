@@ -19,10 +19,11 @@ final class VideoSchedule {
         var reps: Int?
         var expertPauseSeconds: Int?
 
-        // Training Details (Mobility Mode) 
+    // Training Details (Mobility Mode)
         var mobilitySets: Int?
         var mobilityReps: Int?
         var mobilityPauseSeconds: Int?
+        var mobilityWeightKg: Int?
     
     //mobility Mode
     var mobilityFeedback: Double?
@@ -103,9 +104,42 @@ final class VideoSchedule {
     }
     
     /// Dauer einer einzelnen Wiederholung in Sekunden (aus tempoProtocol)
-    var effectiveCycleDurationSec: Int {
-        video?.tempoProtocol?.cycleDurationSec ?? 0
-    }
+        var effectiveCycleDurationSec: Int {
+            video?.tempoProtocol?.cycleDurationSec ?? 0
+        }
+        
+        // MARK: - Modus-aware Pill-Werte
+        
+        /// Sätze passend zum Modus.
+        /// Mobility liest mobilitySets, sonst sets — jeweils mit den
+        /// vorhandenen Fallbacks.
+        func activeSets(modus: WorkoutModus) -> Int {
+            modus == .mobility
+                ? (mobilitySets ?? video?.tempoProtocol?.sets ?? 3)
+                : effectiveSets
+        }
+        
+        /// Wiederholungen pro Satz passend zum Modus.
+        func activeReps(modus: WorkoutModus) -> Int {
+            modus == .mobility
+                ? (mobilityReps ?? video?.tempoProtocol?.reps ?? 20)
+                : effectiveRepsPerSet
+        }
+        
+        /// Satzpause passend zum Modus.
+        func activePauseSeconds(modus: WorkoutModus) -> Int {
+            modus == .mobility
+                ? (mobilityPauseSeconds ?? video?.tempoProtocol?.restBetweenSetsSec ?? 60)
+                : effectiveExpertPauseSeconds
+        }
+        
+        /// Gewicht passend zum Modus. Optional — nil heißt
+        /// "kein Gewicht gesetzt" (Player fragt dann nach).
+        func activeWeightKg(modus: WorkoutModus) -> Int? {
+            modus == .mobility ? mobilityWeightKg : weightKg
+        }
+        
+
     
     // MARK: - Total Duration (modus-abhängig)
     
@@ -196,6 +230,7 @@ final class VideoSchedule {
         mobilitySets: Int? = nil,
                mobilityReps: Int? = nil,
                mobilityPauseSeconds: Int? = nil,
+        mobilityWeightKg: Int? = nil,
         recurrenceRule: RecurrenceRule = .single,
         recurrenceGroupID: UUID? = nil
     ) {
@@ -216,6 +251,7 @@ final class VideoSchedule {
         self.mobilitySets = mobilitySets
                 self.mobilityReps = mobilityReps
                 self.mobilityPauseSeconds = mobilityPauseSeconds
+        self.mobilityWeightKg = mobilityWeightKg
         self.recurrenceRuleRaw = recurrenceRule.rawValue
         self.recurrenceGroupID = recurrenceGroupID
     }
