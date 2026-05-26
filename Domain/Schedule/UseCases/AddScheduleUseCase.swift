@@ -28,6 +28,7 @@ final class AddScheduleUseCase {
         mobilitySets: Int? = nil,
                 mobilityReps: Int? = nil,
                 mobilityPauseSeconds: Int? = nil,
+        mobilityWeightKg: Int? = nil,
         weightKg: Int? = nil,
         notes: String? = nil
     ) throws {
@@ -55,7 +56,9 @@ final class AddScheduleUseCase {
             expertPauseSeconds: expertPauseSeconds,
             mobilitySets: mobilitySets,
                        mobilityReps: mobilityReps,
-                       mobilityPauseSeconds: mobilityPauseSeconds
+                       mobilityPauseSeconds: mobilityPauseSeconds,
+            mobilityWeightKg: mobilityWeightKg
+            
         )
         schedule.notes = notes
         schedule.weightKg = weightKg
