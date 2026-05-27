@@ -267,53 +267,80 @@ struct CalendarDayView: View {
         }
         .fullScreenCover(item: $selectedVideoForConfig) { video in
             VideoQuickConfigSheet(
-                video: video,
-                activeMode: settingsVM.preferences.activeMode,
-                workoutModus: settingsVM.preferences.workoutModus,
-                initialRepetitions: playbackSettings.repetitions,
-                initialLoopDuration: playbackSettings.loopDurationSeconds,
-                initialPause: playbackSettings.pauseSeconds,
-                initialWeightKg: pendingEditWeightKg,
-                initialSets: editingSchedule?.sets,
-                initialRepsPerSet: editingSchedule?.reps,
-                initialExpertPauseSeconds: editingSchedule?.expertPauseSeconds,
-                onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
-                    if let scheduleId = editingScheduleId,
-                       let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
-                        if settingsVM.preferences.expertModeEnabled,
-                           schedule.video?.tempoProtocol?.subtype == .dynamic {
-                            schedule.sets = sets
-                            schedule.reps = repsPerSet
-                            schedule.expertPauseSeconds = expertPause
-                        } else {
-                            schedule.customRepetitions = reps
-                            schedule.customPauseSeconds = pause
-                            schedule.customLoopDurationSeconds = loopDuration
-                        }
-                        schedule.weightKg = weight
-                        progressVM.updateSchedule(schedule, for: session.currentUser!)
-                    } else {
-                        progressVM.addVideo(
-                            video,
-                            to: pendingDate,
-                            for: session.currentUser!,
-                            planMode: mode,
+                            video: video,
                             activeMode: settingsVM.preferences.activeMode,
-                            customRepetitions: reps,
-                            customPauseSeconds: pause,
-                            customLoopDuration: loopDuration,
-                            sets: sets,
-                            reps: repsPerSet,
-                            expertPauseSeconds: expertPause,
-                            weightKg: weight
-                        )
-                        progressVM.loadToday(for: session.currentUser!, date: pendingDate)
-                    }
-                    
-                    selectedVideoForConfig = nil
-                    editingScheduleId = nil
-                    pendingEditWeightKg = nil
-                },
+                            workoutModus: settingsVM.preferences.workoutModus,
+                            initialRepetitions: playbackSettings.repetitions,
+                            initialLoopDuration: playbackSettings.loopDurationSeconds,
+                            initialPause: playbackSettings.pauseSeconds,
+                            initialWeightKg: settingsVM.preferences.workoutModus == .mobility
+                                ? editingSchedule?.mobilityWeightKg
+                                : editingSchedule?.weightKg,
+                            initialSets: settingsVM.preferences.workoutModus == .mobility
+                                ? editingSchedule?.mobilitySets
+                                : editingSchedule?.sets,
+                            initialRepsPerSet: settingsVM.preferences.workoutModus == .mobility
+                                ? editingSchedule?.mobilityReps
+                                : editingSchedule?.reps,
+                            initialExpertPauseSeconds: settingsVM.preferences.workoutModus == .mobility
+                                ? editingSchedule?.mobilityPauseSeconds
+                                : editingSchedule?.expertPauseSeconds,
+                          
+                
+                
+                onAdd: { reps, loopDuration, pause, mode, weight, sets, repsPerSet, expertPause in
+                                    let modus = settingsVM.preferences.workoutModus
+                                    if let scheduleId = editingScheduleId,
+                                       let schedule = progressVM.todaysSchedules.first(where: { $0.id == scheduleId }) {
+                                        // Bestehenden Schedule editieren — nur die Felder des aktiven Modus.
+                                        let isPillCapable = schedule.video?.tempoProtocol?.subtype == .dynamic
+
+                                        if modus == .expert, isPillCapable {
+                                            schedule.sets = sets
+                                            schedule.reps = repsPerSet
+                                            schedule.expertPauseSeconds = expertPause
+                                            schedule.weightKg = weight
+                                        } else if modus == .mobility, isPillCapable {
+                                            schedule.mobilitySets = sets
+                                            schedule.mobilityReps = repsPerSet
+                                            schedule.mobilityPauseSeconds = expertPause
+                                            schedule.mobilityWeightKg = weight
+                                        } else {
+                                            schedule.customRepetitions = reps
+                                            schedule.customPauseSeconds = pause
+                                            schedule.customLoopDurationSeconds = loopDuration
+                                            schedule.weightKg = weight
+                                        }
+                                        progressVM.updateSchedule(schedule, for: session.currentUser!)
+                                    } else {
+                                        progressVM.addVideo(
+                                            video,
+                                            to: pendingDate,
+                                            for: session.currentUser!,
+                                            planMode: mode,
+                                            activeMode: settingsVM.preferences.activeMode,
+                                            customRepetitions: reps,
+                                            customPauseSeconds: pause,
+                                            customLoopDuration: loopDuration,
+                                            sets: modus == .expert ? sets : nil,
+                                            reps: modus == .expert ? repsPerSet : nil,
+                                            expertPauseSeconds: modus == .expert ? expertPause : nil,
+                                            mobilitySets: modus == .mobility ? sets : nil,
+                                            mobilityReps: modus == .mobility ? repsPerSet : nil,
+                                            mobilityPauseSeconds: modus == .mobility ? expertPause : nil,
+                                            mobilityWeightKg: modus == .mobility ? weight : nil,
+                                            weightKg: modus == .mobility ? nil : weight
+                                        )
+                                        progressVM.loadToday(for: session.currentUser!, date: pendingDate)
+                                    }
+                                    
+                                    selectedVideoForConfig = nil
+                                    editingScheduleId = nil
+                                    pendingEditWeightKg = nil
+                                },
+                
+                
+                
                 onCancel: {
                     selectedVideoForConfig = nil
                     editingScheduleId = nil
@@ -335,21 +362,22 @@ struct CalendarDayView: View {
                }
         
         .sheet(item: $expertSession) { item in
-            ExpertModePlayerView(
-                video: item.video,
-                tempoProtocol: item.tempoProtocol,
-                weightKg: item.schedule.weightKg,
-                setsOverride: item.schedule.sets,
-                repsOverride: item.schedule.reps,
-                restOverride: item.schedule.customPauseSeconds,
-                lastTrainingTotalKg: nil,
-                videoDuringTraining: settingsVM.preferences.videoDuringTraining,
-                completionStyle: item.completionStyle,
-                scheduleId: item.schedule.id,
-                progressViewModel: progressVM,
-                session: session
-            )
-        }
+                    let modus = settingsVM.preferences.workoutModus
+                    ExpertModePlayerView(
+                        video: item.video,
+                        tempoProtocol: item.tempoProtocol,
+                        weightKg: item.schedule.activeWeightKg(modus: modus),
+                        setsOverride: item.schedule.activeSets(modus: modus),
+                        repsOverride: item.schedule.activeReps(modus: modus),
+                        restOverride: item.schedule.activePauseSeconds(modus: modus),
+                        lastTrainingTotalKg: nil,
+                        videoDuringTraining: settingsVM.preferences.videoDuringTraining,
+                        completionStyle: item.completionStyle,
+                        scheduleId: item.schedule.id,
+                        progressViewModel: progressVM,
+                        session: session
+                    )
+                }
         
         .sheet(item: $selectedAppointment) { appointment in
             AppointmentDetailView(appointment: appointment)

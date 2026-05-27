@@ -55,10 +55,11 @@ struct ExercisesSection: View {
                     // Linie OBEN (vor der Row)
                     dropLine(visible: dropIndicator == ScheduleDropIndicator(targetId: schedule.id, position: .above))
                     
+               
                     VideoScheduleRow(
-                        schedule: schedule,
-                        video: video,
-                        expertModeEnabled: settingsVM.preferences.expertModeEnabled,
+                            schedule: schedule,
+                            video: video,
+                        workoutModus: settingsVM.preferences.workoutModus,
                         onToggleCompletion: { onToggleCompletion(schedule) },
                         onDelete: { onDelete(schedule) },
                         onConfig: { onConfig(schedule) },

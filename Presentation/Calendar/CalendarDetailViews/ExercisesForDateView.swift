@@ -39,10 +39,11 @@ struct ExercisesForDateView: View {
                         // Linie OBEN
                         dropLine(visible: dropIndicator == ScheduleDropIndicator(targetId: schedule.id, position: .above))
                         
+                     
                         VideoScheduleRow(
                             schedule: schedule,
                             video: video,
-                            expertModeEnabled: settingsVM.preferences.expertModeEnabled,
+                            workoutModus: settingsVM.preferences.workoutModus,
                             onDelete: {
                                 if let onDelete = onDelete {
                                     onDelete(schedule)

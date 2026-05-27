@@ -130,6 +130,7 @@ final class ProgressViewModel: ObservableObject {
         mobilitySets: Int? = nil,
         mobilityReps: Int? = nil,
         mobilityPauseSeconds: Int? = nil,
+        mobilityWeightKg: Int? = nil,
         weightKg: Int? = nil,
         notes: String? = nil
     ) {
@@ -156,6 +157,7 @@ final class ProgressViewModel: ObservableObject {
                     mobilitySets: mobilitySets,
                     mobilityReps: mobilityReps,
                     mobilityPauseSeconds: mobilityPauseSeconds,
+                    mobilityWeightKg: mobilityWeightKg,
                     weightKg: weightKg
                 )
             } else {
@@ -176,6 +178,7 @@ final class ProgressViewModel: ObservableObject {
                     mobilitySets: mobilitySets,
                     mobilityReps: mobilityReps,
                     mobilityPauseSeconds: mobilityPauseSeconds,
+                    mobilityWeightKg: mobilityWeightKg,
                     weightKg: weightKg,
                     notes: notes
                 )

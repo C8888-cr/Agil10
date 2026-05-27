@@ -60,10 +60,17 @@ struct VideoQuickConfigSheet: View {
         
         // Expert-Modus Defaults: 3 Sätze × 12 Wdh, 60s Pause
         let defaultSets = initialSets ?? video.tempoProtocol?.sets ?? 3
-        let defaultReps = initialRepsPerSet ?? video.tempoProtocol?.reps ?? 12
+        
+        
         let defaultExpertPause = initialExpertPauseSeconds ?? video.tempoProtocol?.restBetweenSetsSec ?? 60
-        _sets = State(initialValue: defaultSets.clamped(to: 1...6))
-        _repsPerSet = State(initialValue: defaultReps.clamped(to: 8...15))
+               _sets = State(initialValue: defaultSets.clamped(to: 1...6))
+
+               // Wdh-Range hängt vom Modus ab: Mobility 15–25, sonst 8–15.
+               let repsBounds = (workoutModus == .mobility) ? 15...25 : 8...15
+               let defaultReps = initialRepsPerSet ?? video.tempoProtocol?.reps ?? repsBounds.lowerBound
+               _repsPerSet = State(initialValue: defaultReps.clamped(to: repsBounds))
+
+   
         _expertPauseSeconds = State(initialValue: defaultExpertPause)
         
         // Sonstiges
@@ -80,7 +87,11 @@ struct VideoQuickConfigSheet: View {
            && video.category == .strength
            && video.tempoProtocol?.subtype == .dynamic
        }
-    
+    // NEU:
+        /// Wdh-Bereich des Pickers — Mobility nutzt höhere Wiederholungen.
+        private var repsRange: ClosedRange<Int> {
+            workoutModus == .mobility ? 15...25 : 8...15
+        }
     
     private var showsWeightSection: Bool {
         usesSetsRepsMode
@@ -112,15 +123,7 @@ struct VideoQuickConfigSheet: View {
 
     var body: some View {
         
-        let _ = print("""
-              🔍 Sheet Debug:
-                 usesSetsRepsMode = \(usesSetsRepsMode)
-                 video.category = \(video.category)
-                 tempoProtocol nil? = \(video.tempoProtocol == nil)
-                 subtype = \(String(describing: video.tempoProtocol?.subtype))
-                 usesSetsRepsMode = \(usesSetsRepsMode)
-              """)
-        
+
         NavigationStack {
             Form {
                 videoInfoSection
@@ -244,8 +247,8 @@ struct VideoQuickConfigSheet: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Picker("Wdh pro Satz", selection: $repsPerSet) {
-                        ForEach(8...15, id: \.self) { value in
-                            Text("\(value)").tag(value)
+                                           ForEach(repsRange, id: \.self) { value in
+                                               Text("\(value)").tag(value)
                         }
                     }
                     .pickerStyle(.wheel)
