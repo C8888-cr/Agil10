@@ -8,6 +8,15 @@ import Foundation
 final class VideoSchedule {
     @Attribute(.unique) var id: UUID = UUID()
     
+    
+    // MARK: - Mobility-Konstanten
+/// ⚠️ Wird das Mobility-Tempo im Code geändert, muss dieser Wert angepasst werden.
+    static let mobilityCycleSeconds: Int = 6
+    
+    
+    
+    
+    
     var weightKg: Int?
     
     var scheduledDate: Date
@@ -20,6 +29,7 @@ final class VideoSchedule {
         var expertPauseSeconds: Int?
 
     // Training Details (Mobility Mode)
+       
         var mobilitySets: Int?
         var mobilityReps: Int?
         var mobilityPauseSeconds: Int?
@@ -146,26 +156,37 @@ final class VideoSchedule {
     /// Gesamtdauer in Sekunden
     /// Expert-Modus-Berechnung wird verwendet, wenn ein TempoProtocol da ist UND
     /// Expert-Werte gesetzt sind. Sonst Standard-Berechnung.
-    func totalDurationSeconds(expertModeEnabled: Bool) -> Int {
-        if expertModeEnabled && isExpertDynamicCapable {
-            // Expert: sets × (reps × cycleDur) + (sets-1) × restBetweenSets
-            let workPerSet = effectiveRepsPerSet * effectiveCycleDurationSec
-            let totalWork = workPerSet * effectiveSets
-            let totalRest = effectiveExpertPauseSeconds * max(0, effectiveSets - 1)
-            return totalWork + totalRest
-        } else {
-            // Standard: loops × loopDuration + (loops-1) × pause
-            let totalExerciseTime = effectiveLoopDurationSeconds * effectiveRepetitions
-            let pauseBetweenReps = effectivePauseSeconds * max(0, effectiveRepetitions - 1)
-            return totalExerciseTime + pauseBetweenReps
+    func totalDurationSeconds(modus: WorkoutModus) -> Int {
+            let usesPill = (modus == .expert || modus == .mobility) && isExpertDynamicCapable
+
+            if usesPill {
+                // Pille: sets × (reps × cycleDur) + (sets-1) × pause
+                // Mobility nutzt das feste 3-0-3-Tempo, Expert das Video-Tempo.
+                let cycle = (modus == .mobility)
+                    ? VideoSchedule.mobilityCycleSeconds
+                    : effectiveCycleDurationSec
+                let sets = activeSets(modus: modus)
+                let reps = activeReps(modus: modus)
+                let pause = activePauseSeconds(modus: modus)
+
+                let totalWork = sets * reps * cycle
+                let totalRest = pause * max(0, sets - 1)
+                return totalWork + totalRest
+            } else {
+                // Standard: loops × loopDuration + (loops-1) × pause
+                let totalExerciseTime = effectiveLoopDurationSeconds * effectiveRepetitions
+                let pauseBetweenReps = effectivePauseSeconds * max(0, effectiveRepetitions - 1)
+                return totalExerciseTime + pauseBetweenReps
+            }
         }
-    }
     
     /// Convenience: ohne Argument — nimmt Standard-Modus
     /// (Fallback für Stellen, die noch nicht modus-aware sind)
-    var totalDurationSeconds: Int {
-        totalDurationSeconds(expertModeEnabled: false)
-    }
+    /// Convenience: ohne Argument — nimmt Standard-Modus
+        /// (Fallback für Stellen, die noch nicht modus-aware sind)
+        var totalDurationSeconds: Int {
+            totalDurationSeconds(modus: .standard)
+        }
     
     var totalDurationMinutes: Int {
         totalDurationSeconds / 60
@@ -176,9 +197,9 @@ final class VideoSchedule {
         formatted(seconds: totalDurationSeconds)
     }
     
-    func formattedDuration(expertModeEnabled: Bool) -> String {
-        formatted(seconds: totalDurationSeconds(expertModeEnabled: expertModeEnabled))
-    }
+    func formattedDuration(modus: WorkoutModus) -> String {
+            formatted(seconds: totalDurationSeconds(modus: modus))
+        }
     
     private func formatted(seconds: Int) -> String {
         let minutes = seconds / 60
@@ -202,14 +223,18 @@ final class VideoSchedule {
     }
 
     /// Gesamtdauer in Sekunden, automatisch im richtigen Modus
-    func effectiveDurationSeconds(currentExpertModeEnabled: Bool) -> Int {
-        let mode = effectiveExpertMode(currentExpertModeEnabled: currentExpertModeEnabled)
-        return totalDurationSeconds(expertModeEnabled: mode)
-    }
+    /// Gesamtdauer in Sekunden, automatisch im richtigen Modus
+        func effectiveDurationSeconds(modus: WorkoutModus) -> Int {
+            totalDurationSeconds(modus: modus)
+        }
 
-    func effectiveDurationMinutes(currentExpertModeEnabled: Bool) -> Int {
-        effectiveDurationSeconds(currentExpertModeEnabled: currentExpertModeEnabled) / 60
-    }
+        func effectiveDurationMinutes(modus: WorkoutModus) -> Int {
+            effectiveDurationSeconds(modus: modus) / 60
+        }
+    
+    
+    
+    
     
     // MARK: - Init
     

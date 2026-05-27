@@ -22,14 +22,15 @@ final class CalculateWeeklyProgressUseCase {
         }
         
         let schedules = try repository.fetchSchedules(from: weekStart, to: weekEnd, userId: user.id)
-        let preferences = try repository.fetchUserPreferences(for: user.id)
-        let expertModeEnabled = preferences?.expertModeEnabled ?? false   // 🆕
+       
         
-        let completedSeconds = schedules.filter { $0.isCompleted }
-            .reduce(0) { sum, schedule in
-                // 🆕 modus-aware
-                sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
-            }
+        let preferences = try repository.fetchUserPreferences(for: user.id)
+                let modus = preferences?.workoutModus ?? .standard
+                
+                let completedSeconds = schedules.filter { $0.isCompleted }
+                    .reduce(0) { sum, schedule in
+                        sum + schedule.effectiveDurationSeconds(modus: modus)
+                    }
         
         guard let preferences else {
             return WeeklyProgressResult(completedSeconds: completedSeconds, targetSeconds: 0)

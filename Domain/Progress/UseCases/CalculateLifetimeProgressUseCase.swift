@@ -18,12 +18,11 @@ final class CalculateLifetimeProgressUseCase {
         let allSchedules = try repository.fetchAllSchedules(userId: user.id)
         let completed = allSchedules.filter { $0.isCompleted }
         let preferences = try repository.fetchUserPreferences(for: user.id)
-        let expertModeEnabled = preferences?.expertModeEnabled ?? false   // 🆕
-        
-        // 🆕 modus-aware
-        let totalSeconds = completed.reduce(0) { sum, schedule in
-            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
-        }
+                let modus = preferences?.workoutModus ?? .standard
+                
+                let totalSeconds = completed.reduce(0) { sum, schedule in
+                    sum + schedule.effectiveDurationSeconds(modus: modus)
+                }
         let totalMinutes = (totalSeconds + 59) / 60
         let streak = calculateStreak(from: allSchedules)
         
@@ -39,10 +38,10 @@ final class CalculateLifetimeProgressUseCase {
             
             // 🆕 modus-aware
             let completedMinutes = allSchedules
-                .filter { $0.isCompleted && calendar.isDate($0.scheduledDate, inSameDayAs: date) }
-                .reduce(0) { sum, schedule in
-                    sum + schedule.effectiveDurationMinutes(currentExpertModeEnabled: expertModeEnabled)
-                }
+                            .filter { $0.isCompleted && calendar.isDate($0.scheduledDate, inSameDayAs: date) }
+                            .reduce(0) { sum, schedule in
+                                sum + schedule.effectiveDurationMinutes(modus: modus)
+                            }
             return completedMinutes >= goal.targetMinutes
         }
         

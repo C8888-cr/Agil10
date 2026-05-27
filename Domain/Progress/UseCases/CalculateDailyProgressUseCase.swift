@@ -19,7 +19,7 @@ final class CalculateDailyProgressUseCase {
         let preferences = try repository.fetchUserPreferences(for: user.id)
         
         let activeMode = preferences?.activeMode ?? "single"
-        let expertModeEnabled = preferences?.expertModeEnabled ?? false   // 🆕
+        let modus = preferences?.workoutModus ?? .standard
         let schedules = allSchedules.filter { $0.planMode == activeMode }
         
         guard let preferences,
@@ -36,7 +36,7 @@ final class CalculateDailyProgressUseCase {
         var totalSeconds = 0
         for (index, schedule) in schedules.enumerated() {
             // 🆕 modus-aware
-            totalSeconds += schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
+            totalSeconds += schedule.effectiveDurationSeconds(modus: modus)
             if index < schedules.count - 1 {
                 totalSeconds += goal.interVideoPauseSeconds
             }
@@ -46,7 +46,7 @@ final class CalculateDailyProgressUseCase {
         var completedSeconds = 0
         for (index, schedule) in completedSchedules.enumerated() {
             // 🆕 modus-aware (bei isCompleted nimmt es automatisch completedAsExpert)
-            completedSeconds += schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
+            completedSeconds += schedule.effectiveDurationSeconds(modus: modus)
             if index < completedSchedules.count - 1 {
                 completedSeconds += goal.interVideoPauseSeconds
             }

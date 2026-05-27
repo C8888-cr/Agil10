@@ -58,11 +58,11 @@ struct DailyBreakdownCard: View {
             return 0.0
         }
         
-        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
-        
-        let completedMinutes = completedSchedules.reduce(0) { sum, schedule in
-            sum + schedule.effectiveDurationMinutes(currentExpertModeEnabled: expertModeEnabled)    // 🆕
-        }
+        let modus = settingsVM.preferences.workoutModus
+                
+                let completedMinutes = completedSchedules.reduce(0) { sum, schedule in
+                    sum + schedule.effectiveDurationMinutes(modus: modus)
+                }
         let targetMinutes = goal.targetMinutes
         
         return targetMinutes > 0 ? min(1.0, Double(completedMinutes) / Double(targetMinutes)) : 0.0
@@ -84,11 +84,11 @@ struct DailyBreakdownCard: View {
         let schedules = progressVM.schedulesFor(date: targetDate)
         let completedSchedules = schedules.filter { $0.isCompleted }
         
-        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
-        
-        let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
-            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)    // 🆕
-        }
+        let modus = settingsVM.preferences.workoutModus
+                
+                let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
+                    sum + schedule.effectiveDurationSeconds(modus: modus)
+                }
         return (completedSeconds + 59) / 60
     }
     

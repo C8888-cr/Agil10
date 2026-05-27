@@ -253,7 +253,7 @@ struct VideoScheduleRow: View {
                                         && schedule.isExpertDynamicCapable
                                     if usesPill {
                                         MetaChip(label: "Sätze", value: "\(schedule.activeSets(modus: workoutModus)) × \(schedule.activeReps(modus: workoutModus))")
-                                        MetaChip(label: "Dauer", value: schedule.formattedDuration(expertModeEnabled: true))
+                                        MetaChip(label: "Dauer", value: schedule.formattedDuration(modus: workoutModus))
                                         let pause = schedule.activePauseSeconds(modus: workoutModus)
                                         if pause > 0 {
                                             MetaChip(label: "Pause", value: "\(pause)s")

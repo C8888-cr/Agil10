@@ -24,13 +24,13 @@ struct ExercisesSection: View {
         
     
     private var remainingSeconds: Int {
-        let expertModeEnabled = settingsVM.preferences.expertModeEnabled
-        let targetSeconds = progressVM.targetMinutes * 60
-        let totalScheduled = progressVM.todaysSchedules.reduce(0) { sum, schedule in
-            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)
+            let modus = settingsVM.preferences.workoutModus
+            let targetSeconds = progressVM.targetMinutes * 60
+            let totalScheduled = progressVM.todaysSchedules.reduce(0) { sum, schedule in
+                sum + schedule.effectiveDurationSeconds(modus: modus)
+            }
+            return max(0, targetSeconds - totalScheduled)
         }
-        return max(0, targetSeconds - totalScheduled)
-    }
     
     var body: some View {
         VStack(spacing: 12) {

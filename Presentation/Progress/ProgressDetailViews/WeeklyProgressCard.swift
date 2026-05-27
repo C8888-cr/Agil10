@@ -89,11 +89,11 @@ struct WeeklyProgressCard: View {
             return 0.0
         }
         
-        let expertModeEnabled = settingsVM.preferences.expertModeEnabled    // 🆕
-        
-        let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
-            sum + schedule.effectiveDurationSeconds(currentExpertModeEnabled: expertModeEnabled)    // 🆕
-        }
+        let modus = settingsVM.preferences.workoutModus
+                
+                let completedSeconds = completedSchedules.reduce(0) { sum, schedule in
+                    sum + schedule.effectiveDurationSeconds(modus: modus)
+                }
         let targetSeconds = goal.targetMinutes * 60
         
         return targetSeconds > 0 ? min(1.0, Double(completedSeconds) / Double(targetSeconds)) : 0.0
