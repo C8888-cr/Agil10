@@ -249,19 +249,20 @@ struct VideoScheduleRow: View {
                     .lineLimit(2)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                                    let usesPill = (workoutModus == .expert || workoutModus == .mobility)
-                                        && schedule.isExpertDynamicCapable
-                                    if usesPill {
-                                        MetaChip(label: "Sätze", value: "\(schedule.activeSets(modus: workoutModus)) × \(schedule.activeReps(modus: workoutModus))")
-                                        MetaChip(label: "Dauer", value: schedule.formattedDuration(modus: workoutModus))
-                                        let pause = schedule.activePauseSeconds(modus: workoutModus)
-                                        if pause > 0 {
-                                            MetaChip(label: "Pause", value: "\(pause)s")
-                                        }
-                                        if let weight = schedule.activeWeightKg(modus: workoutModus) {
-                                            MetaChip(label: "Gewicht", value: "\(weight) kg")
-                                        }
-                                    } else {
+                    let displayModus = schedule.effectiveModus(current: workoutModus)
+                                        let usesPill = (displayModus == .expert || displayModus == .mobility)
+                                            && schedule.isExpertDynamicCapable
+                                        if usesPill {
+                                            MetaChip(label: "Sätze", value: "\(schedule.activeSets(modus: displayModus)) × \(schedule.activeReps(modus: displayModus))")
+                                            MetaChip(label: "Dauer", value: schedule.formattedDuration(modus: displayModus))
+                                            let pause = schedule.activePauseSeconds(modus: displayModus)
+                                            if pause > 0 {
+                                                MetaChip(label: "Pause", value: "\(pause)s")
+                                            }
+                                            if let weight = schedule.activeWeightKg(modus: displayModus) {
+                                                MetaChip(label: "Gewicht", value: "\(weight) kg")
+                                            }
+                                        } else {
                                         MetaChip(label: "Wdh", value: "\(schedule.effectiveRepetitions)")
                                         MetaChip(label: "Dauer", value: schedule.formattedDuration)
                                         if schedule.effectivePauseSeconds > 0 {
