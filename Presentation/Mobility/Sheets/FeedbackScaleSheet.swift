@@ -1,19 +1,3 @@
-//
-//  FeedbackScaleSheet.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 25.05.26.
-//
-
-
-//
-//  FeedbackScaleSheet.swift
-//  Agil
-//
-//  Abschluss-Sheet für den Mobility-Modus.
-//  Stufenlose Farbverlauf-Leiste ohne Zahlen — der Nutzer markiert,
-//  wie sich die Einheit angefühlt hat.
-//
 
 import SwiftUI
 
@@ -75,21 +59,24 @@ struct FeedbackScaleSheet: View {
             ZStack(alignment: .leading) {
                 // Farbverlauf grün → gelb → rot
                 Capsule()
-                                  .fill(LinearGradient(
-                                      colors: [.red, .orange, .yellow, .green],
-                                      startPoint: .leading,
-                                      endPoint: .trailing
-                                  ))
+                    .fill(LinearGradient(
+                        colors: FeedbackScaleMini.gradientColors,
+                        startPoint: .leading,
+                        endPoint: .trailing
+                ))
 
-                // Indikator
-                if let value {
-                    Circle()
-                        .fill(.white)
-                        .frame(width: barHeight - 12, height: barHeight - 12)
-                        .overlay(Circle().strokeBorder(.black.opacity(0.15), lineWidth: 1))
-                        .shadow(radius: 3)
-                        .offset(x: clampedOffset(for: value, in: width))
-                }
+                // Indikator — vertikale Linie
+                                if let value {
+                                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                        .fill(.white)
+                                        .frame(width: 4, height: barHeight + 12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                                                .strokeBorder(.black.opacity(0.15), lineWidth: 0.5)
+                                        )
+                                        .shadow(radius: 3)
+                                        .offset(x: clampedOffset(for: value, in: width))
+                                }
             }
             .frame(height: barHeight)
             .contentShape(Rectangle())
@@ -101,16 +88,17 @@ struct FeedbackScaleSheet: View {
                                         }
             )
         }
-        .frame(height: barHeight)
+        .frame(height: barHeight + 12)
     }
 
     /// Hält den Indikator-Kreis innerhalb der Leiste.
-    private func clampedOffset(for value: Double, in width: CGFloat) -> CGFloat {
-        let knob = barHeight - 12
-        let usable = max(0, width - knob)
-        let safeValue = min(1, max(0, value))
-        return CGFloat(safeValue) * usable
-    }
+    /// Hält den Indikator innerhalb der Leiste.
+        private func clampedOffset(for value: Double, in width: CGFloat) -> CGFloat {
+            let knob: CGFloat = 4
+            let usable = max(0, width - knob)
+            let safeValue = min(1, max(0, value))
+            return CGFloat(safeValue) * usable
+        }
 }
 
 #Preview("FeedbackScaleSheet") {

@@ -283,12 +283,15 @@ struct VideoScheduleRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
         .overlay(alignment: .bottomTrailing) {
-            if let rating = schedule.rating {
-                Text(emoji(for: rating))
-                    .font(.title3)
-                    .padding(10)
-            }
-        }
+                    if let feedback = schedule.mobilityFeedback {
+                        FeedbackScaleMini(value: feedback)
+                            .padding(10)
+                    } else if let rating = schedule.rating {
+                        Text(emoji(for: rating))
+                            .font(.title3)
+                            .padding(10)
+                    }
+                }
     }
     
     // MARK: - Helpers

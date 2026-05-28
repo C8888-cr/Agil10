@@ -45,9 +45,11 @@ final class VideoSchedule {
     
     // Status
     var isCompleted: Bool = false
-    var completedAt: Date?
-    var completedAsExpert: Bool? = nil 
-    var rating: Int?
+        var completedAt: Date?
+        var completedAsExpert: Bool? = nil
+        /// Eingefrorener Modus zum Zeitpunkt des Abschließens (WorkoutModus.rawValue).
+        var completedModusRaw: String? = nil
+        var rating: Int?
     var notes: String?
     
     // Wiederholungsregel
@@ -214,19 +216,22 @@ final class VideoSchedule {
     /// Liefert den Modus, in dem dieser Schedule berechnet werden soll.
     /// - Wenn erledigt: damaliger Modus (eingefroren)
     /// - Wenn nicht erledigt: aktueller globaler Modus
-    func effectiveExpertMode(currentExpertModeEnabled: Bool) -> Bool {
-        if isCompleted {
-            return completedAsExpert ?? false
-        } else {
-            return currentExpertModeEnabled
+    /// Liefert den Modus, in dem dieser Schedule berechnet werden soll.
+        /// - Wenn erledigt: eingefrorener Modus von damals
+        /// - Wenn nicht erledigt: aktueller globaler Modus
+        func effectiveModus(current: WorkoutModus) -> WorkoutModus {
+            if isCompleted {
+                return completedModusRaw.flatMap(WorkoutModus.init(rawValue:)) ?? current
+            } else {
+                return current
+            }
         }
-    }
 
-    /// Gesamtdauer in Sekunden, automatisch im richtigen Modus
-    /// Gesamtdauer in Sekunden, automatisch im richtigen Modus
-        func effectiveDurationSeconds(modus: WorkoutModus) -> Int {
-            totalDurationSeconds(modus: modus)
-        }
+    /// Gesamtdauer in Sekunden, automatisch im richtigen Modus.
+            /// Abgeschlossene Schedules nutzen ihren eingefrorenen Modus.
+            func effectiveDurationSeconds(modus: WorkoutModus) -> Int {
+                totalDurationSeconds(modus: effectiveModus(current: modus))
+            }
 
         func effectiveDurationMinutes(modus: WorkoutModus) -> Int {
             effectiveDurationSeconds(modus: modus) / 60
