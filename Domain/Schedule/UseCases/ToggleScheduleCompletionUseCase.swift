@@ -18,13 +18,13 @@ final class ToggleScheduleCompletionUseCase {
         schedule.isCompleted.toggle()
         schedule.completedAt = schedule.isCompleted ? Date() : nil
         if !schedule.isCompleted {
-            schedule.rating = nil
-            schedule.completedAsExpert = nil           // 🆕 zurücksetzen
-        } else {
-            // 🆕 Modus zur Erledigungszeit einbrennen
-            let prefs = try repository.fetchUserPreferences(for: schedule.user?.id ?? UUID())
-            schedule.completedAsExpert = prefs?.expertModeEnabled ?? false
-        }
+                    schedule.rating = nil
+                    schedule.completedModusRaw = nil           // eingefrorenen Modus zurücksetzen
+                } else {
+                    // Modus zur Erledigungszeit einbrennen
+                    let prefs = try repository.fetchUserPreferences(for: schedule.user?.id ?? UUID())
+                    schedule.completedModusRaw = (prefs?.workoutModus ?? .standard).rawValue
+                }
         try repository.saveChanges()
     }
 
@@ -33,22 +33,22 @@ final class ToggleScheduleCompletionUseCase {
         schedule.completedAt = Date()
         schedule.rating = rating
         
-        // 🆕 Modus zur Erledigungszeit einbrennen
-        let prefs = try repository.fetchUserPreferences(for: schedule.user?.id ?? UUID())
-        schedule.completedAsExpert = prefs?.expertModeEnabled ?? false
-        
-        try repository.save(schedule)
+        // Modus zur Erledigungszeit einbrennen
+                let prefs = try repository.fetchUserPreferences(for: schedule.user?.id ?? UUID())
+                schedule.completedModusRaw = (prefs?.workoutModus ?? .standard).rawValue
+                
+                try repository.save(schedule)
     }
 
     // und analog bei toggle (wenn von false → true gewechselt wird)
 
     func markIncomplete(_ schedule: VideoSchedule) throws {
-        schedule.isCompleted = false
-        schedule.completedAt = nil
-        schedule.rating = nil
-        schedule.completedAsExpert = nil               // 🆕
-        try repository.saveChanges()
-    }
+            schedule.isCompleted = false
+            schedule.completedAt = nil
+            schedule.rating = nil
+            schedule.completedModusRaw = nil
+            try repository.saveChanges()
+        }
     
     
     func saveChanges() throws {
