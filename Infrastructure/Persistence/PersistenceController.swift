@@ -60,8 +60,11 @@ class PersistenceController: ObservableObject {
         }
         
         // ✅ Migration nach erfolgreicher Initialisierung
-        migrateStartTime()
-    }
+                migrateStartTime()
+
+                // 🔒 Data Protection: DB wird unlesbar, sobald das Gerät gesperrt ist
+                Self.applyFileProtection()
+            }
     
     // ✅ Migration: Fülle startTime für alte Einträge
     private func migrateStartTime() {
@@ -119,4 +122,28 @@ class PersistenceController: ObservableObject {
             print("⚠️ Konnte DB nicht löschen: \(error)")
         }
     }
+    
+    
+    // 🔒 Data Protection auf SQLite-Dateien anwenden
+        private static func applyFileProtection() {
+            let fileManager = FileManager.default
+            let files = ["default.store", "default.store-shm", "default.store-wal"]
+
+            for file in files {
+                let url = URL.applicationSupportDirectory.appending(path: file)
+                guard fileManager.fileExists(atPath: url.path()) else { continue }
+
+                do {
+                    try (url as NSURL).setResourceValue(
+                        URLFileProtection.completeUnlessOpen,
+                        forKey: .fileProtectionKey
+                    )
+                    print("🔒 File protection set: \(file)")
+                } catch {
+                    print("⚠️ File protection failed for \(file): \(error)")
+                }
+            }
+        }
+    
+    
 }

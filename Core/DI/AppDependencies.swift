@@ -159,15 +159,16 @@ class AppDependencies: ObservableObject {
     // MARK: - AccountUseCases
     lazy var resetUserDataUseCase = ResetUserDataUseCase(
         scheduleRepository: videoScheduleRepository,
-        userRepository: userRepository
+        userRepository: userRepository,
+        workoutLogRepository: workoutLogRepository
     )
     lazy var deleteAccountUseCase = DeleteAccountUseCase(
         authService: authServiceProtocol,
         scheduleRepository: videoScheduleRepository,
         userRepository: userRepository,
-        session: sessionManager
+        session: sessionManager,
+        workoutLogRepository: workoutLogRepository
     )
-    
     
     
     

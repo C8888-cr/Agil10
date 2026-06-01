@@ -11,10 +11,12 @@ import Foundation
 struct ResetUserDataUseCase {
     let scheduleRepository: VideoScheduleRepositoryProtocol
     let userRepository: UserRepository
+    let workoutLogRepository: WorkoutLogRepositoryProtocol
 
-    func execute(userId: UUID) throws {
-        try scheduleRepository.deleteAllSchedules(for: userId)
-        try scheduleRepository.deleteAllTemplates(for: userId)
+        func execute(userId: UUID) throws {
+                try scheduleRepository.deleteAllSchedules(for: userId)
+                try scheduleRepository.deleteAllTemplates(for: userId)
+                try workoutLogRepository.deleteAll(for: userId)
         
         if let prefs = try scheduleRepository.fetchUserPreferences(for: userId) {
             prefs.notificationsEnabled = true
