@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>en</string>
-		<string>de</string>
-	
-	</array>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>mailto</string>
-		<string>googlegmail</string>
-		<string>ms-outlook</string>
-		<string>ymail</string>
-		<string>webdemail</string>
-		<string>gmxmail</string>
-	</array>
-    
-    <key>NSCameraUsageDescription</key>
-    <string>Wir benötigen die Kamera für Videoaufnahmen.</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Wir benötigen das Mikrofon für Videoaufnahmen mit Ton.</string>
-    <key>CFBundleDocumentTypes</key>
+    <dict>
+        <key>CFBundleLocalizations</key>
+        <array>
+            <string>en</string>
+            <string>de</string>
+            
+        </array>
+        <key>LSApplicationQueriesSchemes</key>
+        <array>
+            <string>mailto</string>
+            <string>googlegmail</string>
+            <string>ms-outlook</string>
+            <string>ymail</string>
+            <string>webdemail</string>
+            <string>gmxmail</string>
+        </array>
+        
+        <key>NSCameraUsageDescription</key>
+        <string>Wir benötigen die Kamera für Videoaufnahmen.</string>
+        <key>NSMicrophoneUsageDescription</key>
+        <string>Wir benötigen das Mikrofon für Videoaufnahmen mit Ton.</string>
+        
+        
+        <key>CFBundleDocumentTypes</key>
         <array>
             <dict>
                 <key>CFBundleTypeName</key>
@@ -37,6 +39,8 @@
                 </array>
             </dict>
         </array>
-
-</dict>
+        <key>LSSupportsOpeningDocumentsInPlace</key>
+        <false/>
+        
+    </dict>
 </plist>

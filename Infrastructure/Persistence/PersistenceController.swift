@@ -21,7 +21,8 @@ class PersistenceController: ObservableObject {
             DayGoal.self,
             Video.self,
             VideoSchedule.self,
-            TempoProtocol.self
+            TempoProtocol.self,
+            WorkoutLog.self
          //   Exercise.self
         ])
         
