@@ -37,6 +37,10 @@ final class VideoSchedule {
     
     //mobility Mode
     var mobilityFeedback: Double?
+
+    // Progress-Feedback (History/Statistik), normalisiert auf 0.0-1.0.
+    // Slider direkt, Smileys (0-5) als value/5.0.
+    var progressFeedback: Double?
     
     // Standard-Modus Settings
     var customRepetitions: Int?

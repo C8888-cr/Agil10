@@ -13,6 +13,8 @@ import SwiftData
 struct ProgressPreviewHelper {
     static func makeProgressVM(context: ModelContext) -> ProgressViewModel {
         let repository = VideoScheduleRepository(modelContext: context)
+        let workoutLogRepository = WorkoutLogRepository(modelContext: context)
+        let writeWorkoutLogUseCase = WriteWorkoutLogUseCase(repository: workoutLogRepository)
 
         let userRepository = UserRepository(modelContext: context)
         let authenticator = LocalAuthBiometricAuthenticator()
@@ -34,7 +36,10 @@ struct ProgressPreviewHelper {
             addVideoToPlanUseCase: AddVideoToPlanUseCase(repository: repository),
             addScheduleUseCase: AddScheduleUseCase(repository: repository),
             removeScheduleUseCase: RemoveScheduleUseCase(repository: repository),
-            toggleCompletionUseCase: ToggleScheduleCompletionUseCase(repository: repository),
+            toggleCompletionUseCase: ToggleScheduleCompletionUseCase(
+                repository: repository,
+                writeWorkoutLogUseCase: writeWorkoutLogUseCase
+            ),
             reorderSchedulesUseCase: ReorderSchedulesUseCase(repository: repository),
             dailyProgressUseCase: CalculateDailyProgressUseCase(repository: repository),
             weeklyProgressUseCase: CalculateWeeklyProgressUseCase(repository: repository),

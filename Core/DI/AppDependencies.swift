@@ -69,6 +69,10 @@ class AppDependencies: ObservableObject {
         modelContext: modelContext
     )
     
+    lazy var workoutLogRepository = WorkoutLogRepository(
+        modelContext: modelContext
+    )
+    
     // MARK: - AppointmentUseCases
     lazy var addAppointmentUseCase = AddAppointmentUseCase(
         repository: appointmentRepository,
@@ -125,8 +129,12 @@ class AppDependencies: ObservableObject {
     lazy var removeScheduleUseCase = RemoveScheduleUseCase(
         repository: videoScheduleRepository
     )
+    lazy var writeWorkoutLogUseCase = WriteWorkoutLogUseCase(
+        repository: workoutLogRepository
+    )
     lazy var toggleScheduleCompletionUseCase = ToggleScheduleCompletionUseCase(
-        repository: videoScheduleRepository
+        repository: videoScheduleRepository,
+        writeWorkoutLogUseCase: writeWorkoutLogUseCase
     )
     lazy var reorderSchedulesUseCase = ReorderSchedulesUseCase(
         repository: videoScheduleRepository
