@@ -31,17 +31,18 @@ final class WriteWorkoutLogUseCase {
         let duration = schedule.effectiveDurationSeconds(modus: modus)
 
         let log = WorkoutLog(
-            date: schedule.completedAt ?? Date(),
-            entryType: .completion,
-            scheduleId: schedule.id,
-            videoId: schedule.video?.id,
-            videoTitle: schedule.video?.title ?? "Unbekannt",
-            modusRaw: modusRaw,
-            durationSeconds: duration,
-            rating: schedule.rating,
-            progressFeedback: schedule.progressFeedback,
-            userId: userId
-        )
+                    date: schedule.completedAt ?? Date(),
+                    entryType: .completion,
+                    scheduleId: schedule.id,
+                    videoId: schedule.video?.id,
+                    videoTitle: schedule.video?.title ?? "Unbekannt",
+                    modusRaw: modusRaw,
+                    durationSeconds: duration,
+                    rating: schedule.rating,
+                    progressFeedback: schedule.progressFeedback,
+                    weightKg: schedule.activeWeightKg(modus: modus),
+                    userId: userId
+                )
 
         try repository.insert(log)
     }
@@ -58,17 +59,18 @@ final class WriteWorkoutLogUseCase {
         let duration = -schedule.effectiveDurationSeconds(modus: modus)
 
         let log = WorkoutLog(
-            date: Date(),
-            entryType: .correction,
-            scheduleId: schedule.id,
-            videoId: schedule.video?.id,
-            videoTitle: schedule.video?.title ?? "Unbekannt",
-            modusRaw: modusRaw,
-            durationSeconds: duration,
-            rating: nil,
-            progressFeedback: nil,
-            userId: userId
-        )
+                    date: Date(),
+                    entryType: .correction,
+                    scheduleId: schedule.id,
+                    videoId: schedule.video?.id,
+                    videoTitle: schedule.video?.title ?? "Unbekannt",
+                    modusRaw: modusRaw,
+                    durationSeconds: duration,
+                    rating: nil,
+                    progressFeedback: nil,
+                    weightKg: nil,
+                    userId: userId
+                )
 
         try repository.insert(log)
     }

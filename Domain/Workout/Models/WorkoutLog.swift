@@ -48,11 +48,15 @@ final class WorkoutLog {
     var rating: Int?
 
     /// Snapshot des Progress-Feedbacks, normalisiert auf 0.0-1.0.
-    /// Slider direkt, Smileys (0-5) als value/5.0 gespeichert.
-    var progressFeedback: Double?
+        /// Slider direkt, Smileys (0-5) als value/5.0 gespeichert.
+        var progressFeedback: Double?
 
-    /// Snapshot der User-ID.
-    var userId: UUID
+        /// Snapshot des aktiv genutzten Gewichts beim Abschluss.
+        /// Mobility → mobilityWeightKg, Expert/Standard → weightKg.
+        var weightKg: Int?
+
+        /// Snapshot der User-ID.
+        var userId: UUID
 
     // MARK: - Computed
 
@@ -72,27 +76,29 @@ final class WorkoutLog {
     // MARK: - Init
 
     init(
-        date: Date,
-        entryType: EntryType,
-        scheduleId: UUID?,
-        videoId: UUID?,
-        videoTitle: String,
-        modusRaw: String,
-        durationSeconds: Int,
-        rating: Int?,
-        progressFeedback: Double?,
-        userId: UUID
-    ) {
-        self.id = UUID()
-        self.date = date
-        self.entryType = entryType.rawValue
-        self.scheduleId = scheduleId
-        self.videoId = videoId
-        self.videoTitle = videoTitle
-        self.modusRaw = modusRaw
-        self.durationSeconds = durationSeconds
-        self.rating = rating
-        self.progressFeedback = progressFeedback
-        self.userId = userId
-    }
+            date: Date,
+            entryType: EntryType,
+            scheduleId: UUID?,
+            videoId: UUID?,
+            videoTitle: String,
+            modusRaw: String,
+            durationSeconds: Int,
+            rating: Int?,
+            progressFeedback: Double?,
+            weightKg: Int?,
+            userId: UUID
+        ) {
+            self.id = UUID()
+            self.date = date
+            self.entryType = entryType.rawValue
+            self.scheduleId = scheduleId
+            self.videoId = videoId
+            self.videoTitle = videoTitle
+            self.modusRaw = modusRaw
+            self.durationSeconds = durationSeconds
+            self.rating = rating
+            self.progressFeedback = progressFeedback
+            self.weightKg = weightKg
+            self.userId = userId
+        }
 }
