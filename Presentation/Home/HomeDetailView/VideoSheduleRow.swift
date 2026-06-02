@@ -13,10 +13,12 @@ struct VideoScheduleRow: View {
     let onConfig: () -> Void
     let onPlay: (Video) -> Void
     var onRate: ((Int) -> Void)? = nil
+    var onMobilityFeedback: ((Double) -> Void)? = nil
 
     @State private var showDeleteAlert = false
     @State private var showRatingSheet = false
     @State private var showLeftActions = false
+    @State private var showMobilitySheet = false
     
     @State private var offset: CGFloat = 0
     @State private var rowWidth: CGFloat = 0
@@ -79,7 +81,11 @@ struct VideoScheduleRow: View {
                                         }
                                         if onRate != nil {
                                             actionButton(icon: "star", color: .orange) {
-                                                showRatingSheet = true
+                                                if schedule.effectiveModus(current: workoutModus) == .mobility {
+                                                    showMobilitySheet = true
+                                                } else {
+                                                    showRatingSheet = true
+                                                }
                                                 close()
                                             }
                                         }
@@ -151,6 +157,9 @@ struct VideoScheduleRow: View {
         .sheet(isPresented: $showRatingSheet) {
             VideoRatingSheet(videoTitle: video.title) { rating in onRate?(rating) }
                 .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showMobilitySheet) {
+            FeedbackScaleSheet { value in onMobilityFeedback?(value) }
         }
     }
     
@@ -250,8 +259,8 @@ struct VideoScheduleRow: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     let displayModus = schedule.effectiveModus(current: workoutModus)
-                                        let usesPill = (displayModus == .expert || displayModus == .mobility)
-                                            && schedule.isExpertDynamicCapable
+                            let usesPill = (displayModus == .expert || displayModus == .mobility)
+                                && schedule.isExpertDynamicCapable
                                         if usesPill {
                                             MetaChip(label: "Sätze", value: "\(schedule.activeSets(modus: displayModus)) × \(schedule.activeReps(modus: displayModus))")
                                             MetaChip(label: "Dauer", value: schedule.formattedDuration(modus: displayModus))

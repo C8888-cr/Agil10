@@ -26,7 +26,7 @@ struct FeedbackScaleSheet: View {
                 .padding(.horizontal, 24)
 
             Button {
-                if let value { onSubmit(value) }
+                if let value { onSubmit(value); dismiss() }
             } label: {
                 Text("Fertig")
                     .fontWeight(.semibold)

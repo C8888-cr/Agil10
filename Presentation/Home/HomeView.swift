@@ -158,6 +158,11 @@ struct HomeView: View {
                            schedule.rating = rating
                            progressVM.updateSchedule(schedule, for: session.currentUser!)
                        },
+                    onMobilityFeedback: { schedule, value in
+                        schedule.mobilityFeedback = value
+                        progressVM.updateSchedule(schedule, for: session.currentUser!)
+                    },
+                    
                     onPlayAll: {
                         showPlayAllSession = true
                     }

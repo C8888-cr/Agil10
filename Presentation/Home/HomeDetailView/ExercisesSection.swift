@@ -19,9 +19,8 @@ struct ExercisesSection: View {
     let onPlay: (VideoSchedule, Video) -> Void
     let onAddVideo: () -> Void
     let onRate: (VideoSchedule, Int) -> Void
+    let onMobilityFeedback: (VideoSchedule, Double) -> Void
     let onPlayAll: () -> Void
-    
-        
     
     private var remainingSeconds: Int {
             let modus = settingsVM.preferences.workoutModus
@@ -64,7 +63,8 @@ struct ExercisesSection: View {
                         onDelete: { onDelete(schedule) },
                         onConfig: { onConfig(schedule) },
                         onPlay: { video in onPlay(schedule, video) },
-                        onRate: { rating in onRate(schedule, rating) }
+                        onRate: { rating in onRate(schedule, rating) },
+                        onMobilityFeedback: { value in onMobilityFeedback(schedule, value) }
                     )
                     .opacity(draggedScheduleId == schedule.id ? 0.4 : 1.0)
                     .onDrag {
@@ -192,6 +192,7 @@ private struct PreviewWrapper: View {
             onPlay: { _, _ in },
             onAddVideo: { },
             onRate: { _, _ in },
+            onMobilityFeedback: { _, _ in },
             onPlayAll: { }
         )
         .environmentObject(progressVM)
