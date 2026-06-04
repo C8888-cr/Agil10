@@ -245,6 +245,13 @@ final class ProgressViewModel: ObservableObject {
     func updateSchedule(_ schedule: VideoSchedule, for user: User) {
         do {
             try toggleCompletionUseCase.saveChanges()
+            
+            // WorkoutLog nachträglich aktualisieren wenn Feedback/Rating
+            // nach dem Abschluss gesetzt wurde
+            if schedule.isCompleted {
+                try toggleCompletionUseCase.rewriteLog(for: schedule)
+            }
+            
             calculateProgress(for: user)
         } catch {
             self.error = error

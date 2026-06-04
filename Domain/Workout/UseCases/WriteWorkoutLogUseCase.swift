@@ -84,4 +84,34 @@ final class WriteWorkoutLogUseCase {
 
         try repository.insert(log)
     }
+    /// Aktualisiert den letzten Completion-Log für diesen Schedule
+    /// mit dem aktuellen Rating/Feedback/Weight vom Schedule.
+    func updateLatestLog(for schedule: VideoSchedule) throws {
+        guard let userId = schedule.user?.id else { return }
+        
+        let logs = try repository.fetchAll(userId: userId)
+        
+        // Letzten Completion-Eintrag für diesen Schedule finden
+        guard let latestLog = logs
+            .filter({ $0.scheduleId == schedule.id && $0.entryTypeEnum == .completion })
+            .last
+        else { return }
+        
+        // Feedback ableiten
+        let derivedFeedback: Double? = {
+            if let pf = schedule.progressFeedback { return pf }
+            if let mf = schedule.mobilityFeedback { return mf }
+            if let r = schedule.rating { return Double(r) / 5.0 }
+            return nil
+        }()
+        
+        let modus = WorkoutModus(rawValue: latestLog.modusRaw) ?? .standard
+        
+        // Werte aktualisieren
+        latestLog.rating = schedule.rating
+        latestLog.progressFeedback = derivedFeedback
+        latestLog.weightKg = schedule.activeWeightKg(modus: modus)
+        
+        try repository.save()
+    }
 }

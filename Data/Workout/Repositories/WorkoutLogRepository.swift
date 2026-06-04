@@ -63,6 +63,10 @@ final class WorkoutLogRepository: WorkoutLogRepositoryProtocol {
         )
         return try modelContext.fetch(descriptor)
     }
+    
+    func save() throws {
+        try modelContext.save()
+    }
 
     // MARK: - Bulk Delete (DSGVO)
 

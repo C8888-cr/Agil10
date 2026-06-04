@@ -84,4 +84,8 @@ final class ToggleScheduleCompletionUseCase {
     func saveChanges() throws {
         try repository.saveChanges()
     }
+    
+    func rewriteLog(for schedule: VideoSchedule) throws {
+        try writeWorkoutLogUseCase.updateLatestLog(for: schedule)
+    }
 }

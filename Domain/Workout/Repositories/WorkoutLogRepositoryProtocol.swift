@@ -31,6 +31,10 @@ protocol WorkoutLogRepositoryProtocol {
     /// Logs in einem Datumsbereich — für Wochen-/Monats-Statistiken.
     func fetch(from startDate: Date, to endDate: Date, userId: UUID) throws -> [WorkoutLog]
 
-    /// Löscht ALLE Logs eines Users (für Account-Löschung / Reset).
-    func deleteAll(for userId: UUID) throws
+    /// Speichert Änderungen an bestehenden Logs (z.B. nachträgliches Rating).
+        func save() throws
+
+        /// Löscht ALLE Logs eines Users (für Account-Löschung / Reset).
+        func deleteAll(for userId: UUID) throws
+    
 }
