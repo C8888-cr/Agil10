@@ -29,6 +29,7 @@ final class ToggleScheduleCompletionUseCase {
         if !schedule.isCompleted {
             // → markIncomplete-Pfad
             schedule.rating = nil
+            schedule.mobilityFeedback = nil 
             schedule.completedModusRaw = nil
             try repository.saveChanges()
 
@@ -69,6 +70,7 @@ final class ToggleScheduleCompletionUseCase {
         schedule.isCompleted = false
         schedule.completedAt = nil
         schedule.rating = nil
+        schedule.mobilityFeedback = nil
         schedule.completedModusRaw = nil
         try repository.saveChanges()
 
