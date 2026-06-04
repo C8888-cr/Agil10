@@ -141,8 +141,11 @@ struct ExercisesForDateView: View {
     }
     
     private var remainingSeconds: Int {
+        let modus = settingsVM.preferences.workoutModus
         let targetSeconds = trainingMinutesForDate * 60
-        let totalScheduled = schedulesForDate.reduce(0) { $0 + $1.totalDurationSeconds }
+        let totalScheduled = schedulesForDate.reduce(0) { sum, schedule in
+            sum + schedule.effectiveDurationSeconds(modus: modus)
+        }
         return max(0, targetSeconds - totalScheduled)
     }
 
