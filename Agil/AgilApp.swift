@@ -29,6 +29,7 @@ struct AgilApp: App {
                                 }
                 .environmentObject(dependencies.calendarViewModel)
                 .environmentObject(dependencies.progressViewModel)
+                .environmentObject(dependencies.workoutHistoryViewModel)
                 .environmentObject(dependencies.settingsViewModel)
                 .environmentObject(dependencies.profileViewModel)
                 .environmentObject(dependencies.videoLibraryVM)

@@ -33,6 +33,12 @@ struct ProgressTabView: View {
                     // 📊 Exercise Type Breakdown
                     ExerciseTypeStatsCard()
                     
+                    // 📈 Feedback-Verlauf (History)
+                    FeedbackOverviewCard()
+
+                    // 🏋️ Gewichtsverlauf
+                    WeightOverviewCard()
+                    
                     // 📅 Tägliche Aufschlüsselung
            //         DailyBreakdownCard()
                     

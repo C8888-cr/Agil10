@@ -30,7 +30,17 @@ final class WriteWorkoutLogUseCase {
         let modus = WorkoutModus(rawValue: modusRaw) ?? .standard
         let duration = schedule.effectiveDurationSeconds(modus: modus)
 
-        let log = WorkoutLog(
+                // Feedback aus mehreren Quellen ableiten:
+                // 1. explizites progressFeedback, 2. mobilityFeedback (Slider),
+                // 3. rating (Smiley 1-5) normalisiert auf 0.0-1.0.
+                let derivedFeedback: Double? = {
+                    if let pf = schedule.progressFeedback { return pf }
+                    if let mf = schedule.mobilityFeedback { return mf }
+                    if let r = schedule.rating { return Double(r) / 5.0 }
+                    return nil
+                }()
+
+                let log = WorkoutLog(
                     date: schedule.completedAt ?? Date(),
                     entryType: .completion,
                     scheduleId: schedule.id,
@@ -39,7 +49,7 @@ final class WriteWorkoutLogUseCase {
                     modusRaw: modusRaw,
                     durationSeconds: duration,
                     rating: schedule.rating,
-                    progressFeedback: schedule.progressFeedback,
+                    progressFeedback: derivedFeedback,
                     weightKg: schedule.activeWeightKg(modus: modus),
                     userId: userId
                 )

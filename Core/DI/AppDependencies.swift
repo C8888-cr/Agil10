@@ -140,6 +140,11 @@ class AppDependencies: ObservableObject {
         repository: videoScheduleRepository
     )
     
+    // MARK: - HistoryUseCases
+    lazy var fetchWorkoutLogsUseCase = FetchWorkoutLogsUseCase(
+        repository: workoutLogRepository
+    )
+    
     // MARK: - VideoUseCases
     lazy var addVideoToPlanUseCase = AddVideoToPlanUseCase(
         repository: videoScheduleRepository
@@ -191,6 +196,12 @@ class AppDependencies: ObservableObject {
         authService: authServiceProtocol
     )
     
+    
+    lazy var workoutHistoryViewModel = WorkoutHistoryViewModel(
+        session: sessionManager,
+        fetchUseCase: fetchWorkoutLogsUseCase,
+        videoRepository: videoRepository
+    )
     
     // MARK: - ViewModels
     lazy var progressViewModel = ProgressViewModel(
