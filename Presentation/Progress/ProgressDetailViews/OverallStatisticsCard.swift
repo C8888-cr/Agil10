@@ -59,30 +59,26 @@ struct OverallStatisticsCard: View {
         )
     }
     
+    // NEU
     private func averageRating() -> Double {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        
-        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: today)?.start else {
-            return 0.0
-        }
-        
-        var allRatings: [Int] = []
-        
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: today)?.start else { return 0.0 }
+
+        var normalized: [Double] = []
+
         for dayOffset in 0..<7 {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: weekStart) else { continue }
-            
-            let schedules = progressVM.schedulesFor(date: date)
-            // ✅ BESTE VARIANTE:
-            let completedSchedules = schedules.filter {
-                       $0.isCompleted && ($0.rating ?? 0) > 0
-                   }
-                   allRatings.append(contentsOf: completedSchedules.compactMap { $0.rating })
+            for schedule in progressVM.schedulesFor(date: date) where schedule.isCompleted {
+                if let rating = schedule.rating, rating > 0 {
+                    normalized.append(Double(rating) / 5.0)
+                } else if let feedback = schedule.progressFeedback ?? schedule.mobilityFeedback {
+                    normalized.append(feedback)
+                }
+            }
         }
-        
-        guard !allRatings.isEmpty else { return 0.0 }
-        
-        let sum = allRatings.reduce(0, +)
-        return Double(sum) / Double(allRatings.count)
+
+        guard !normalized.isEmpty else { return 0.0 }
+        return (normalized.reduce(0, +) / Double(normalized.count)) * 5.0
     }
 }
