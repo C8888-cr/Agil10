@@ -179,6 +179,8 @@ final class VideoPlayerViewModel: ObservableObject {
             
                 playerService.play()
                 isPlaying = true
+                UIApplication.shared.isIdleTimerDisabled = true
+                
                 
                 // Training Mode initialisieren
                 if settings.mode == .training {
@@ -615,6 +617,7 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Cleanup
     
     func cleanup() {
+        UIApplication.shared.isIdleTimerDisabled = false
         trainingCompleted = false
         controlsTimer?.invalidate()
         pauseTimer?.invalidate()
