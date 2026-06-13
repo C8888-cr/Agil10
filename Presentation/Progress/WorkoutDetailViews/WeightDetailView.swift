@@ -13,13 +13,11 @@ struct WeightDetailView: View {
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
-                // MARK: - Chart Card (fix, 1/3 Screen)
                 chartCard
                     .frame(maxHeight: geo.size.height / 3 + 40)
 
                 Divider()
 
-                // MARK: - Video Liste (scrollbar)
                 ScrollView {
                     VStack(spacing: 8) {
                         ForEach(historyVM.weightVideos) { video in
@@ -53,25 +51,20 @@ struct WeightDetailView: View {
 
     private var chartCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Videoname
             Text(selectedVideo?.title ?? "Kein Video")
                 .font(.subheadline.weight(.semibold))
                 .lineLimit(1)
 
-            // Zeitraum-Picker
             DetailTimeRangePicker(mode: $mode, offset: $offset)
 
-            // Datum-Label
             Text(mode.label(offset: offset))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
 
-            // Chart
             weightChart
                 .frame(maxHeight: 120)
 
-            // Einträge mit Pfeilen
             entriesRow
         }
         .padding(12)
@@ -110,6 +103,10 @@ struct WeightDetailView: View {
                 )
                 .foregroundStyle(themeManager.currentTheme.accentColor)
                 .symbolSize(30)
+                .opacity({
+                    let (start, end) = mode.range(offset: offset)
+                    return (point.date >= start && point.date < end) ? 1 : 0
+                }())
             }
             .chartYScale(domain: autoDomain)
             .chartXScale(domain: mode.range(offset: offset).start...mode.range(offset: offset).end)
@@ -215,10 +212,17 @@ struct WeightDetailView: View {
 
     private var filteredVideoPoints: [MetricPoint] {
         let (start, end) = mode.range(offset: offset)
-        return historyVM.videoWeightPoints.filter {
-            $0.date >= start && $0.date < end
+        let inner = historyVM.videoWeightPoints.filter { $0.date >= start && $0.date < end }
+        let pre   = historyVM.videoWeightPoints.last  { $0.date < start }
+            .map { MetricPoint(date: start, value: $0.value, count: $0.count) }
+        let post  = historyVM.videoWeightPoints.first { $0.date >= end }
+            .map { MetricPoint(date: start, value: $0.value, count: $0.count) }
+        return [pre, post].compactMap { $0 }.reduce(into: inner) { result, anchor in
+            if anchor.date < start { result.insert(anchor, at: 0) }
+            else                   { result.append(anchor) }
         }
     }
+
 
     private var autoDomain: ClosedRange<Double> {
         let values = filteredVideoPoints.map(\.value)

@@ -103,6 +103,10 @@ struct FeedbackDetailView: View {
                 )
                 .foregroundStyle(themeManager.currentTheme.accentColor)
                 .symbolSize(30)
+                .opacity({
+                    let (start, end) = mode.range(offset: offset)
+                    return (point.date >= start && point.date < end) ? 1 : 0
+                }())
             }
             .chartYScale(domain: 0...1)
             .chartXScale(domain: mode.range(offset: offset).start...mode.range(offset: offset).end)
@@ -206,10 +210,17 @@ struct FeedbackDetailView: View {
 
     // MARK: - Computed
 
+    // NEU
     private var filteredVideoPoints: [MetricPoint] {
         let (start, end) = mode.range(offset: offset)
-        return historyVM.videoFeedbackPoints.filter {
-            $0.date >= start && $0.date < end
+        let inner = historyVM.videoFeedbackPoints.filter { $0.date >= start && $0.date < end }
+        let pre   = historyVM.videoFeedbackPoints.last  { $0.date < start }
+            .map { MetricPoint(date: start, value: $0.value, count: $0.count) }
+        let post  = historyVM.videoFeedbackPoints.first { $0.date >= end }
+            .map { MetricPoint(date: end,   value: $0.value, count: $0.count) }
+        return [pre, post].compactMap { $0 }.reduce(into: inner) { result, anchor in
+            if anchor.date == start { result.insert(anchor, at: 0) }
+            else                    { result.append(anchor) }
         }
     }
 
