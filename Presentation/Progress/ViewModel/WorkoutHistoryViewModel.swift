@@ -292,8 +292,8 @@ final class WorkoutHistoryViewModel: ObservableObject {
                     guard let value = selector(log) else { return nil }
                     return WorkoutEntry(id: log.id, date: log.date, value: value)
                 }
-                .sorted { $0.date > $1.date } // neueste zuerst
-            self.entryPageIndex = 0
+                .sorted { $0.date < $1.date } 
+            self.entryPageIndex = max(0, (self.selectedVideoEntries.count - 1) / 3)
         } catch {
             self.error = error
         }
