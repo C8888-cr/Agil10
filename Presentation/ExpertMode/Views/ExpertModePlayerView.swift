@@ -99,6 +99,7 @@ struct ExpertModePlayerView: View {
                       viewModel.saveFeedbackScale(value)
                   }
               }
+              .keepScreenAwake()
               .environment(\.colorScheme, .dark)
     }
 

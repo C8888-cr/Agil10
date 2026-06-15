@@ -211,7 +211,8 @@ extension Array {
         preferences: preferences
     )
     let sessionManager = SessionManager(
-        userRepository: userRepository,
+                authService: LocalAuthService(),
+                userRepository: userRepository,
         unlockUseCase: unlockUseCase,
         preferences: preferences
     )
@@ -227,7 +228,7 @@ extension Array {
         VideoSchedule(scheduledDate: .now, orderIndex: 2, video: v3),
     ]
 
-    return PlayAllSessionView(
+     PlayAllSessionView(
         schedules: schedules,
         session: sessionManager,     // ← statt authService
         progressVM: progressVM

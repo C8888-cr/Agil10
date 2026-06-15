@@ -55,6 +55,7 @@ struct VideoPlayerView: View {
         }
         .navigationBarHidden(true)
         .statusBarHidden(viewModel.isFullscreen)
+        .keepScreenAwake()
         .onAppear {
             viewModel.loadVideo()
             viewModel.setDismissAction {
@@ -403,6 +404,8 @@ struct VideoPlayerView: View {
         }
     }
 }
+
+
 #Preview("VideoPlayerView - Training Mode") {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(
@@ -418,7 +421,8 @@ struct VideoPlayerView: View {
         preferences: preferences
     )
     let sessionManager = SessionManager(
-        userRepository: userRepository,
+                authService: LocalAuthService(),
+                userRepository: userRepository,
         unlockUseCase: unlockUseCase,
         preferences: preferences
     )
@@ -437,7 +441,7 @@ struct VideoPlayerView: View {
         rating: 4
     )
     
-    return VideoPlayerView(
+     VideoPlayerView(
         video: mockVideo,
         scheduleId: UUID(),
         session: sessionManager
