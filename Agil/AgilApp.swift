@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-import Firebase
+
 
 @main
 struct AgilApp: App {
@@ -9,10 +9,7 @@ struct AgilApp: App {
     
     @Environment(\.scenePhase) private var scenePhase
     
-    init() {
-        FirebaseApp.configure()
-    }
-    
+
     var body: some Scene {
         WindowGroup {
             RootView()

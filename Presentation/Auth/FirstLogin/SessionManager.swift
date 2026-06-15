@@ -1,5 +1,5 @@
 import Combine
-import FirebaseAuth
+import Foundation
 
 @MainActor
 final class SessionManager: ObservableObject {
@@ -7,50 +7,45 @@ final class SessionManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var requiresBiometricUnlock: Bool = false
     
-    private var authStateListener: AuthStateDidChangeListenerHandle?
+    private let authService: AuthServiceProtocol
     private let userRepository: UserRepository
     private let unlockUseCase: UnlockAppUseCase
     private let preferences: BiometricPreferences
-    
+
     // NEU: Lock-Timing
     private var backgroundedAt: Date?
-    private let lockTimeout: TimeInterval = 30 
+    private let lockTimeout: TimeInterval = 60
 
     init(
-        userRepository: UserRepository,
-        unlockUseCase: UnlockAppUseCase,
-        preferences: BiometricPreferences
-    ) {
-        self.userRepository = userRepository
-        self.unlockUseCase = unlockUseCase
-        self.preferences = preferences
-        
-        authStateListener = Auth.auth().addStateDidChangeListener { [weak self] _, firebaseUser in
-            Task { @MainActor in
-                guard let self else { return }
-                guard !self.isAuthenticated else { return }
-                
-                if let firebaseUser {
-                    self.currentUser = self.userRepository.findOrCreate(
-                        firebaseUID: firebaseUser.uid,
-                        email: firebaseUser.email ?? ""
-                    )
-                    self.isAuthenticated = true
-                    
-                    // App-Kaltstart mit aktiver Biometrie → immer sperren
-                    if self.preferences.isBiometricLoginEnabled {
-                        self.requiresBiometricUnlock = true
-                    }
-                    
-                    if let token = try? await firebaseUser.getIDToken() {
-                        KeychainHelper.save(token, forKey: "sessionToken")
-                    }
-                } else {
-                    self.clearSession()
-                }
-            }
-        }
-    }
+           authService: AuthServiceProtocol,
+           userRepository: UserRepository,
+           unlockUseCase: UnlockAppUseCase,
+           preferences: BiometricPreferences
+       ) {
+           self.authService = authService
+           self.userRepository = userRepository
+           self.unlockUseCase = unlockUseCase
+           self.preferences = preferences
+
+           restoreSession()
+       }
+
+       /// Stellt eine bestehende lokale Session beim App-Start wieder her.
+       private func restoreSession() {
+           guard let authUser = authService.currentUser else { return }
+           currentUser = userRepository.findOrCreate(
+               firebaseUID: authUser.uid,
+               email: authUser.email,
+               firstName: authUser.firstName,
+               lastName: authUser.lastName
+           )
+           isAuthenticated = true
+
+           // Kaltstart mit aktiver Biometrie → sperren
+           if preferences.isBiometricLoginEnabled {
+               requiresBiometricUnlock = true
+           }
+       }
 
     func setAuthenticatedUser(_ authUser: AuthUser) {
         self.currentUser = userRepository.findOrCreate(
@@ -65,7 +60,7 @@ final class SessionManager: ObservableObject {
     }
 
     func clearSession() {
-        KeychainHelper.delete(forKey: "sessionToken")
+      
         currentUser = nil
         isAuthenticated = false
         requiresBiometricUnlock = false

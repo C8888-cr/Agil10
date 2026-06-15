@@ -127,7 +127,7 @@ private func dropLine(visible: Bool) -> some View {
             .frame(height: 0)
     }
 }
-
+/*
 #Preview {
     PreviewWrapper()
 }
@@ -153,8 +153,9 @@ private struct PreviewWrapper: View {
             authenticator: authenticator,
             preferences: preferences
         )
-        self.sessionManager = SessionManager(
-            userRepository: userRepository,
+        let sessionManager = SessionManager(
+                    authService: LocalAuthService(),
+                    userRepository: userRepository,
             unlockUseCase: unlockUseCase,
             preferences: preferences
         )
@@ -201,3 +202,4 @@ private struct PreviewWrapper: View {
         .environmentObject(sessionManager)
     }
 }
+*/

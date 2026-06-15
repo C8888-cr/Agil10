@@ -13,7 +13,7 @@ class AppDependencies: ObservableObject {
     
     
     // MARK: - Auth
-    private lazy var authServiceProtocol: AuthServiceProtocol = FirebaseAuthService()
+    private lazy var authServiceProtocol: AuthServiceProtocol = LocalAuthService()
     private lazy var userRepository = UserRepository(modelContext: modelContext)
     
     // MARK: - Biometrie-Infrastruktur
@@ -23,7 +23,8 @@ class AppDependencies: ObservableObject {
     
     
     lazy var sessionManager = SessionManager(
-        userRepository: userRepository,
+           authService: authServiceProtocol,
+           userRepository: userRepository,
         unlockUseCase: unlockAppUseCase,
         preferences: biometricPreferences
     )

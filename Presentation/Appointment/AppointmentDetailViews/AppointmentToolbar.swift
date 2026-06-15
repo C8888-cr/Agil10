@@ -77,7 +77,8 @@ struct AppointmentToolbar: ToolbarContent {
         preferences: preferences
     )
     let sessionManager = SessionManager(
-        userRepository: userRepository,
+                authService: LocalAuthService(),
+                userRepository: userRepository,
         unlockUseCase: unlockUseCase,
         preferences: preferences
     )

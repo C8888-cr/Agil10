@@ -227,8 +227,9 @@ extension Notification.Name {
            authenticator: authenticator,
            preferences: preferences
        )
-       let sessionManager = SessionManager(
-           userRepository: userRepository,
+    let sessionManager = SessionManager(
+                authService: LocalAuthService(),
+                userRepository: userRepository,
            unlockUseCase: unlockUseCase,
            preferences: preferences
        )
