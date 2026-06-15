@@ -1,29 +1,20 @@
 //
 //  LocalAuthService.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 15.06.26.
-//
-
-
-//
-//  LocalAuthService.swift
 //  Agil
 //
 //  Lokaler, offline Auth-Service ohne Firebase/Netzwerk.
 //  Ersetzt FirebaseAuthService hinter AuthServiceProtocol.
-//  Credentials liegen gehasht in der Keychain, gerätegebunden (kein iCloud-Sync).
+//  Persistenz über den zentralen KeychainStore (gerätegebunden).
 //
 
 import Foundation
 import CryptoKit
-import Security
 
 final class LocalAuthService: AuthServiceProtocol {
 
-    // MARK: - Keychain Keys
-    private let accountKey = "de.agil.localauth.account"
-    private let sessionKey = "de.agil.localauth.session"
+    private let keychain = KeychainStore(service: "de.agil.localauth")
+    private let accountKey = "account"
+    private let sessionKey = "session"
 
     // MARK: - Stored Model
     private struct StoredAccount: Codable {
@@ -85,8 +76,8 @@ final class LocalAuthService: AuthServiceProtocol {
     }
 
     func deleteAccount() async throws {
-        deleteKeychain(key: accountKey)
-        deleteKeychain(key: sessionKey)
+        keychain.delete(account: accountKey)
+        keychain.delete(account: sessionKey)
     }
 }
 
@@ -99,66 +90,31 @@ private extension LocalAuthService {
         return Data(hasher.finalize())
     }
 
+    /// 16 zufällige Bytes aus dem CSPRNG von CryptoKit.
     static func makeSalt() -> Data {
-        var bytes = [UInt8](repeating: 0, count: 16)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        return Data(bytes)
+        SymmetricKey(size: .bits128).asData
     }
 }
 
 // MARK: - Account & Session State
 private extension LocalAuthService {
-    var isSessionActive: Bool { loadKeychain(key: sessionKey) != nil }
+    var isSessionActive: Bool {
+        keychain.exists(account: sessionKey)
+    }
 
     func setSessionActive(_ active: Bool) {
-        if active { try? saveKeychain(Data([1]), key: sessionKey) }
-        else { deleteKeychain(key: sessionKey) }
+        if active { try? keychain.save(Data([1]), account: sessionKey) }
+        else { keychain.delete(account: sessionKey) }
     }
 
     private func loadAccount() -> StoredAccount? {
-        guard let data = loadKeychain(key: accountKey) else { return nil }
+        guard let data = try? keychain.load(account: accountKey) else { return nil }
         return try? JSONDecoder().decode(StoredAccount.self, from: data)
     }
 
     private func saveAccount(_ account: StoredAccount) throws {
         let data = try JSONEncoder().encode(account)
-        try saveKeychain(data, key: accountKey)
-    }
-}
-
-// MARK: - Keychain CRUD
-private extension LocalAuthService {
-    func saveKeychain(_ data: Data, key: String) throws {
-        deleteKeychain(key: key)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else { throw LocalAuthError.keychain(status) }
-    }
-
-    func loadKeychain(key: String) -> Data? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess else { return nil }
-        return item as? Data
-    }
-
-    func deleteKeychain(key: String) {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key
-        ]
-        SecItemDelete(query as CFDictionary)
+        try keychain.save(data, account: accountKey)
     }
 }
 
@@ -167,14 +123,12 @@ enum LocalAuthError: LocalizedError {
     case noAccount
     case invalidCredentials
     case passwordResetUnavailable
-    case keychain(OSStatus)
 
     var errorDescription: String? {
         switch self {
-        case .noAccount:               return "Kein lokales Konto vorhanden. Bitte zuerst registrieren."
-        case .invalidCredentials:      return "E-Mail oder Passwort ist falsch."
+        case .noAccount:                return "Kein lokales Konto vorhanden. Bitte zuerst registrieren."
+        case .invalidCredentials:       return "E-Mail oder Passwort ist falsch."
         case .passwordResetUnavailable: return "Passwort-Reset ist offline nicht verfügbar."
-        case .keychain(let status):    return "Keychain-Fehler (\(status))."
         }
     }
 }

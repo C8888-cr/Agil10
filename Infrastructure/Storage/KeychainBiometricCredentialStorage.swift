@@ -1,109 +1,44 @@
 //
 //  KeychainBiometricCredentialStorage.swift
-//  Agil10.0
+//  Agil
 //
-//  Created by Christiane Roth on 15.05.26.
+//  Speichert Login-Credentials biometrie-geschützt für den Face-ID-Login.
+//  Nutzt jetzt den zentralen KeychainStore.
 //
-
 
 import Foundation
 import Security
 import LocalAuthentication
 
 final class KeychainBiometricCredentialStorage: BiometricCredentialStorage {
-    
-    private let service = "com.agil.biometric.credentials"
-    
+
+    private let keychain = KeychainStore(service: "com.agil.biometric.credentials")
+    private let emailAccount = "email"
+    private let passwordAccount = "password"
+
     var hasStoredCredentials: Bool {
-        let context = LAContext()
-        context.interactionNotAllowed = true  // Verhindert Face-ID-Prompt nur fürs Prüfen
-        
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: "email",
-            kSecUseAuthenticationContext as String: context
-        ]
-        let status = SecItemCopyMatching(query as CFDictionary, nil)
-        return status == errSecSuccess || status == errSecInteractionNotAllowed
+        keychain.exists(account: emailAccount)
     }
-    
+
     func save(email: String, password: String) throws {
         clear()
-        
-        guard let access = SecAccessControlCreateWithFlags(
-            nil,
-            kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
-            .biometryCurrentSet,
-            nil
-        ) else {
-            print("❌ AccessControl konnte nicht erstellt werden!")
-            throw NSError(domain: "Keychain", code: -1)
-        }
-        print("✅ AccessControl erstellt mit .biometryCurrentSet")
-        
-        try addItem(account: "email", value: email, access: access)
-        try addItem(account: "password", value: password, access: access)
-        print("✅ Credentials gespeichert mit Biometrie-Schutz")
+        try keychain.save(email, account: emailAccount, protection: .biometric)
+        try keychain.save(password, account: passwordAccount, protection: .biometric)
     }
-    
+
     func load() async throws -> (email: String, password: String) {
-        print("🔐 Keychain: Lade Credentials (sollte Face ID auslösen)")
         let context = LAContext()
         context.localizedReason = "Mit Face ID anmelden"
-        
-        let email = try loadItem(account: "email", context: context)
-        print("🔐 Keychain: Email geladen: \(email)")
-        let password = try loadItem(account: "password", context: context)
-        print("🔐 Keychain: Erfolg")
+
+        guard let email = try keychain.loadString(account: emailAccount, context: context),
+              let password = try keychain.loadString(account: passwordAccount, context: context) else {
+            throw KeychainStore.KeychainError.unexpectedStatus(errSecItemNotFound)
+        }
         return (email, password)
     }
-    
+
     func clear() {
-        for account in ["email", "password"] {
-            let query: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: service,
-                kSecAttrAccount as String: account
-            ]
-            SecItemDelete(query as CFDictionary)
-        }
-    }
-    
-    // MARK: - Private
-    
-    private func addItem(account: String, value: String, access: SecAccessControl) throws {
-        guard let data = value.data(using: .utf8) else {
-            throw NSError(domain: "Keychain", code: -2)
-        }
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecValueData as String: data,
-            kSecAttrAccessControl as String: access
-        ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw NSError(domain: "Keychain", code: Int(status))
-        }
-    }
-    
-    private func loadItem(account: String, context: LAContext) throws -> String {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecUseAuthenticationContext as String: context
-        ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess,
-              let data = result as? Data,
-              let str = String(data: data, encoding: .utf8) else {
-            throw NSError(domain: "Keychain", code: Int(status))
-        }
-        return str
+        keychain.delete(account: emailAccount)
+        keychain.delete(account: passwordAccount)
     }
 }
