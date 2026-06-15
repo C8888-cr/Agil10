@@ -40,9 +40,11 @@ final class VideoStorageService {
                 try fileManager.createDirectory(at: videoDirectory, withIntermediateDirectories: true)
             }
             if !fileManager.fileExists(atPath: thumbnailDirectory.path) {
-                try fileManager.createDirectory(at: thumbnailDirectory, withIntermediateDirectories: true)
-            }
-        } catch {
+                           try fileManager.createDirectory(at: thumbnailDirectory, withIntermediateDirectories: true)
+                       }
+                       setCompleteProtection(at: videoDirectory)
+                       setCompleteProtection(at: thumbnailDirectory)
+                   } catch {
             print("❌ Error creating directories: \(error)")
         }
     }
@@ -64,6 +66,10 @@ final class VideoStorageService {
         } catch {
             throw VideoStorageError.saveFailed("Kopieren fehlgeschlagen: \(error.localizedDescription)")
         }
+        
+        // 3a. At-rest-Schutz: nur lesbar bei entsperrtem Gerät
+               setCompleteProtection(at: destinationURL)
+
         
         // 4. Dateigröße ermitteln
         let fileSize = try getFileSize(at: destinationURL)
@@ -181,6 +187,19 @@ final class VideoStorageService {
         let timestamp = Int(Date().timeIntervalSince1970)
         return "\(timestamp)_\(uuid).\(fileExtension)"
     }
+    
+    /// Setzt Data Protection "complete": Datei ist bei gesperrtem Gerät verschlüsselt/unlesbar.
+    private func setCompleteProtection(at url: URL) {
+        do {
+            try fileManager.setAttributes(
+                [.protectionKey: FileProtectionType.complete],
+                ofItemAtPath: url.path
+            )
+        } catch {
+            print("⚠️ Data Protection nicht gesetzt für \(url.lastPathComponent): \(error)")
+        }
+    }
+
     
     private func getFileSize(at url: URL) throws -> Int64 {
         let attributes = try fileManager.attributesOfItem(atPath: url.path)
