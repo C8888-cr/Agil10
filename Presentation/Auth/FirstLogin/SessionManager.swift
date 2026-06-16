@@ -37,7 +37,8 @@ final class SessionManager: ObservableObject {
                firebaseUID: authUser.uid,
                email: authUser.email,
                firstName: authUser.firstName,
-               lastName: authUser.lastName
+               lastName: authUser.lastName,
+               praxisId: authUser.praxisId
            )
            isAuthenticated = true
 
@@ -52,7 +53,8 @@ final class SessionManager: ObservableObject {
             firebaseUID: authUser.uid,
             email: authUser.email,
             firstName: authUser.firstName,
-            lastName: authUser.lastName
+            lastName: authUser.lastName,
+            praxisId: authUser.praxisId
         )
         self.isAuthenticated = true
         self.requiresBiometricUnlock = false
