@@ -21,7 +21,7 @@
 
  ### Art 1 – Einzeltherapie-Videos (sensibel, einzigartig)
  - Aufnahme direkt auf dem **Patienten-Handy**, lokal gespeichert.
- - Verschlüsselt at-rest (NSFileProtectionComplete + App-Verschlüsselung via CryptoKit).
+ - Verschlüsselt at-rest: lokal via iOS Data Protection „complete" (Apple-blind bei gesperrtem Gerät); app-kontrollierte CryptoKit-Verschlüsselung kommt beim iCloud-Backup zum Einsatz.
  - **Nicht von der Praxis reproduzierbar** → Backup sinnvoll (siehe unten).
  - Tagesplanung (wann / wie lange) lokal.
 

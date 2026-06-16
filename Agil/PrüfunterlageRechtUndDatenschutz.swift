@@ -58,7 +58,7 @@
 
  ## 4. Technische und organisatorische Maßnahmen (Art. 32 DSGVO)
 
- - Verschlüsselung at-rest auf den Endgeräten (CryptoKit, Schlüssel in Secure Enclave / Keychain).
+ - Verschlüsselung at-rest auf den Endgeräten, zweistufig: (a) lokale Dateien (Videos, lokale Daten) über iOS Data Protection „complete" – Schlüssel an Geräte-Passcode + Secure Enclave gebunden, bei gesperrtem Gerät unlesbar, auch für Apple; (b) app-kontrollierte CryptoKit-Verschlüsselung (AES-GCM, Schlüssel in der Keychain) für das iCloud-Backup, damit der Backup-Blob auch für Apple opak ist.
  - Ende-zu-Ende-Prinzip beim KGG-Speicher (Server hält nur Chiffretext, nie Schlüssel).
  - Pseudonymisierung und Datenminimierung „by design/default" (Art. 25).
  - Keine Tracking- oder Analytics-SDKs.
@@ -95,6 +95,7 @@
  4. Welche Dokumente sind nötig: Verzeichnis von Verarbeitungstätigkeiten (Art. 30), Datenschutz-Folgenabschätzung (Art. 35, wegen Art.-9-Daten?), Datenschutzerklärung, AV-Verträge (Art. 28), Patienteneinwilligung (Art. 9 Abs. 2 lit. a)?
  5. Ist die Synchronisation der Termine in den Apple-Kalender datenschutzrechtlich so vertretbar?
  6. Bestätigung der Rollenverteilung Praxis ↔ Anbieter ↔ Apple.
+ 7. **Zu bewerten:** Genügt iOS Data Protection „complete" (hardware-/passcode-gebunden, für Apple bei gesperrtem Gerät unlesbar) als technische Maßnahme nach Art. 32 für die lokale At-rest-Verschlüsselung der Gesundheitsdaten (Art. 9)? Oder ist zusätzlich eine app-kontrollierte Verschlüsselung auch der lokalen Dateien erforderlich (nicht nur des Backups)?
 
  ---
 

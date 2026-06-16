@@ -63,11 +63,14 @@ struct PrivacyPolicyView: View {
                     section(
                         title: "Wo deine Daten gespeichert werden",
                         body: """
-                        Deine Trainingsdaten und Termine werden ausschließlich lokal auf \
-                        deinem Gerät gespeichert. Für die Anmeldung und Kontoverwaltung \
-                        nutzen wir Firebase Authentication (Google Ireland Limited). \
-                        Dabei werden lediglich deine E-Mail-Adresse und ein verschlüsseltes \
-                        Passwort übertragen.
+                        Alle deine Daten – Profil, Termine und Trainingsdaten – werden \
+                                                ausschließlich lokal auf deinem Gerät gespeichert. Es gibt keine \
+                                                zentralen Benutzerkonten und keine Server. Für die Anmeldung legst \
+                                                du ein gerätegebundenes Konto an; dein Passwort wird niemals im \
+                                                Klartext gespeichert, sondern nur als kryptografischer Hash \
+                                                (SHA‑256 mit zufälligem Salt) in der gerätegeschützten Keychain \
+                                                abgelegt. Es werden keinerlei Anmeldedaten an uns oder Dritte \
+                                                übertragen.
                         """
                     )
 
@@ -158,7 +161,7 @@ struct PrivacyPolicyView: View {
                     )
 
                     // Disclaimer
-                    Text("Hinweis: Diese Datenschutzerklärung ist ein Entwurf für die")
+                    Text("Hinweis: Diese Datenschutzerklärung ist ein Entwurf und ersetzt keine Rechtsberatung. Bitte vor Veröffentlichung von einer Datenschutz-Fachperson prüfen lassen.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .italic()
