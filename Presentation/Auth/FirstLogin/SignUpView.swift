@@ -20,8 +20,8 @@ struct SignUpView: View {
         ZStack {
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.accent.opacity(0.1),
-                    Color.accent.opacity(0.05)
+                    Color.accent.opacity(0.00),
+                    Color.accent.opacity(0.1)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing

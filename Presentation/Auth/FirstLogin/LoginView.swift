@@ -357,9 +357,9 @@ struct LoginView: View {
                                     .stroke(Color("AccentColor"), lineWidth: 2)
                             )
                         }
-                        
+             
                         // Forgot Password
-                        HStack {
+                   /*     HStack {
                             Spacer()
                             NavigationLink("Passwort vergessen?") {
                                 ForgotPasswordView { email in
@@ -370,7 +370,9 @@ struct LoginView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(Color("AccentColor"))
                         }
+                    */
                     }
+                  
                     .padding(.horizontal, 4)
                     
                     // ============ ERROR MESSAGE ============
