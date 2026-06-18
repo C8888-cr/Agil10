@@ -30,6 +30,7 @@
 /* Begin PBXFileReference section */
 		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
 		56703F402FC1695B0084B2BA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		56C1D88E2FE3C2D800D587A0 /* AgilCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AgilCore; path = ../AgilCore; sourceTree = SOURCE_ROOT; };
 		56F4C5E12ECDB52C00417181 /* Agil10.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Agil10.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -113,6 +114,7 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
+				56C1D88E2FE3C2D800D587A0 /* AgilCore */,
 				56703F402FC1695B0084B2BA /* Localizable.xcstrings */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				5636C5552F837CAB0011D0CF /* Domain */,
