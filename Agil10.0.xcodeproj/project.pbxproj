@@ -103,6 +103,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56C1D8892FE3B74900D587A0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
@@ -116,6 +123,7 @@
 				56F4C5E32ECDB52C00417181 /* Agil */,
 				56F4C5F12ECDB52D00417181 /* AgilTests */,
 				56F4C5FB2ECDB52D00417181 /* AgilUITests */,
+				56C1D8892FE3B74900D587A0 /* Frameworks */,
 				56F4C5E22ECDB52C00417181 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -527,7 +535,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y73Y989LWS;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CRoth.AgilTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -546,7 +554,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y73Y989LWS;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.CRoth.AgilTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
