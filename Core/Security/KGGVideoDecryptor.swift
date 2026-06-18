@@ -129,4 +129,15 @@ struct KGGVideoDecryptor {
 
         return Data(sealedBlock)
     }
+    /// Erzeugt einen ResourceLoader für AVPlayerItem.
+    func createResourceLoader(
+        encryptedFileURL: URL,
+        decryptionKey: SymmetricKey
+    ) throws -> KGGAssetResourceLoader {
+        return try KGGAssetResourceLoader(
+            encryptedFileURL: encryptedFileURL,
+            decryptionKey: decryptionKey,
+            decryptor: self
+        )
+    }
 }
