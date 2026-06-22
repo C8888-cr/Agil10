@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		561D4D392FE9765600099E9A /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 561D4D382FE9765600099E9A /* AgilCore */; };
 		56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 56703F402FC1695B0084B2BA /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
@@ -84,6 +85,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				561D4D392FE9765600099E9A /* AgilCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +167,7 @@
 			);
 			name = Agil10.0;
 			packageProductDependencies = (
+				561D4D382FE9765600099E9A /* AgilCore */,
 			);
 			productName = Agil;
 			productReference = 56F4C5E12ECDB52C00417181 /* Agil10.0.app */;
@@ -641,6 +644,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		561D4D382FE9765600099E9A /* AgilCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AgilCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 56F4C5D92ECDB52C00417181 /* Project object */;
 }

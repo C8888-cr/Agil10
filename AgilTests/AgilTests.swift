@@ -7,6 +7,7 @@
 import Foundation
 import Testing
 @testable import Agil10_0
+import AgilCore
 struct AgilTests {
 
     @Test func kggVideoEncryptDecryptRoundtrip() async throws {
