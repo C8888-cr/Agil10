@@ -8,6 +8,9 @@ struct AgilApp: App {
     @StateObject private var dependencies = AppDependencies.shared
     
     @Environment(\.scenePhase) private var scenePhase
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    
+    
     
     init() {
         FirebaseApp.configure()
