@@ -11,7 +11,7 @@ import Foundation
 import AVFoundation
 import CryptoKit
 
-class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate {
+public class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate, @unchecked Sendable {
     private let encryptedFileURL: URL
     private let decryptionKey: SymmetricKey
     private let decryptor: KGGVideoDecryptor
@@ -34,7 +34,7 @@ class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate {
 
     // MARK: - AVAssetResourceLoaderDelegate
 
-    func resourceLoader(
+     public func resourceLoader(
         _ resourceLoader: AVAssetResourceLoader,
         shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
     ) -> Bool {
