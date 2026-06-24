@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		561D4D392FE9765600099E9A /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 561D4D382FE9765600099E9A /* AgilCore */; };
 		56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 56703F402FC1695B0084B2BA /* Localizable.xcstrings */; };
+		56D6A3632FEBD49D00799115 /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 56D6A3622FEBD49D00799115 /* AgilCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +33,7 @@
 		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
 		56703F402FC1695B0084B2BA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		56C1D88E2FE3C2D800D587A0 /* AgilCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AgilCore; path = ../AgilCore; sourceTree = SOURCE_ROOT; };
+		56D6A3572FEBD29B00799115 /* AgilKGG.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgilKGG.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5E12ECDB52C00417181 /* Agil10.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Agil10.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -63,6 +65,11 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
+		56D6A3582FEBD29B00799115 /* AgilKGG */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AgilKGG;
+			sourceTree = "<group>";
+		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Agil;
@@ -81,6 +88,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		56D6A3542FEBD29B00799115 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56D6A3632FEBD49D00799115 /* AgilCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56F4C5DE2ECDB52C00417181 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -127,6 +142,7 @@
 				56F4C5E32ECDB52C00417181 /* Agil */,
 				56F4C5F12ECDB52D00417181 /* AgilTests */,
 				56F4C5FB2ECDB52D00417181 /* AgilUITests */,
+				56D6A3582FEBD29B00799115 /* AgilKGG */,
 				56C1D8892FE3B74900D587A0 /* Frameworks */,
 				56F4C5E22ECDB52C00417181 /* Products */,
 			);
@@ -138,6 +154,7 @@
 				56F4C5E12ECDB52C00417181 /* Agil10.0.app */,
 				56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */,
 				56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */,
+				56D6A3572FEBD29B00799115 /* AgilKGG.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -145,6 +162,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		56D6A3562FEBD29B00799115 /* AgilKGG */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56D6A35F2FEBD29B00799115 /* Build configuration list for PBXNativeTarget "AgilKGG" */;
+			buildPhases = (
+				56D6A3532FEBD29B00799115 /* Sources */,
+				56D6A3542FEBD29B00799115 /* Frameworks */,
+				56D6A3552FEBD29B00799115 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				56D6A3582FEBD29B00799115 /* AgilKGG */,
+			);
+			name = AgilKGG;
+			packageProductDependencies = (
+				56D6A3622FEBD49D00799115 /* AgilCore */,
+			);
+			productName = AgilKGG;
+			productReference = 56D6A3572FEBD29B00799115 /* AgilKGG.app */;
+			productType = "com.apple.product-type.application";
+		};
 		56F4C5E02ECDB52C00417181 /* Agil10.0 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56F4C6022ECDB52D00417181 /* Build configuration list for PBXNativeTarget "Agil10.0" */;
@@ -226,9 +266,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1630;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					56D6A3562FEBD29B00799115 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 					56F4C5E02ECDB52C00417181 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -262,11 +305,19 @@
 				56F4C5E02ECDB52C00417181 /* Agil10.0 */,
 				56F4C5ED2ECDB52D00417181 /* Agil10.0Tests */,
 				56F4C5F72ECDB52D00417181 /* Agil10.0UITests */,
+				56D6A3562FEBD29B00799115 /* AgilKGG */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		56D6A3552FEBD29B00799115 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56F4C5DF2ECDB52C00417181 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -292,6 +343,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		56D6A3532FEBD29B00799115 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		56F4C5DD2ECDB52C00417181 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -329,6 +387,72 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		56D6A3602FEBD29B00799115 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YMV844AGB3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.CRoth.AgilKGG;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		56D6A3612FEBD29B00799115 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YMV844AGB3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.CRoth.AgilKGG;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		56F4C6002ECDB52D00417181 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -607,6 +731,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		56D6A35F2FEBD29B00799115 /* Build configuration list for PBXNativeTarget "AgilKGG" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56D6A3602FEBD29B00799115 /* Debug */,
+				56D6A3612FEBD29B00799115 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		56F4C5DC2ECDB52C00417181 /* Build configuration list for PBXProject "Agil10.0" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -647,6 +780,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		561D4D382FE9765600099E9A /* AgilCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AgilCore;
+		};
+		56D6A3622FEBD49D00799115 /* AgilCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AgilCore;
 		};
