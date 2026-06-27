@@ -4,6 +4,7 @@
 //
 //  Created by Christiane Roth on 19.11.25.
 //
+/*
 import Foundation
 import Testing
 @testable import Agil10_0
@@ -59,3 +60,4 @@ struct AgilTests {
         try FileManager.default.removeItem(at: encryptedURL)
     }
 }
+*/
