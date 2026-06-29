@@ -69,6 +69,13 @@
 			);
 			target = 56F4C5E02ECDB52C00417181 /* Agil10.0 */;
 		};
+		56A63B4F2FF15FCE005FFFDC /* Exceptions for "Agil" folder in "AgilKGG" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = 56D6A3562FEBD29B00799115 /* AgilKGG */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -103,7 +110,12 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
-		56A632112FF03BCC005FFFDC /* Presentation */ = {
+		56A632152FF075DB005FFFDC /* Domain */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		56A6321F2FF07618005FFFDC /* Presentation */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Presentation;
 			sourceTree = "<group>";
@@ -138,6 +150,9 @@
 		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				56A63B4F2FF15FCE005FFFDC /* Exceptions for "Agil" folder in "AgilKGG" target */,
+			);
 			path = Agil;
 			sourceTree = "<group>";
 		};
@@ -216,10 +231,11 @@
 		56E083CD2FF01FFF00D56FD6 /* AgilCore */ = {
 			isa = PBXGroup;
 			children = (
-				56A632112FF03BCC005FFFDC /* Presentation */,
+				56A632152FF075DB005FFFDC /* Domain */,
 				56E083DA2FF0214400D56FD6 /* Tests */,
 				56E083CA2FF01FFF00D56FD6 /* Sources */,
 				56E083CB2FF01FFF00D56FD6 /* .gitignore */,
+				56A6321F2FF07618005FFFDC /* Presentation */,
 			);
 			name = AgilCore;
 			path = /Users/christianeroth/AgilCore;
@@ -300,7 +316,8 @@
 				5636C6E32F842E0D0011D0CF /* Data */,
 				5636C7222F8439230011D0CF /* Infrastructure */,
 				5636C7242F84396F0011D0CF /* Core */,
-				56A632112FF03BCC005FFFDC /* Presentation */,
+				56A632152FF075DB005FFFDC /* Domain */,
+				56A6321F2FF07618005FFFDC /* Presentation */,
 				56E083D12FF0208C00D56FD6 /* Domain */,
 				56E083D42FF020A400D56FD6 /* Security */,
 				56E083D82FF020C200D56FD6 /* Core */,

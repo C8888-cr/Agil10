@@ -1,51 +1,67 @@
 //
 //  KGGPatient.swift
-//  AgilKGG
+//  AgilCore
 //
-//  Lokales Datenmodell für einen Patienten in der Therapeuten-App.
-//  Speichert Nummer (aus TheOrg) und aktuelle Übungs-Zuordnung.
-//  Nicht identisch mit Patient-Model der Patienten-App.
+//  Patient-Model für KGG-Therapeuten-App
+//  Therapist-spezifische Daten (KEINE Auth/Login)
 //
 
 import Foundation
 import SwiftData
-import AgilCore
 
 @Model
-final class KGGPatient {
-    @Attribute(.unique) var patientNumber: String  // "Pat1", "Pat2", etc.
+public final class KGGPatient {
+    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique) public var patientNumber: String  // Pat1, Pat2, etc.
     
-    var currentAssignments: [ExerciseAssignment] = []
-    var lastModified: Date = Date()
+    // Therapist-only Info (VERTRAULICH)
+    public var diagnosis: String = ""
+    public var movementLimitation: String = ""
+    public var restrictions: String = ""
+    public var therapeutistNotes: String = ""
     
-    init(patientNumber: String) {
+    // Übungen & Daten
+    public var exercises: [KGGExercise] = []
+    public var warmupTemplate: [KGGWarmup] = []
+    public var goals: [String] = []  // ["Kraft", "Mobilität", etc.]
+    
+    // Timing
+    public var createdAt: Date
+    public var lastModified: Date
+    public var praxisId: UUID  // "praxis1", "praxis2", etc.
+    
+    public init(
+        id: UUID = UUID(),
+        patientNumber: String,
+        praxisId: UUID,
+        diagnosis: String = "",
+        movementLimitation: String = "",
+        restrictions: String = ""
+    ) {
+        self.id = id
         self.patientNumber = patientNumber
-        self.currentAssignments = []
+        self.praxisId = praxisId
+        self.diagnosis = diagnosis
+        self.movementLimitation = movementLimitation
+        self.restrictions = restrictions
+        self.createdAt = Date()
         self.lastModified = Date()
     }
     
-    /// Übung hinzufügen oder ersetzen (nach exerciseId)
-    func addOrUpdateAssignment(_ assignment: ExerciseAssignment) {
-        if let index = currentAssignments.firstIndex(where: { $0.exerciseId == assignment.exerciseId }) {
-            currentAssignments[index] = assignment
-        } else {
-            currentAssignments.append(assignment)
-        }
+    // MARK: - Helpers
+    
+    public func addExercise(_ exercise: KGGExercise) {
+        exercises.append(exercise)
         lastModified = Date()
     }
     
-    /// Übung entfernen
-    func removeAssignment(exerciseId: UUID) {
-        currentAssignments.removeAll { $0.exerciseId == exerciseId }
+    public func removeExercise(_ exerciseId: UUID) {
+        exercises.removeAll { $0.id == exerciseId }
         lastModified = Date()
     }
     
-    /// QR-Payload für aktuellen Stand
-    func generateQRPayload() -> QRPayload {
-        QRPayload(
-            version: 1,
-            issuedAt: Date(),
-            assignments: currentAssignments
-        )
+    public func addWarmup(_ warmup: KGGWarmup) {
+        warmupTemplate.append(warmup)
+        lastModified = Date()
     }
 }
