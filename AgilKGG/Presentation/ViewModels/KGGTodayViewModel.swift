@@ -1,0 +1,68 @@
+//
+//  KGGTodayViewModel.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 29.06.26.
+//
+import SwiftUI
+import Combine
+import SwiftData
+
+@MainActor
+final class KGGTodayViewModel: ObservableObject {
+    @Published var selectedPatients: [KGGPatient] = []
+    @Published var allPatients: [KGGPatient] = []
+    @Published var searchText: String = ""
+    @Published var filteredPatients: [KGGPatient] = []
+    @Published var isLoading = false
+    
+    private let modelContext: ModelContext
+    private let praxisId: UUID
+    
+    init(modelContext: ModelContext, praxisId: UUID) {
+        self.modelContext = modelContext
+        self.praxisId = praxisId
+    }
+    
+    func loadPatients() {
+           isLoading = true
+           defer { isLoading = false }
+           
+           print("DEBUG KGGTodayViewModel.loadPatients() - praxisId: \(praxisId)")  // ← Debug
+           
+           do {
+               var descriptor = FetchDescriptor<KGGPatient>()
+               descriptor.predicate = #Predicate<KGGPatient> { $0.praxisId == praxisId }
+               descriptor.sortBy = [SortDescriptor(\KGGPatient.patientNumber)]
+               allPatients = try modelContext.fetch(descriptor)
+               
+               print("DEBUG KGGTodayViewModel: Geladen \(allPatients.count) Patienten")  // ← Wie viele?
+               
+               applySearch()
+           } catch {
+               print("Fehler beim Laden: \(error)")
+           }
+       }
+    
+    
+    func applySearch() {
+        if searchText.isEmpty {
+            filteredPatients = allPatients
+        } else {
+            filteredPatients = allPatients.filter {
+                $0.patientNumber.localizedCaseInsensitiveContains(searchText) ||
+                $0.diagnosis.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
+    func addToToday(_ patient: KGGPatient) {
+        guard !selectedPatients.contains(where: { $0.id == patient.id }),
+              selectedPatients.count < 3 else { return }
+        selectedPatients.append(patient)
+    }
+    
+    func removeFromToday(_ patient: KGGPatient) {
+        selectedPatients.removeAll { $0.id == patient.id }
+    }
+}

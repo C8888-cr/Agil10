@@ -68,30 +68,7 @@ final class KGGTimelineViewModel: ObservableObject {
     }
     
     // MARK: - Add History Entry
-    
-    func addEntry(
-        action: KGGExerciseHistory.HistoryAction,
-        changes: String,
-        changedBy: String = "Therapeut",
-        notes: String? = nil
-    ) throws {
-        let entry = KGGExerciseHistory(
-            exerciseId: exerciseId,
-            patientId: patientId,
-            changedBy: changedBy,
-            action: action,
-            changes: changes,
-            notes: notes
-        )
-        
-        modelContext.insert(entry)
-        try modelContext.save()
-        
-        historyEntries.append(entry)
-        historyEntries.sort { $0.timestamp > $1.timestamp }
-        applyFilters()
-    }
-    
+ 
     // MARK: - Computed Properties
     
     var allActions: [KGGExerciseHistory.HistoryAction] {

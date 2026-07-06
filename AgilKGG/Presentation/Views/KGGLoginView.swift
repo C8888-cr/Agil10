@@ -2,8 +2,8 @@
 //  KGGLoginView.swift
 //  AgilKGG
 //
-//  Login: Praxis auswählen (nur Name) + Admin-Passwort
-//  Reset-Flow klappt inline auf. Optik an LoginView/LibraryView angelehnt.
+//  Login: Praxis auswählen (Wheel-Picker) + Admin-Passwort
+//  Reset-Flow klappt inline auf.
 //
 
 import SwiftUI
@@ -22,11 +22,9 @@ struct KGGLoginView: View {
                 .ignoresSafeArea()
 
             ScrollView {
-               
                 VStack(spacing: 24) {
                     headerView
-
-                    praxisSelectionSection
+                    praxisPickerSection
 
                     if viewModel.showResetFlow {
                         resetSection
@@ -34,10 +32,6 @@ struct KGGLoginView: View {
                         passwordSection
                         loginButton
                         forgotPasswordButton
-                    }
-
-                    if let error = viewModel.errorMessage {
-                        errorBanner(error)
                     }
                 }
                 .padding(20)
@@ -49,78 +43,46 @@ struct KGGLoginView: View {
     // MARK: - Header
 
     private var headerView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             if let image = UIImage(named: "AgilLogo") {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 140, height: 140)
-            } else {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(accent)
             }
 
-            VStack(spacing: 6) {
-                Text("agil KGG")
-                    .font(.title)
-                    .fontWeight(.bold)
-                Text("Therapeuten-App")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            Text("Therapeuten-App")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .padding(.top, 12)
     }
 
-    // MARK: - Praxis-Auswahl (nur Name)
+    // MARK: - Praxis-Auswahl (Wheel-Picker)
 
-    private var praxisSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    private var praxisPickerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Praxis")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(accent)
 
-            VStack(spacing: 8) {
+            Picker("Praxis", selection: Binding(
+                get: { viewModel.selectedPraxisId ?? viewModel.allPraxen.first?.id },
+                set: { viewModel.selectedPraxisId = $0 }
+            )) {
                 ForEach(viewModel.allPraxen) { praxis in
-                    praxisRow(praxis)
+                    Text(praxis.name).tag(Optional(praxis.id))
                 }
             }
-        }
-    }
-
-    private func praxisRow(_ praxis: KGGPraxis) -> some View {
-        let isSelected = viewModel.selectedPraxisId == praxis.id
-        return Button {
-            viewModel.selectedPraxisId = praxis.id
-            viewModel.errorMessage = nil
-        } label: {
-            HStack {
-                Text(praxis.name)
-                    .font(.body)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(accent)
-                }
-            }
-            .padding(14)
+            .pickerStyle(.wheel)
+            .frame(height: 140)
             .background(Color.white)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? accent : Color.clear, lineWidth: 2)
-            )
             .cornerRadius(12)
         }
-        .buttonStyle(.plain)
     }
 
-    // MARK: - Passwort
+    // MARK: - Passwort + Error
 
     private var passwordSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -134,8 +96,14 @@ struct KGGLoginView: View {
                 text: $viewModel.passwordInput,
                 accent: accent
             )
+
+            if let error = viewModel.errorMessage {
+                errorBanner(error)
+            }
         }
     }
+
+    // MARK: - Login Button
 
     private var loginButton: some View {
         let enabled = viewModel.selectedPraxisId != nil && !viewModel.passwordInput.isEmpty
@@ -188,62 +156,13 @@ struct KGGLoginView: View {
             }
 
             if viewModel.resetTempPassword == nil {
-                // Schritt 1: Reset-Code
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Reset-Code")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(accent)
-
-                    TextField("z.B. ResetPraxis1", text: $viewModel.resetCode)
-                        .textFieldStyle(.roundedBorder)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-
-                    Button {
-                        viewModel.validateResetCode()
-                    } label: {
-                        Text("Code prüfen")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                    }
-                    .foregroundStyle(.white)
-                    .background(viewModel.resetCode.isEmpty ? Color.gray : accent)
-                    .cornerRadius(10)
-                    .disabled(viewModel.resetCode.isEmpty || viewModel.isLoading)
-                }
+                resetStep1
             } else {
-                // Schritt 2: Neues Passwort
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Code akzeptiert. Bitte neues Passwort vergeben.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                resetStep2
+            }
 
-                    RevealSecureField(
-                        placeholder: "Neues Passwort",
-                        text: $viewModel.newPasswordInput,
-                        accent: accent
-                    )
-                    RevealSecureField(
-                        placeholder: "Passwort bestätigen",
-                        text: $viewModel.confirmPasswordInput,
-                        accent: accent
-                    )
-
-                    Button {
-                        viewModel.setNewPassword()
-                    } label: {
-                        Text("Passwort speichern")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                    }
-                    .foregroundStyle(.white)
-                    .background(accent)
-                    .cornerRadius(10)
-                    .disabled(viewModel.isLoading)
-                }
+            if let error = viewModel.errorMessage {
+                errorBanner(error)
             }
         }
         .padding(16)
@@ -251,7 +170,66 @@ struct KGGLoginView: View {
         .cornerRadius(16)
     }
 
-    // MARK: - Error
+    private var resetStep1: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Reset-Code")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(accent)
+
+            TextField("z.B. ResetPraxis1", text: $viewModel.resetCode)
+                .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+
+            Button {
+                viewModel.validateResetCode()
+            } label: {
+                Text("Code prüfen")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+            }
+            .foregroundStyle(.white)
+            .background(viewModel.resetCode.isEmpty ? Color.gray : accent)
+            .cornerRadius(10)
+            .disabled(viewModel.resetCode.isEmpty || viewModel.isLoading)
+        }
+    }
+
+    private var resetStep2: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Code akzeptiert. Bitte neues Passwort vergeben.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            RevealSecureField(
+                placeholder: "Neues Passwort",
+                text: $viewModel.newPasswordInput,
+                accent: accent
+            )
+            RevealSecureField(
+                placeholder: "Passwort bestätigen",
+                text: $viewModel.confirmPasswordInput,
+                accent: accent
+            )
+
+            Button {
+                viewModel.setNewPassword()
+            } label: {
+                Text("Passwort speichern")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+            }
+            .foregroundStyle(.white)
+            .background(accent)
+            .cornerRadius(10)
+            .disabled(viewModel.isLoading)
+        }
+    }
+
+    // MARK: - Error Banner
 
     private func errorBanner(_ message: String) -> some View {
         HStack(spacing: 10) {
@@ -263,12 +241,12 @@ struct KGGLoginView: View {
             Spacer()
         }
         .padding(12)
-        .background(accent.opacity(0.85))
+        .background(Color.red.opacity(0.8))
         .cornerRadius(10)
     }
 }
 
-// MARK: - Wiederverwendbares Passwortfeld mit Auge-Toggle
+// MARK: - RevealSecureField
 
 struct RevealSecureField: View {
     let placeholder: String

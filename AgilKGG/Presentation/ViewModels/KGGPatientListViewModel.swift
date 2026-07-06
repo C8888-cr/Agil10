@@ -38,6 +38,8 @@ final class KGGPatientListViewModel: ObservableObject {
             descriptor.sortBy = [SortDescriptor(\KGGPatient.patientNumber)]
             
             allPatients = try modelContext.fetch(descriptor)
+            print("DEBUG: Geladen \(allPatients.count) Patienten für praxisId: \(praxisId)")  // ← Wie viele?
+                   
             applySearch()
         } catch {
             errorMessage = "Patienten konnten nicht geladen werden: \(error.localizedDescription)"
@@ -62,12 +64,19 @@ final class KGGPatientListViewModel: ObservableObject {
     func addPatient(number: String) throws {
         let trimmed = number.trimmingCharacters(in: .whitespaces).uppercased()
         
+        print("DEBUG addPatient:")
+          print("  Praxis ID: \(praxisId)")  // ← Welche ID ist das?
+          print("  Patient: \(trimmed)")
+          
+        
         guard !trimmed.isEmpty else {
             throw PatientError.emptyNumber
         }
         
         guard !allPatients.contains(where: { $0.patientNumber == trimmed }) else {
+            print("Patient existiert bereits")
             throw PatientError.alreadyExists
+           
         }
         
         let newPatient = KGGPatient(

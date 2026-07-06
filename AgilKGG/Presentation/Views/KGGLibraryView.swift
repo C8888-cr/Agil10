@@ -2,8 +2,8 @@
 //  KGGLibraryView.swift
 //  AgilKGG
 //
-//  Übungsbibliothek: Suche + Kategorie-Filter (AccentColor), große Cards mit
-//  Thumbnail oben, fullscreen Anlege-Formular mit flexiblen Kategorien.
+//  Übungsbibliothek: Suche ganz oben, darunter der wiederverwendbare
+//  Filterbereich (KGGLibraryFilterView), große Cards mit Thumbnail.
 //
 
 import SwiftUI
@@ -30,7 +30,7 @@ struct KGGLibraryView: View {
 
             VStack(spacing: 0) {
                 searchBar
-                filterBar
+                KGGLibraryFilterView(viewModel: viewModel, accent: accent)
 
                 if viewModel.isLoading && viewModel.exercises.isEmpty {
                     Spacer(); ProgressView(); Spacer()
@@ -44,7 +44,7 @@ struct KGGLibraryView: View {
             if viewModel.isImporting { importOverlay }
         }
         .navigationTitle("Übungen")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -57,15 +57,10 @@ struct KGGLibraryView: View {
             }
             ToolbarItem(placement: .topBarTrailing) { KGGLogoMenu() }
         }
-        
-        /*
         .fullScreenCover(isPresented: $showAddSheet) {
             KGGAddLibraryExerciseView(viewModel: viewModel)
                 .environmentObject(themeManager)
         }
-         */
-        
-        
         .alert("Fehler", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
@@ -74,7 +69,7 @@ struct KGGLibraryView: View {
         .onAppear { viewModel.load() }
     }
 
-    // MARK: - Suchleiste
+    // MARK: - Suchleiste (ganz oben)
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -93,80 +88,6 @@ struct KGGLibraryView: View {
         .cornerRadius(10)
         .padding(.horizontal, 16)
         .padding(.top, 8)
-    }
-
-    // MARK: - Filterleiste
-
-    private var filterBar: some View {
-        VStack(spacing: 8) {
-            // Kategorie-Chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    chip(title: "Alle", isActive: viewModel.activeCategory == nil) {
-                        viewModel.setFilter(category: nil, value: nil)
-                    }
-                    ForEach(KGGCategoryType.allCases) { cat in
-                        chip(title: cat.rawValue, isActive: viewModel.activeCategory == cat) {
-                            if viewModel.activeCategory == cat {
-                                viewModel.setFilter(category: nil, value: nil)
-                            } else {
-                                viewModel.setFilter(category: cat, value: nil)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-
-            // Werte-Chips (nur wenn Kategorie aktiv)
-            if let cat = viewModel.activeCategory {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(viewModel.categoryValues(cat), id: \.self) { val in
-                            valueChip(title: val, isActive: viewModel.activeValue == val) {
-                                viewModel.setFilter(
-                                    category: cat,
-                                    value: viewModel.activeValue == val ? nil : val
-                                )
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            }
-        }
-        .padding(.vertical, 10)
-    }
-
-    private func chip(title: String, isActive: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(isActive ? accent : Color(.systemBackground))
-                .foregroundStyle(isActive ? .white : .primary)
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func valueChip(title: String, isActive: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isActive ? accent.opacity(0.15) : Color(.systemGray6))
-                .foregroundStyle(isActive ? accent : .secondary)
-                .overlay(
-                    Capsule().stroke(isActive ? accent : .clear, lineWidth: 1.5)
-                )
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Liste
@@ -219,10 +140,10 @@ struct KGGLibraryView: View {
                     .foregroundStyle(.primary)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    infoLine("Muskel", exercise.muskel, sub: exercise.muskelSub)
-                    infoLine("Gelenk", exercise.gelenk, sub: exercise.gelenkSub)
-                    infoLine("Trainingsgerät", exercise.geraet, sub: exercise.geraetSub)
-                    infoLine("Bewegung", exercise.bewegung, sub: exercise.bewegungSub)
+                    infoLine("Muskel", exercise.muskel)
+                    infoLine("Gelenk", exercise.gelenk)
+                    infoLine("Trainingsgerät", exercise.geraet)
+                    infoLine("Bewegung", exercise.bewegung)
                 }
             }
             .padding(14)
@@ -241,12 +162,12 @@ struct KGGLibraryView: View {
     }
 
     @ViewBuilder
-    private func infoLine(_ label: String, _ value: String?, sub: String?) -> some View {
+    private func infoLine(_ label: String, _ value: String?) -> some View {
         if let value, !value.isEmpty {
             HStack(spacing: 6) {
                 Text("\(label):")
                     .font(.caption).fontWeight(.semibold).foregroundStyle(.secondary)
-                Text(sub != nil && !sub!.isEmpty ? "\(value) · \(sub!)" : value)
+                Text(value)
                     .font(.caption).foregroundStyle(.primary)
             }
         }
@@ -268,6 +189,15 @@ struct KGGLibraryView: View {
                         .font(.headline).foregroundStyle(.white)
                         .padding(.horizontal, 20).padding(.vertical, 12)
                         .background(accent).cornerRadius(12)
+                }
+            } else {
+                Button {
+                    viewModel.resetFilters()
+                    viewModel.searchText = ""
+                } label: {
+                    Text("Suche & Filter zurücksetzen")
+                        .font(.subheadline).fontWeight(.semibold)
+                        .foregroundStyle(accent)
                 }
             }
             Spacer()

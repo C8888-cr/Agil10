@@ -48,6 +48,14 @@ public final class KGGLibraryRepository {
         descriptor.sortBy = [SortDescriptor(\KGGLibraryExercise.title)]
         return try modelContext.fetch(descriptor)
     }
+    
+    /// Einzelne Übung per ID (z.B. Thumbnail-Lookup für Patient-Übungen).
+        public func fetchExercise(id: UUID) throws -> KGGLibraryExercise? {
+            var descriptor = FetchDescriptor<KGGLibraryExercise>()
+            descriptor.predicate = #Predicate<KGGLibraryExercise> { $0.id == id }
+            descriptor.fetchLimit = 1
+            return try modelContext.fetch(descriptor).first
+        }
 
     // MARK: - Übung anlegen (mit Kategorien)
 
@@ -86,20 +94,25 @@ public final class KGGLibraryRepository {
 
     // MARK: - Video verschlüsselt anhängen
 
-    public func attachVideo(sourceURL: URL, to exercise: KGGLibraryExercise) throws {
-        let key = keyManager.makeEphemeralKey()
-        let keyAccount = "videokey_\(exercise.id.uuidString)"
+    public func attachVideo(sourceURL: URL, to exercise: KGGLibraryExercise) async throws {
+            let key = keyManager.makeEphemeralKey()
+            let keyAccount = "videokey_\(exercise.id.uuidString)"
 
-        let fileName = "\(exercise.id.uuidString).agkv"
-        let destURL = libraryFolder.appendingPathComponent(fileName)
-        try cryptor.encrypt(sourceURL: sourceURL, to: destURL, using: key)
+            let fileName = "\(exercise.id.uuidString).agkv"
+            let destURL = libraryFolder.appendingPathComponent(fileName)
 
-        try keychain.save(key.asData, account: keyAccount, protection: .deviceOnly)
+            // Verschlüsselung im Hintergrund — Main Thread bleibt frei, Overlay dreht sich
+            let cryptor = self.cryptor
+            try await Task.detached(priority: .userInitiated) {
+                try cryptor.encrypt(sourceURL: sourceURL, to: destURL, using: key)
+            }.value
 
-        if let thumb = Self.generateThumbnail(from: sourceURL) {
-            exercise.thumbnailData = thumb
-        }
+            try keychain.save(key.asData, account: keyAccount, protection: .deviceOnly)
 
+            if let thumb = await Self.generateThumbnail(from: sourceURL) {
+                exercise.thumbnailData = thumb
+            }
+        
         exercise.encryptedFileName = fileName
         exercise.keychainKeyAccount = keyAccount
         exercise.hasVideo = true
@@ -169,16 +182,27 @@ public final class KGGLibraryRepository {
         try modelContext.save()
         return newValue
     }
+    
+    public func deleteCategoryValue(id: UUID) throws {
+        var descriptor = FetchDescriptor<KGGCategoryValue>()
+        descriptor.predicate = #Predicate<KGGCategoryValue> { $0.id == id }
+        if let toDelete = try modelContext.fetch(descriptor).first {
+            modelContext.delete(toDelete)
+            try modelContext.save()
+        }
+    }
+    
 
     // MARK: - Thumbnail
 
-    static func generateThumbnail(from url: URL) -> Data? {
-        let asset = AVURLAsset(url: url)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: 600, height: 600)
-        let time = CMTime(seconds: 0.5, preferredTimescale: 600)
-        guard let cgImage = try? generator.copyCGImage(at: time, actualTime: nil) else { return nil }
-        return UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.7)
-    }
+    static func generateThumbnail(from url: URL) async -> Data? {
+            let asset = AVURLAsset(url: url)
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: 600, height: 600)
+            let time = CMTime(seconds: 0.5, preferredTimescale: 600)
+
+            guard let cgImage = try? await generator.image(at: time).image else { return nil }
+            return UIImage(cgImage: cgImage).jpegData(compressionQuality: 0.7)
+        }
 }

@@ -2,28 +2,34 @@
 //  KGGLibraryViewModel.swift
 //  AgilKGG
 //
-//  Übungsbibliothek: Laden, Anlegen mit Kategorien, Video verschlüsselt importieren,
-//  Suche + Kategorie-Filter, wachsende Kategorie-Werte.
+//  Single Source of Truth für Übungen, Filter und Kategorie-Werte.
+//  Filter und Anlege-Formular lesen aus demselben published Cache —
+//  neue Werte sind sofort überall sichtbar (Seeds + Praxis-eigene in einer Liste).
 //
 
 import Foundation
 import SwiftData
 import SwiftUI
-import PhotosUI
 import Combine
 import AgilCore
 
 @MainActor
 final class KGGLibraryViewModel: ObservableObject {
+
+    // MARK: - Published State
+
     @Published var exercises: [KGGLibraryExercise] = []
     @Published var isLoading = false
     @Published var isImporting = false
     @Published var errorMessage: String?
 
-    // Suche / Filter
     @Published var searchText: String = ""
-    @Published var activeCategory: KGGCategoryType?      // nil = "Alle"
-    @Published var activeValue: String?                   // gewählter Wert im Filter
+
+    /// Aktive Filter: Kategorie → gewählter Wert. Frei kombinierbar (UND-Verknüpfung).
+    @Published var activeFilters: [KGGCategoryType: String] = [:]
+
+    /// Alle Werte pro Kategorie (Seeds + Praxis-eigene, alphabetisch aus dem Repository).
+    @Published private(set) var valueCache: [KGGCategoryType: [String]] = [:]
 
     private let repository: KGGLibraryRepository
     let praxisId: UUID
@@ -31,13 +37,17 @@ final class KGGLibraryViewModel: ObservableObject {
     init(modelContext: ModelContext, praxisId: UUID) {
         self.repository = KGGLibraryRepository(modelContext: modelContext)
         self.praxisId = praxisId
+
+        seedCategoriesIfNeeded()
+        reloadCategoryValues()
     }
 
-    // MARK: - Laden
+    // MARK: - Übungen laden
 
     func load() {
         isLoading = true
         defer { isLoading = false }
+
         do {
             exercises = try repository.fetchExercises(praxisId: praxisId)
         } catch {
@@ -45,73 +55,146 @@ final class KGGLibraryViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Gefilterte Liste
+    // MARK: - Filterung
 
     var filteredExercises: [KGGLibraryExercise] {
         exercises.filter { ex in
-            // Textsuche
-            if !searchText.isEmpty {
-                let hit = ex.title.localizedCaseInsensitiveContains(searchText)
-                    || ex.subtitle.localizedCaseInsensitiveContains(searchText)
-                if !hit { return false }
+            // 1) Freitext-Suche (satzzeichen-tolerant, siehe kggSearchKey)
+            let query = searchText.kggSearchKey
+            if !query.isEmpty {
+                let haystack = [
+                    ex.title,
+                    ex.notes ?? "",
+                    ex.muskel ?? "",
+                    ex.gelenk ?? "",
+                    ex.geraet ?? "",
+                    ex.bewegung ?? "",
+                    ex.subtitle
+                ]
+                .joined(separator: " ")
+                .kggSearchKey
+
+                if !haystack.contains(query) { return false }
             }
-            // Kategorie-Filter
-            if let cat = activeCategory, let val = activeValue {
-                return value(of: ex, for: cat) == val
+
+            // 2) Kategorie-Filter (alle aktiven müssen passen)
+            for (cat, filterValue) in activeFilters {
+                guard value(of: ex, for: cat) == filterValue else { return false }
             }
+
             return true
         }
     }
 
+    /// Anzahl aktiver Filter — für das Badge im Filter-Header.
+    var activeFilterCount: Int {
+        activeFilters.count
+    }
+
     private func value(of ex: KGGLibraryExercise, for cat: KGGCategoryType) -> String? {
         switch cat {
-        case .muskel:   return ex.muskel
-        case .gelenk:   return ex.gelenk
-        case .geraet:   return ex.geraet
-        case .bewegung: return ex.bewegung
+        case .muskel: return ex.muskel
+        case .gelenk: return ex.gelenk
+        case .geraet: return ex.geraet
+        case .bewegungsrichtung: return ex.bewegung
         }
     }
 
-    func setFilter(category: KGGCategoryType?, value: String?) {
-        activeCategory = category
-        activeValue = value
+    // MARK: - Filter setzen
+
+    func setFilter(_ category: KGGCategoryType, value: String?) {
+        if let value, !value.isEmpty {
+            activeFilters[category] = value
+        } else {
+            activeFilters[category] = nil
+        }
     }
 
-    // MARK: - Kategorie-Werte (für Dropdowns + Filter)
-
-    func categoryValues(_ category: KGGCategoryType, parent: String? = nil) -> [String] {
-        (try? repository.fetchCategoryValues(category: category, praxisId: praxisId, parentValue: parent))?
-            .map { $0.value } ?? []
+    func resetFilters() {
+        activeFilters = [:]
     }
 
-    func addCategoryValue(_ category: KGGCategoryType, value: String, parent: String? = nil) {
-        let trimmed = value.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+    // MARK: - Kategorie-Werte (aus dem Cache, reaktiv)
+
+    /// Alle Werte einer Kategorie (Seeds + Praxis-eigene in einer Liste).
+    func categoryValues(_ category: KGGCategoryType) -> [String] {
+        valueCache[category] ?? []
+    }
+
+    /// Lädt die Werte aller Kategorien neu in den published Cache.
+    func reloadCategoryValues() {
         do {
-            try repository.addCategoryValue(category: category, value: trimmed, parentValue: parent, praxisId: praxisId)
+            var values: [KGGCategoryType: [String]] = [:]
+            for type in KGGCategoryType.allCases {
+                values[type] = try repository
+                    .fetchCategoryValues(category: type, praxisId: praxisId)
+                    .map(\.value)
+            }
+            valueCache = values
         } catch {
-            errorMessage = "Kategorie-Wert konnte nicht gespeichert werden"
+            errorMessage = "Kategorien konnten nicht geladen werden: \(error.localizedDescription)"
         }
     }
 
-    // MARK: - Anlegen
+    /// Legt einen neuen Wert für diese Praxis an und aktualisiert den Cache —
+    /// der Wert erscheint sofort in Filter UND Anlege-Formular.
+    func addCategoryValue(_ category: KGGCategoryType, value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
 
+        do {
+            _ = try repository.addCategoryValue(
+                category: category,
+                value: trimmed,
+                parentValue: nil,
+                praxisId: praxisId
+            )
+            reloadCategoryValues()
+        } catch {
+            errorMessage = "Kategorie-Wert konnte nicht gespeichert werden: \(error.localizedDescription)"
+        }
+    }
+
+    /// Löscht einen Praxis-eigenen Wert. Seeds sind nicht löschbar.
+    /// Hinweis: Aktuell von keinem UI aufgerufen — bleibt für eine spätere
+    /// "Kategorien verwalten"-Ansicht erhalten.
+    func deleteCustomCategoryValue(_ value: String, for category: KGGCategoryType) {
+        guard isCustomValue(value, for: category) else { return }
+
+        do {
+            let all = try repository.fetchCategoryValues(category: category, praxisId: praxisId)
+            if let toDelete = all.first(where: { $0.value == value }) {
+                try repository.deleteCategoryValue(id: toDelete.id)
+                reloadCategoryValues()
+            }
+        } catch {
+            errorMessage = "Kategorie konnte nicht gelöscht werden: \(error.localizedDescription)"
+        }
+    }
+
+    func isCustomValue(_ value: String, for category: KGGCategoryType) -> Bool {
+        !KGGCategorySeeds.values(for: category).contains(value)
+    }
+
+    // MARK: - Übung anlegen / Video / Löschen
+
+    @discardableResult
     func create(
         title: String,
-        muskel: String?, muskelSub: String?,
-        gelenk: String?, gelenkSub: String?,
-        geraet: String?, geraetSub: String?,
-        bewegung: String?, bewegungSub: String?,
+        muskel: String?,
+        gelenk: String?,
+        geraet: String?,
+        bewegung: String?,
         notes: String?
     ) -> KGGLibraryExercise? {
         do {
             let ex = try repository.createExercise(
                 title: title,
                 praxisId: praxisId,
-                muskel: muskel, muskelSub: muskelSub,
-                gelenk: gelenk, gelenkSub: gelenkSub,
-                geraet: geraet, geraetSub: geraetSub,
-                bewegung: bewegung, bewegungSub: bewegungSub,
+                muskel: muskel, muskelSub: nil,
+                gelenk: gelenk, gelenkSub: nil,
+                geraet: geraet, geraetSub: nil,
+                bewegung: bewegung, bewegungSub: nil,
                 notes: notes
             )
             load()
@@ -122,25 +205,17 @@ final class KGGLibraryViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Video importieren (verschlüsselt)
+    func attachVideo(_ sourceURL: URL, to exercise: KGGLibraryExercise) async {
+            isImporting = true
+            defer { isImporting = false }
 
-    func importVideo(from item: PhotosPickerItem, into exercise: KGGLibraryExercise) async {
-        isImporting = true
-        defer { isImporting = false }
-        do {
-            guard let movie = try await item.loadTransferable(type: VideoFile.self) else {
-                errorMessage = "Video konnte nicht geladen werden"
-                return
-            }
-            try repository.attachVideo(sourceURL: movie.url, to: exercise)
-            try? FileManager.default.removeItem(at: movie.url)
+            do {
+                try await repository.attachVideo(sourceURL: sourceURL, to: exercise)
             load()
         } catch {
-            errorMessage = "Import fehlgeschlagen: \(error.localizedDescription)"
+            errorMessage = "Video konnte nicht gespeichert werden: \(error.localizedDescription)"
         }
     }
-
-    // MARK: - Löschen
 
     func delete(_ exercise: KGGLibraryExercise) {
         do {
@@ -150,23 +225,41 @@ final class KGGLibraryViewModel: ObservableObject {
             errorMessage = "Löschen fehlgeschlagen: \(error.localizedDescription)"
         }
     }
+
+    // MARK: - Seeding (einmalig pro Praxis)
+
+    func seedCategoriesIfNeeded() {
+        for type in KGGCategoryType.allCases {
+            let existing = (try? repository.fetchCategoryValues(category: type, praxisId: praxisId)) ?? []
+            guard existing.isEmpty else { continue }
+
+            for value in KGGCategorySeeds.values(for: type) {
+                do {
+                    _ = try repository.addCategoryValue(
+                        category: type,
+                        value: value,
+                        parentValue: nil,
+                        praxisId: praxisId
+                    )
+                } catch {
+                    print("❌ Seed fehlgeschlagen [\(type.rawValue)] \(value): \(error)")
+                }
+            }
+        }
+    }
 }
 
-// MARK: - Transferable für Video aus PhotosPicker
+// MARK: - Such-Normalisierung
 
-struct VideoFile: Transferable {
-    let url: URL
-
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(contentType: .movie) { video in
-            SentTransferredFile(video.url)
-        } importing: { received in
-            let temp = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathExtension("mov")
-            try? FileManager.default.removeItem(at: temp)
-            try FileManager.default.copyItem(at: received.file, to: temp)
-            return VideoFile(url: temp)
-        }
+extension String {
+    /// Normalisiert für die Suche: diakritikfrei, klein, ß→ss,
+    /// Satzzeichen werden ignoriert ("ext." findet "ext").
+    var kggSearchKey: String {
+        folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .lowercased()
+            .replacingOccurrences(of: "ß", with: "ss")
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
     }
 }

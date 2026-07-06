@@ -20,8 +20,10 @@ import SwiftData
 public final class KGGExerciseHistory {
     @Attribute(.unique) public var id: UUID
     
-    public var exerciseId: UUID  // Welche Übung
-    public var patientId: UUID   // Von welchem Patient
+    public var exerciseId: UUID
+    public var exerciseName: String
+    public var videoId: UUID
+    public var patientId: UUID
     
     // Änderung
     public var timestamp: Date
@@ -41,6 +43,8 @@ public final class KGGExerciseHistory {
     public init(
         id: UUID = UUID(),
         exerciseId: UUID,
+        exerciseName: String,
+        videoId: UUID,
         patientId: UUID,
         changedBy: String,
         action: HistoryAction,
@@ -49,6 +53,8 @@ public final class KGGExerciseHistory {
     ) {
         self.id = id
         self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
+        self.videoId = videoId
         self.patientId = patientId
         self.timestamp = Date()
         self.changedBy = changedBy

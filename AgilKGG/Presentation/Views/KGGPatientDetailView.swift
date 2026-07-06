@@ -2,7 +2,9 @@
 //  KGGPatientDetailView.swift
 //  AgilKGG
 //
-//  Patient-Detail: Therapist-Info, Übungen, Warmup, QR-Code. Cards mit Schatten.
+//  Patient-Detail: QR-Code, Therapie-Info (kompakte Zeile → Detail-Sheet),
+//  Warmup (verwaltbar), Übungen (Thumbnails, editierbar, löschbar),
+//  Patienten-Historie. Cards mit Schatten.
 //
 
 import SwiftUI
@@ -17,9 +19,13 @@ struct KGGPatientDetailView: View {
 
     @State private var showingEditTherapistInfo = false
     @State private var showingAddExercise = false
+    @State private var showingAddWarmup = false
+    @State private var showingHistory = false
     @State private var showingQRCode = false
     @State private var qrCodeImage: UIImage?
     @State private var selectedExercise: KGGExercise?
+    @State private var exerciseToDelete: KGGExercise?
+    @State private var errorMessage: String?
 
     private var accent: Color { themeManager.currentTheme.accentColor }
 
@@ -34,12 +40,11 @@ struct KGGPatientDetailView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     qrCard
-                    therapistInfoCard
-                    if !viewModel.patient.warmupTemplate.isEmpty {
-                        warmupCard
-                    }
+                    therapistInfoRow
+                    warmupCard
                     exercisesCard
                     addExerciseButton
+                    historyRow
                 }
                 .padding(16)
             }
@@ -54,9 +59,46 @@ struct KGGPatientDetailView: View {
         .sheet(isPresented: $showingEditTherapistInfo) { editTherapistInfoSheet }
         .sheet(isPresented: $showingAddExercise) { addExerciseSheet }
         .sheet(isPresented: $showingQRCode) { qrCodeSheet }
-        .sheet(item: $selectedExercise) { exercise in
-            KGGExerciseEditorView(exercise: exercise, modelContext: modelContext, patientId: viewModel.patient.id)
-                .environmentObject(themeManager)
+        .sheet(isPresented: $showingAddWarmup) {
+            KGGAddWarmupSheet(accent: accent) { type, duration, intensity, notes in
+                do {
+                    try viewModel.addWarmup(type: type, duration: duration, intensity: intensity, notes: notes)
+                } catch {
+                    errorMessage = "Warmup konnte nicht gespeichert werden: \(error.localizedDescription)"
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showingHistory) {
+            KGGPatientHistoryView(
+                patientId: viewModel.patient.id,
+                patientNumber: viewModel.patient.patientNumber,
+                modelContext: modelContext
+            )
+            .environmentObject(themeManager)
+        }
+        .fullScreenCover(item: $selectedExercise) { exercise in
+            KGGExerciseEditorView(
+                exercise: exercise,
+                modelContext: modelContext,
+                patientId: viewModel.patient.id,
+                thumbnailData: viewModel.libraryThumbnail(for: exercise)
+            )
+            .environmentObject(themeManager)
+        }
+        .alert("Übung löschen?", isPresented: .constant(exerciseToDelete != nil), presenting: exerciseToDelete) { exercise in
+            Button("Löschen", role: .destructive) {
+                deleteExercise(exercise)
+            }
+            Button("Abbrechen", role: .cancel) {
+                exerciseToDelete = nil
+            }
+        } message: { exercise in
+            Text("'\(exercise.videoTitle)' wird beim Patienten entfernt. Der Eintrag bleibt in der Historie erhalten.")
+        }
+        .alert("Fehler", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
         }
     }
 
@@ -79,7 +121,7 @@ struct KGGPatientDetailView: View {
                     Text("QR-Code erstellen")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    Text("\(viewModel.patient.exercises.count) Übungen übertragen")
+                    Text("\(viewModel.activeExercises.count) Übungen übertragen")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -98,92 +140,82 @@ struct KGGPatientDetailView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Therapist Info
+    // MARK: - Therapie-Info (kompakte Zeile → Detail-Sheet)
 
-    private var therapistInfoCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Therapie-Info")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                Spacer()
-                Button {
-                    showingEditTherapistInfo = true
-                } label: {
-                    Image(systemName: "pencil")
-                        .foregroundStyle(accent)
-                }
-            }
+    private var therapistInfoRow: some View {
+        Button {
+            showingEditTherapistInfo = true
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "stethoscope")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .frame(width: 40, height: 40)
+                    .background(accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            VStack(alignment: .leading, spacing: 12) {
-                if viewModel.patient.diagnosis.isEmpty
-                    && viewModel.patient.movementLimitation.isEmpty
-                    && viewModel.patient.restrictions.isEmpty
-                    && viewModel.patient.therapeutistNotes.isEmpty {
-                    Text("Noch keine Angaben")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Therapie-Info")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text(therapistInfoSummary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } else {
-                    if !viewModel.patient.diagnosis.isEmpty {
-                        infoRow(label: "Diagnose", value: viewModel.patient.diagnosis)
-                    }
-                    if !viewModel.patient.movementLimitation.isEmpty {
-                        infoRow(label: "Bewegungseinschränkung", value: viewModel.patient.movementLimitation)
-                    }
-                    if !viewModel.patient.restrictions.isEmpty {
-                        infoRow(label: "⚠️ Kontraindikationen", value: viewModel.patient.restrictions, color: .red)
-                    }
-                    if !viewModel.patient.therapeutistNotes.isEmpty {
-                        infoRow(label: "Notizen", value: viewModel.patient.therapeutistNotes)
-                    }
+                        .lineLimit(1)
                 }
+
+                Spacer()
+
+                if !viewModel.patient.restrictions.isEmpty {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
+            .padding(16)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         }
-        .padding(16)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+        .buttonStyle(.plain)
     }
 
-    private func infoRow(label: String, value: String, color: Color = .primary) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption2)
-                .fontWeight(.bold)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.caption)
-                .foregroundStyle(color)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private var therapistInfoSummary: String {
+        if viewModel.patient.diagnosis.isEmpty { return "Noch keine Angaben" }
+        return viewModel.patient.diagnosis
     }
 
     // MARK: - Warmup
 
     private var warmupCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Warmup")
-                .font(.headline)
-                .fontWeight(.semibold)
+            HStack {
+                Text("Warmup")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                Spacer()
+                Button {
+                    showingAddWarmup = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(accent)
+                }
+            }
 
-            VStack(spacing: 8) {
-                ForEach(viewModel.patient.warmupTemplate) { warmup in
-                    HStack(spacing: 12) {
-                        Image(systemName: "flame.fill")
-                            .foregroundStyle(.orange)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(warmup.type)
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                            Text("\(warmup.duration) Min · \(warmup.intensity)")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
+            if viewModel.patient.warmupTemplate.isEmpty {
+                Text("Kein Warmup festgelegt")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(viewModel.patient.warmupTemplate.sorted(by: { $0.order < $1.order })) { warmup in
+                        warmupRow(warmup)
                     }
-                    .padding(10)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
                 }
             }
         }
@@ -193,7 +225,33 @@ struct KGGPatientDetailView: View {
         .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
     }
 
-    // MARK: - Exercises
+    private func warmupRow(_ warmup: KGGWarmup) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "flame.fill")
+                .foregroundStyle(.orange)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(warmup.type)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text("\(warmup.duration) Min · \(warmup.intensity)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button {
+                removeWarmup(warmup)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(10)
+        .background(Color(.systemGray6))
+        .cornerRadius(8)
+    }
+
+    // MARK: - Übungen
 
     private var exercisesCard: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -201,7 +259,7 @@ struct KGGPatientDetailView: View {
                 .font(.headline)
                 .fontWeight(.semibold)
 
-            if viewModel.patient.exercises.isEmpty {
+            if viewModel.activeExercises.isEmpty {
                 Text("Keine Übungen zugewiesen")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -209,7 +267,7 @@ struct KGGPatientDetailView: View {
                     .padding(.vertical, 8)
             } else {
                 VStack(spacing: 8) {
-                    ForEach(viewModel.patient.exercises) { exercise in
+                    ForEach(viewModel.activeExercises) { exercise in
                         exerciseRow(exercise)
                     }
                 }
@@ -225,13 +283,32 @@ struct KGGPatientDetailView: View {
         Button {
             selectedExercise = exercise
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+                // Video-Thumbnail (Lookup über videoId)
+                Group {
+                    if let data = viewModel.libraryThumbnail(for: exercise),
+                       let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        ZStack {
+                            Rectangle().fill(Color(.systemGray5))
+                            Image(systemName: "video.slash")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.videoTitle)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
-                    Text("\(exercise.reps)x\(exercise.sets) · \(Int(exercise.weight))kg")
+                    Text("\(exercise.reps)x\(exercise.sets) · \(Int(exercise.weight))kg · Pause \(exercise.pauseBetweenSets)s")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -244,6 +321,13 @@ struct KGGPatientDetailView: View {
             .cornerRadius(8)
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            Button(role: .destructive) {
+                exerciseToDelete = exercise
+            } label: {
+                Label("Löschen", systemImage: "trash")
+            }
+        }
     }
 
     private var addExerciseButton: some View {
@@ -257,6 +341,81 @@ struct KGGPatientDetailView: View {
                 .frame(height: 50)
                 .background(accent)
                 .cornerRadius(12)
+        }
+    }
+
+    // MARK: - Historie
+
+    private var historyRow: some View {
+        Button {
+            showingHistory = true
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .frame(width: 40, height: 40)
+                    .background(accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Historie")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("Alle Änderungen dieses Patienten")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(16)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Aktionen
+
+    private func deleteExercise(_ exercise: KGGExercise) {
+        do {
+            try viewModel.deactivateExercise(exercise)
+        } catch {
+            errorMessage = "Löschen fehlgeschlagen: \(error.localizedDescription)"
+        }
+        exerciseToDelete = nil
+    }
+
+    private func removeWarmup(_ warmup: KGGWarmup) {
+        do {
+            try viewModel.removeWarmup(warmup.id)
+        } catch {
+            errorMessage = "Warmup konnte nicht entfernt werden: \(error.localizedDescription)"
+        }
+    }
+
+    private func assignExercise(_ exercise: KGGLibraryExercise, reps: Int, sets: Int, weight: Double, pause: Int, tempo: String) {
+        do {
+            try viewModel.addExercise(
+                videoId: exercise.id,
+                videoTitle: exercise.title,
+                sparte: exercise.gelenk ?? "",
+                muskelgruppe: exercise.muskel ?? "",
+                equipment: exercise.geraet ?? "",
+                reps: reps,
+                sets: sets,
+                weight: weight,
+                pauseBetweenSets: pause,
+                tempo: tempo
+            )
+        } catch {
+            errorMessage = "Übung zuweisen fehlgeschlagen: \(error.localizedDescription)"
         }
     }
 
@@ -294,21 +453,13 @@ struct KGGPatientDetailView: View {
     }
 
     private var addExerciseSheet: some View {
-        NavigationStack {
-            VStack {
-                Text("Übungsauswahl folgt")
-                    .foregroundStyle(.secondary)
-                    .padding()
-                Spacer()
-            }
-            .navigationTitle("Neue Übung")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { showingAddExercise = false }
-                }
-            }
+        KGGAssignExerciseSheet(
+            modelContext: modelContext,
+            praxisId: viewModel.patient.praxisId
+        ) { exercise, reps, sets, weight, pause, tempo in
+            assignExercise(exercise, reps: reps, sets: sets, weight: weight, pause: pause, tempo: tempo)
         }
+        .environmentObject(themeManager)
     }
 
     private var qrCodeSheet: some View {
@@ -357,7 +508,7 @@ struct KGGPatientDetailView: View {
             let qrString = try viewModel.encodeQRContent()
             qrCodeImage = makeQRImage(from: qrString)
         } catch {
-            print("QR-Fehler: \(error)")
+            errorMessage = error.localizedDescription
         }
     }
 

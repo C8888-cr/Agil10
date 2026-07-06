@@ -25,6 +25,7 @@ struct AgilKGGApp: App {
                 KGGExerciseHistory.self,
                 KGGWarmup.self,
                 KGGLibraryExercise.self,
+                KGGCategoryValue.self,
                 configurations: ModelConfiguration(isStoredInMemoryOnly: false)
             )
         } catch {
