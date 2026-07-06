@@ -9,6 +9,7 @@
 
 import Foundation
 import CryptoKit
+import AgilCore
 
 final class LocalAuthService: AuthServiceProtocol {
 

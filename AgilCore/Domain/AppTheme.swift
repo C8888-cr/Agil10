@@ -1,13 +1,5 @@
 //
 //  AppTheme.swift
-//  AgilCore
-//
-//  Created by Christiane Roth on 27.06.26.
-//
-
-
-//
-//  AppTheme.swift
 //  Agil10.0
 //
 //  Created by Christiane Roth on 27.06.26.
@@ -28,7 +20,6 @@ public enum AppTheme: String, CaseIterable, Identifiable {
     
     public var id: String { rawValue }
     
-    @available(macOS 10.15, *)
     public var accentColor: Color {
         switch self {
         case .pink:   return Color("AccentColor")

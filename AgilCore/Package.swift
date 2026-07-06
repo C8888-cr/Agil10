@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "AgilCore",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v17)
     ],
     products: [
         .library(
@@ -24,15 +24,13 @@ let package = Package(
                 .unsafeFlags(["-suppress-warnings"], .when(configuration: .release))
             ]
         ),
-
+        
         // MARK: - Unit Tests
-   /*     .testTarget(
+        .testTarget(
             name: "AgilCoreTests",
             dependencies: ["AgilCore"],
-            path: "Tests/AgilCoreTests"
+            path: "Tests"
         ),
-    */
     ],
     swiftLanguageModes: [.v6]
-  
 )

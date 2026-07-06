@@ -10,6 +10,7 @@ import Foundation
 import Security
 import LocalAuthentication
 
+
 final class KeychainBiometricCredentialStorage: BiometricCredentialStorage {
 
     private let keychain = KeychainStore(service: "com.agil.biometric.credentials")

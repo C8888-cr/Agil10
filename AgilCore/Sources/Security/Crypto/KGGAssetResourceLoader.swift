@@ -1,6 +1,6 @@
 //
 //  KGGAssetResourceLoader.swift
-//  Agil10.0
+//  AgilCore
 //
 //  AVAssetResourceLoaderDelegate für sicheres Streaming-Playback
 //  von verschlüsselten KGG-Videos.
@@ -18,7 +18,7 @@ public class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate, @u
 
     private var metadata: (version: UInt8, chunkSize: Int)?
 
-    init(
+    public init(
         encryptedFileURL: URL,
         decryptionKey: SymmetricKey,
         decryptor: KGGVideoDecryptor
@@ -34,7 +34,7 @@ public class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate, @u
 
     // MARK: - AVAssetResourceLoaderDelegate
 
-     public func resourceLoader(
+    public func resourceLoader(
         _ resourceLoader: AVAssetResourceLoader,
         shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest
     ) -> Bool {
@@ -59,7 +59,7 @@ public class KGGAssetResourceLoader: NSObject, AVAssetResourceLoaderDelegate, @u
     // MARK: - Private: Range-Laden & Entschlüsseln
 
     private func loadRange(_ range: Range<Int64>) throws -> Data {
-        guard metadata != nil else {
+        guard let metadata = metadata else {
             throw KGGVideoDecryptor.DecryptorError.badHeader
         }
 
