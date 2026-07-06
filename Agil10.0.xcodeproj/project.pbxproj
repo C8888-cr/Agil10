@@ -10,8 +10,6 @@
 		5611EE852FF0285900243414 /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 56D6A3622FEBD49D00799115 /* AgilCore */; };
 		5611F16E2FF02AFD00243414 /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5611F16D2FF02AFD00243414 /* AgilCore */; };
 		56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 56703F402FC1695B0084B2BA /* Localizable.xcstrings */; };
-		56E083CF2FF01FFF00D56FD6 /* AgilCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E083C82FF01FFF00D56FD6 /* AgilCore.swift */; };
-		56E083D02FF01FFF00D56FD6 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 56E083CB2FF01FFF00D56FD6 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,21 +33,12 @@
 		561844D92F4D980F009032CE /* Agil10-0-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Agil10-0-Info.plist"; sourceTree = "<group>"; };
 		56703F402FC1695B0084B2BA /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		56D6A3572FEBD29B00799115 /* AgilKGG.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgilKGG.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		56E083C82FF01FFF00D56FD6 /* AgilCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgilCore.swift; sourceTree = "<group>"; };
-		56E083CB2FF01FFF00D56FD6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		56F4C5E12ECDB52C00417181 /* Agil10.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Agil10.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5EE2ECDB52D00417181 /* Agil10.0Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F4C5F82ECDB52D00417181 /* Agil10.0UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Agil10.0UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		565673772FF024200081D9A7 /* Exceptions for "Security" folder in "Agil10.0" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Crypto/CryptoService.swift,
-			);
-			target = 56F4C5E02ECDB52C00417181 /* Agil10.0 */;
-		};
 		565673782FF024490081D9A7 /* Exceptions for "Core" folder in "Agil10.0" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -110,42 +99,9 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
-		56A632152FF075DB005FFFDC /* Domain */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Domain;
-			sourceTree = "<group>";
-		};
-		56A6321F2FF07618005FFFDC /* Presentation */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Presentation;
-			sourceTree = "<group>";
-		};
 		56D6A3582FEBD29B00799115 /* AgilKGG */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = AgilKGG;
-			sourceTree = "<group>";
-		};
-		56E083D12FF0208C00D56FD6 /* Domain */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Domain;
-			sourceTree = "<group>";
-		};
-		56E083D42FF020A400D56FD6 /* Security */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				565673772FF024200081D9A7 /* Exceptions for "Security" folder in "Agil10.0" target */,
-			);
-			path = Security;
-			sourceTree = "<group>";
-		};
-		56E083D82FF020C200D56FD6 /* Core */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Core;
-			sourceTree = "<group>";
-		};
-		56E083DA2FF0214400D56FD6 /* Tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Tests;
 			sourceTree = "<group>";
 		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
@@ -209,42 +165,9 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		56E083C92FF01FFF00D56FD6 /* AgilCore */ = {
-			isa = PBXGroup;
-			children = (
-				56E083C82FF01FFF00D56FD6 /* AgilCore.swift */,
-			);
-			path = AgilCore;
-			sourceTree = "<group>";
-		};
-		56E083CA2FF01FFF00D56FD6 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				56E083D82FF020C200D56FD6 /* Core */,
-				56E083D42FF020A400D56FD6 /* Security */,
-				56E083D12FF0208C00D56FD6 /* Domain */,
-				56E083C92FF01FFF00D56FD6 /* AgilCore */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
-		56E083CD2FF01FFF00D56FD6 /* AgilCore */ = {
-			isa = PBXGroup;
-			children = (
-				56A632152FF075DB005FFFDC /* Domain */,
-				56E083DA2FF0214400D56FD6 /* Tests */,
-				56E083CA2FF01FFF00D56FD6 /* Sources */,
-				56E083CB2FF01FFF00D56FD6 /* .gitignore */,
-				56A6321F2FF07618005FFFDC /* Presentation */,
-			);
-			name = AgilCore;
-			path = /Users/christianeroth/AgilCore;
-			sourceTree = "<absolute>";
-		};
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
-				56E083CD2FF01FFF00D56FD6 /* AgilCore */,
 				56703F402FC1695B0084B2BA /* Localizable.xcstrings */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				5636C5552F837CAB0011D0CF /* Domain */,
@@ -316,12 +239,6 @@
 				5636C6E32F842E0D0011D0CF /* Data */,
 				5636C7222F8439230011D0CF /* Infrastructure */,
 				5636C7242F84396F0011D0CF /* Core */,
-				56A632152FF075DB005FFFDC /* Domain */,
-				56A6321F2FF07618005FFFDC /* Presentation */,
-				56E083D12FF0208C00D56FD6 /* Domain */,
-				56E083D42FF020A400D56FD6 /* Security */,
-				56E083D82FF020C200D56FD6 /* Core */,
-				56E083DA2FF0214400D56FD6 /* Tests */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 			);
 			name = Agil10.0;
@@ -442,7 +359,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56E083D02FF01FFF00D56FD6 /* .gitignore in Resources */,
 				56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -475,7 +391,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56E083CF2FF01FFF00D56FD6 /* AgilCore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

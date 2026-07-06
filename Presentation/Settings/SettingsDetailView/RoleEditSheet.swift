@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftData
+import AgilCore
+
 struct RoleEditSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext

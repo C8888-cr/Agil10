@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import AgilCore
 
 struct WeightDetailView: View {
     @EnvironmentObject var historyVM: WorkoutHistoryViewModel

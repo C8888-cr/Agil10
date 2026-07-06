@@ -2,7 +2,7 @@
 
 import Foundation
 import Combine
-//import AgilCore
+import AgilCore//import AgilCore
 
 @MainActor
 final class QRGeneratorViewModel: ObservableObject {

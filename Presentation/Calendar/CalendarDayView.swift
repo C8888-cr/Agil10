@@ -8,6 +8,8 @@
 
 import SwiftUI
 import SwiftData
+import AgilCore
+
 
 struct CalendarDayView: View {
     @EnvironmentObject var session: SessionManager

@@ -9,6 +9,7 @@
 import Foundation
 import Security
 import LocalAuthentication
+import AgilCore
 
 final class KeychainBiometricCredentialStorage: BiometricCredentialStorage {
 

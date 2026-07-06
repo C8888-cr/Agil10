@@ -1,5 +1,6 @@
 
 import SwiftUI
+import AgilCore
 
 struct FeedbackScaleSheet: View {
 

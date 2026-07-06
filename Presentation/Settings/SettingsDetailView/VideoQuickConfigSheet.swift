@@ -6,6 +6,7 @@
 
 import SwiftUI
 import SwiftData
+import AgilCore
 
 struct VideoQuickConfigSheet: View {
     let video: Video

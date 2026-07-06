@@ -124,6 +124,7 @@ struct EmailImportView: View {
 
 import SwiftUI
 import SwiftData
+import AgilCore
 
 struct EmailImportView: View {
     @EnvironmentObject var themeManager: ThemeManager

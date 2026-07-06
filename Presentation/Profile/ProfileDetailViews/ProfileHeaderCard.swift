@@ -8,6 +8,7 @@ import SwiftUI
 import SwiftData
 import MapKit
 import UserNotifications
+import AgilCore
 
 struct ProfileHeaderCard: View {
     let user: User

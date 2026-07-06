@@ -15,6 +15,7 @@
 //
 
 import SwiftUI
+import AgilCore
 
 struct WeightOverviewCard: View {
     @EnvironmentObject var historyVM: WorkoutHistoryViewModel

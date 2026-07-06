@@ -13,6 +13,7 @@
 //  Ohne Verhalten – wiederverwendbar in Cards und Listen.
 
 import SwiftUI
+import AgilCore
 
 struct AppointmentBody: View {
     let appointment: Appointment

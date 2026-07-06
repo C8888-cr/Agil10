@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import MapKit
 import UserNotifications
+import AgilCore
 
 struct ProfileView: View {
     

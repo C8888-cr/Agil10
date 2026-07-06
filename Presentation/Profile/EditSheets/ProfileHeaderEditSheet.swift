@@ -7,7 +7,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
-
+import AgilCore
 
 
 // MARK: - ProfileHeaderEditSheet

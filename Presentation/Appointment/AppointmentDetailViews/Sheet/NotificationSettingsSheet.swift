@@ -9,6 +9,7 @@
 // NotificationSettingsSheet.swift
 import SwiftUI
 import UserNotifications
+import AgilCore
 
 struct NotificationSettingsSheet: View {
     @EnvironmentObject var settingsVM: SettingsViewModel

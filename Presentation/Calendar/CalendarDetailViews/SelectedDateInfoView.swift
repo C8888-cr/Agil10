@@ -8,6 +8,9 @@
 //  Verwendet von: CalendarView
 
 import SwiftUI
+import AgilCore
+
+
 struct SelectedDateInfoView: View {
     // MARK: - Properties
     let selectedDate: Date
