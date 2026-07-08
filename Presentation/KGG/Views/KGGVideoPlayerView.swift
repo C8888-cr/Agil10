@@ -11,6 +11,7 @@
 import SwiftUI
 import AVKit
 import CryptoKit
+import AgilCore
 
 struct KGGVideoPlayerView: View {
     @StateObject private var viewModel: KGGVideoPlayerViewModel

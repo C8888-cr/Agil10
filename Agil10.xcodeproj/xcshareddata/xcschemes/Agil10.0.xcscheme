@@ -18,7 +18,7 @@
                BlueprintIdentifier = "56F4C5E02ECDB52C00417181"
                BuildableName = "Agil10.0.app"
                BlueprintName = "Agil10.0"
-               ReferencedContainer = "container:Agil10.0.xcodeproj">
+               ReferencedContainer = "container:Agil10.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -38,7 +38,7 @@
                BlueprintIdentifier = "56F4C5ED2ECDB52D00417181"
                BuildableName = "Agil10.0Tests.xctest"
                BlueprintName = "Agil10.0Tests"
-               ReferencedContainer = "container:Agil10.0.xcodeproj">
+               ReferencedContainer = "container:Agil10.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -49,7 +49,7 @@
                BlueprintIdentifier = "56F4C5F72ECDB52D00417181"
                BuildableName = "Agil10.0UITests.xctest"
                BlueprintName = "Agil10.0UITests"
-               ReferencedContainer = "container:Agil10.0.xcodeproj">
+               ReferencedContainer = "container:Agil10.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -73,7 +73,7 @@
             BlueprintIdentifier = "56F4C5E02ECDB52C00417181"
             BuildableName = "Agil10.0.app"
             BlueprintName = "Agil10.0"
-            ReferencedContainer = "container:Agil10.0.xcodeproj">
+            ReferencedContainer = "container:Agil10.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -90,7 +90,7 @@
             BlueprintIdentifier = "56F4C5E02ECDB52C00417181"
             BuildableName = "Agil10.0.app"
             BlueprintName = "Agil10.0"
-            ReferencedContainer = "container:Agil10.0.xcodeproj">
+            ReferencedContainer = "container:Agil10.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
