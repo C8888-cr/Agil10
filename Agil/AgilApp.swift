@@ -1,6 +1,6 @@
 import SwiftUI
 import SwiftData
-
+import AgilCore
 
 @main
 struct AgilApp: App {

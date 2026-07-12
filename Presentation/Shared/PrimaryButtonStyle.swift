@@ -7,6 +7,8 @@
 
 
 import SwiftUI
+import AgilCore
+
 
 struct PrimaryButtonStyle: ButtonStyle {
     @EnvironmentObject var themeManager: ThemeManager

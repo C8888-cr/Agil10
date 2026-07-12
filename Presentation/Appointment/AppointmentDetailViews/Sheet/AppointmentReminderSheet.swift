@@ -10,6 +10,8 @@
 import SwiftUI
 import UserNotifications
 import SwiftData
+import AgilCore
+
 
 enum AppointmentReminderOption: String, CaseIterable {
     case morgens = "Morgens um 8:00 Uhr"

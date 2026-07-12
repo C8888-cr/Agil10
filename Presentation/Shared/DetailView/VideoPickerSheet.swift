@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import AgilCore
+
 
 struct VideoPickerSheet: View {
     @EnvironmentObject var viewModel: VideoLibraryViewModel

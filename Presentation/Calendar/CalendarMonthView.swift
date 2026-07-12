@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import AgilCore
 
 struct CalendarMonthView: View {
     @Namespace private var namespace

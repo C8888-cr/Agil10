@@ -7,7 +7,7 @@
 
 import SwiftUI
 import SwiftData
-
+import AgilCore
 
 struct CompactWeekView: View {
 @EnvironmentObject var appointmentViewModel: AppointmentViewModel

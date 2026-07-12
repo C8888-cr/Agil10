@@ -14,6 +14,8 @@
 //
 
 import SwiftUI
+import AgilCore
+
 
 struct PrivacyPolicyView: View {
     @Environment(\.dismiss) private var dismiss

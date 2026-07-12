@@ -10,6 +10,8 @@ import AVFoundation
 import Combine
 import AVKit
 import UIKit
+import AgilCore
+
 
 // MARK: - Orientation Observer
 

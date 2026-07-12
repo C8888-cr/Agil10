@@ -1,35 +1,10 @@
 //
 //  ThemeManager.swift
-//  Agil10
-//
-//  Created by Christiane Roth on 07.07.26.
-//
-
-
-//
-//  ThemeManager.swift
-//  Agil10
-//
-//  Created by Christiane Roth on 07.07.26.
-//
-
-
-//
-//  ThemeManager.swift
-//  Agil10.0
-//
-//  Created by Christiane Roth on 06.07.26.
-//
-
-
-
-//
-//  ThemeManager.swift
 //  Agil10.0
 //
 //  Created by Christiane Roth on 04.05.26.
 //
-
+/*
 import SwiftUI
 import Combine
 
@@ -48,3 +23,4 @@ public class ThemeManager: ObservableObject {
     }
 }
 
+*/

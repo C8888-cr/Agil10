@@ -1,5 +1,7 @@
 
 import SwiftUI
+import AgilCore
+
 struct CircularProgressView: View {
     let progress: Double
     let lineWidth: CGFloat

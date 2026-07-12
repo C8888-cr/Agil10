@@ -6,7 +6,7 @@
 //
 import SwiftUI
 import SwiftData
-
+import AgilCore
 
 struct DailyBreakdownRow: View {
     let dayName: String

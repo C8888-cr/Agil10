@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
-
+import AgilCore
 
 struct ExercisesForDateView: View {
     

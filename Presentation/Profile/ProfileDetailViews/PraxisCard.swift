@@ -8,6 +8,8 @@ import SwiftUI
 import SwiftData
 import MapKit
 import UserNotifications
+import AgilCore
+
 
 struct PraxisCard: View {
     @Bindable var user: User 

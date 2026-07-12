@@ -8,7 +8,7 @@
 
 import SwiftUI
 import SwiftData
-
+import AgilCore
 
 struct EmailEditSheet: View {
     @Environment(\.dismiss) var dismiss

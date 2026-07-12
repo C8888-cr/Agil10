@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+import AgilCore
+
+
 struct CompactDayCell: View {
     // MARK: - Properties
     let date: Date

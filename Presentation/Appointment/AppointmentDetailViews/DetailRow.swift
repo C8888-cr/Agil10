@@ -15,7 +15,11 @@
 
 // Features/Appointments/Presentation/Views/Components/DetailRow.swift
 import SwiftUI
-import SwiftData 
+import SwiftData
+import AgilCore
+
+
+
 struct DetailRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     

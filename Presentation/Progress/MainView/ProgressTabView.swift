@@ -6,7 +6,7 @@
 //
 import SwiftUI
 import SwiftData
-
+import AgilCore
 
 struct ProgressTabView: View {
     @EnvironmentObject var progressVM: ProgressViewModel

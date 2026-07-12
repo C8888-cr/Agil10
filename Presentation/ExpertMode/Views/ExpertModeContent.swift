@@ -427,6 +427,8 @@ struct ExpertModeContent: View {
 //
 
 import SwiftUI
+import AgilCore
+
 
 struct ExpertModeContent: View {
     @ObservedObject var viewModel: ExpertModeViewModel

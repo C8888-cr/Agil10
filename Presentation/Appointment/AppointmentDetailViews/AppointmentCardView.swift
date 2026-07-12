@@ -1,6 +1,8 @@
 
 import SwiftUI
 import SwiftData
+import AgilCore
+
 
 // MARK: - AppointmentCardView mit Maps-Integration
 struct AppointmentCardView: View {

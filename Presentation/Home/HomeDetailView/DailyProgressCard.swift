@@ -3,6 +3,8 @@
 
 import SwiftUI
 import SwiftData
+import AgilCore
+
 
 struct DailyProgressCard: View {
     @Environment(\.modelContext) private var modelContext

@@ -15,6 +15,8 @@
 //
 
 import SwiftUI
+import AgilCore
+
 
 struct WeekStripView: View {
 
