@@ -60,9 +60,17 @@ struct KGGPatientDetailView: View {
         .sheet(isPresented: $showingAddExercise) { addExerciseSheet }
         .sheet(isPresented: $showingQRCode) { qrCodeSheet }
         .sheet(isPresented: $showingAddWarmup) {
-            KGGAddWarmupSheet(accent: accent) { type, duration, intensity, notes in
+            KGGAddWarmupSheet(accent: accent) { type, duration, level, seatLevel, speedKmh, weight, notes in
                 do {
-                    try viewModel.addWarmup(type: type, duration: duration, intensity: intensity, notes: notes)
+                    try viewModel.addWarmup(
+                        type: type,
+                        duration: duration,
+                        level: level,
+                        speedKmh: speedKmh,
+                        seatLevel: seatLevel,
+                        weight: weight,
+                        notes: notes
+                    )
                 } catch {
                     errorMessage = "Warmup konnte nicht gespeichert werden: \(error.localizedDescription)"
                 }
@@ -147,13 +155,7 @@ struct KGGPatientDetailView: View {
             showingEditTherapistInfo = true
         } label: {
             HStack(spacing: 16) {
-                Image(systemName: "stethoscope")
-                    .font(.title3)
-                    .foregroundStyle(accent)
-                    .frame(width: 40, height: 40)
-                    .background(accent.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-
+               
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Therapie-Info")
                         .font(.headline)
@@ -227,16 +229,15 @@ struct KGGPatientDetailView: View {
 
     private func warmupRow(_ warmup: KGGWarmup) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "flame.fill")
-                .foregroundStyle(.orange)
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(warmup.type)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                Text("\(warmup.duration) Min · \(warmup.intensity)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+                         Text(warmup.type)
+                             .font(.caption)
+                             .fontWeight(.semibold)
+                         Text(warmup.displayText)
+                             .font(.caption2)
+                             .foregroundStyle(.secondary)
+                     }
             Spacer()
             Button {
                 removeWarmup(warmup)
@@ -351,12 +352,6 @@ struct KGGPatientDetailView: View {
             showingHistory = true
         } label: {
             HStack(spacing: 16) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.title3)
-                    .foregroundStyle(accent)
-                    .frame(width: 40, height: 40)
-                    .background(accent.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Historie")

@@ -24,6 +24,11 @@ public final class KGGListViewModel: ObservableObject {
     @Published public var visibilityState: KGGExerciseVisibilityManager.VisibilityState = .noKGG {
         didSet { updateDisplay() }
     }
+    // Direkt bei den anderen @Published-Properties ergänzen:
+        @Published public private(set) var showAssignmentConfirmation: Bool = false
+        @Published public private(set) var assignmentConfirmationMessage: String = ""
+        
+        private var confirmationDismissTask: Task<Void, Never>?
     
     // MARK: - Dependencies
     
@@ -55,46 +60,69 @@ public final class KGGListViewModel: ObservableObject {
     /// - Neue Übungen werden hinzugefügt
     /// - Geänderte Übungen werden aktualisiert
     /// - Gelöschte Übungen werden gelöscht
-    public func handleQRCodeScanned(_ qrString: String) {
-        Task {
-            do {
-                isLoading = true
-                error = nil
-                
-                // 1. Dekodiere QR-String zu QRPayload
-                let payload = try decoderService.decodeQRString(qrString)
-                
-                // 2. Validiere Frische (max 24h alt)
-                guard decoderService.isPayloadFresh(payload) else {
-                    error = "QR-Code zu alt (>24h). Bitte neuen QR scannen."
-                    isLoading = false
-                    return
-                }
-                
-                // 3. Lade bestehende Übungen
-                let existingExercises = try await repository.fetchAll()
-                let newAssignments = payload.assignments
-                
-                // 4. Smart Update + Base64→Decrypt→Save Videos
-                try await performSmartUpdateWithVideos(
-                    existing: existingExercises,
-                    new: newAssignments,
-                    issuedAt: payload.issuedAt
-                )
-                
-                // 5. Starte Visibility-Timer
-                visibilityManager.startSession()
-                
-                // 6. Lade aktualisierte Liste
-                await loadExercisesAsync()
-                isLoading = false
-                
-            } catch {
-                self.error = error.localizedDescription
-                isLoading = false
+    /// Erkennt zuerst den QR-Typ (Start-Trigger vs. Übungs-Zuweisung) und
+        /// verzweigt entsprechend. Bewusst KEIN Try-Catch-Raten zwischen zwei
+        /// Formaten — der Start-QR hat ein eigenes, sofort erkennbares Präfix.
+        public func handleQRCodeScanned(_ qrString: String) {
+            if KGGStartSessionCoder.isStartSessionQR(qrString) {
+                handleStartSessionQR(qrString)
+            } else {
+                handleAssignmentQR(qrString)
             }
         }
-    }
+        
+        /// Schaltet NUR die 60-Minuten-Sichtbarkeit frei. Rührt keine
+        /// Übungsdaten an.
+        private func handleStartSessionQR(_ qrString: String) {
+            do {
+                let token = try KGGStartSessionCoder.decode(qrString)
+                guard visibilityManager.consumeStartToken(token) else {
+                    error = "Dieser QR-Code wurde bereits verwendet. Bitte einen neuen Start-QR scannen lassen."
+                    return
+                }
+                error = nil
+            } catch {
+                self.error = "Start-QR konnte nicht gelesen werden."
+            }
+        }
+        
+        /// Synchronisiert nur Metadaten (Name, Gewicht, Stufe, Tempo, Notizen).
+        /// Schaltet NICHT die 60-Minuten-Sichtbarkeit frei — das übernimmt
+        /// ausschließlich der separate Start-QR.
+        private func handleAssignmentQR(_ qrString: String) {
+            Task {
+                do {
+                    isLoading = true
+                    error = nil
+                    
+                    let payload = try decoderService.decodeQRString(qrString)
+                    
+                    guard decoderService.isPayloadFresh(payload) else {
+                        error = "QR-Code zu alt (>24h). Bitte neuen QR scannen."
+                        isLoading = false
+                        return
+                    }
+                    
+                    let existingExercises = try await repository.fetchAll()
+                    let newAssignments = payload.assignments
+                    
+                    try await performSmartUpdateWithVideos(
+                        existing: existingExercises,
+                        new: newAssignments,
+                        issuedAt: payload.issuedAt
+                    )
+                    
+                    await loadExercisesAsync()
+                    showBriefAssignmentConfirmation(count: newAssignments.count)
+                    isLoading = false
+                    
+                } catch {
+                    self.error = error.localizedDescription
+                    isLoading = false
+                }
+            }
+        }
+    
     
     /// Lädt aktuelle (sichtbare) Übungen
     public func loadExercises() {
@@ -102,6 +130,22 @@ public final class KGGListViewModel: ObservableObject {
             await loadExercisesAsync()
         }
     }
+    
+    // Neue private Methode, z.B. im Bereich "Private: Loading":
+        private func showBriefAssignmentConfirmation(count: Int) {
+            confirmationDismissTask?.cancel()
+            assignmentConfirmationMessage = count == 1
+                ? "1 Übung aktualisiert"
+                : "\(count) Übungen aktualisiert"
+            showAssignmentConfirmation = true
+            confirmationDismissTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 60_000_000_000) // 60 Sek.
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    self?.showAssignmentConfirmation = false
+                }
+            }
+        }
     
     /// Markiert Übung als completed
     public func completeExercise(_ exerciseId: UUID) {

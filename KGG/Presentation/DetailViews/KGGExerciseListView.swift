@@ -17,10 +17,6 @@ struct KGGExerciseListView: View {
     @State private var showScanner = false
     @State private var selectedExercise: KGGScannedExercise?
 
-    /// Steuert, ob im Player das Trainingsvideo angezeigt wird.
-    /// Single Source of Truth für die Video-Sichtbarkeit im KGG-Modus.
-    @State private var isVideoVisibleInPlayer: Bool = true
-
     private let repository: KGGExerciseRepository
 
     init(repository: KGGExerciseRepository) {
@@ -33,63 +29,66 @@ struct KGGExerciseListView: View {
             Color(.systemGroupedBackground).ignoresSafeArea()
 
             VStack(spacing: 16) {
-                // Header mit Video-Schalter + QR-Button
-                HStack {
-                    Text("KGG")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.primary)
-
-                    Spacer()
-
-                    Toggle(isOn: $isVideoVisibleInPlayer) {
-                        Image(systemName: isVideoVisibleInPlayer ? "video.fill" : "video.slash.fill")
-                    }
-                    .toggleStyle(.button)
-                    .accessibilityLabel(isVideoVisibleInPlayer ? "Video im Training ausblenden" : "Video im Training einblenden")
-
-                    Button {
-                        showScanner = true
-                    } label: {
-                        Image(systemName: "qrcode")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.accentColor)
-                            .clipShape(Circle())
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-
+             
                 // Content
                 contentView
-
-                Spacer()
             }
 
             if let error = viewModel.error {
-                errorBanner(error)
-            }
-        }
+                            errorBanner(error)
+                        }
+                        
+                        if viewModel.showAssignmentConfirmation {
+                            assignmentConfirmationBanner
+                        }
+                    }
         .sheet(isPresented: $showScanner) {
             QRScannerView { qrString in
                 viewModel.handleQRCodeScanned(qrString)
             }
         }
-        .fullScreenCover(item: $selectedExercise) { exercise in
-            if let video = createVideoForExercise(exercise) {
-                KGGExercisePlayerView(
-                    exercise: exercise,
-                    video: video,
-                    isVideoVisible: isVideoVisibleInPlayer,
-                    repository: repository,
-                    onComplete: {
-                        selectedExercise = nil
-                        viewModel.completeExercise(exercise.id)
+        .navigationTitle("")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showScanner = true
+                        } label: {
+                            Image(systemName: "qrcode")
+                                .resizable()
+                                .scaledToFit()
+                                .padding(6)
+                                .foregroundStyle(.white)
+                                .frame(width: 32, height: 32)
+                                .background(Color.accentColor)
+                                .clipShape(Circle())
+                        }
                     }
-                )
-            }
-        }
+                }
+                .sheet(isPresented: $showScanner) {
+                    QRScannerView { qrString in
+                        viewModel.handleQRCodeScanned(qrString)
+                    }
+                }
+        
+        
+        
+        .fullScreenCover(item: $selectedExercise) { exercise in
+                    if let video = createVideoForExercise(exercise) {
+                        KGGExercisePlayerView(
+                            exercise: exercise,
+                            video: video,
+                            // Video läuft nur noch im Intro (KGGExercisePlayerView.introVideoOverlay).
+                            // Während der Pille wird es nie angezeigt — fest deaktiviert.
+                            isVideoVisible: false,
+                            repository: repository,
+                            onComplete: {
+                                selectedExercise = nil
+                                viewModel.completeExercise(exercise.id)
+                            }
+                        )
+                    }
+                }
         .onAppear {
             viewModel.visibilityManager.checkExistingSession()
         }
@@ -148,6 +147,28 @@ struct KGGExerciseListView: View {
         .padding(40)
         .frame(maxHeight: .infinity, alignment: .center)
     }
+
+    private var assignmentConfirmationBanner: some View {
+            VStack {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                    Text(viewModel.assignmentConfirmationMessage)
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                }
+                .padding(12)
+                .background(Color.green.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(16)
+
+                Spacer()
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.25), value: viewModel.showAssignmentConfirmation)
+        }
 
     private var exercisesList: some View {
         VStack(spacing: 12) {

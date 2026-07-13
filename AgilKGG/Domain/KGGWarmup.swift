@@ -23,8 +23,12 @@ public final class KGGWarmup {
     public var patientId: UUID
     public var type: String  // "Fahrrad", "Laufband", etc. (WarmupType.rawValue)
     public var duration: Int  // Minuten
-    public var intensity: String  // "Widerstand Level 3" oder "4 km/h"
-    public var notes: String?
+   
+       public var level: Int?         // Stufe, z.B. Fahrrad-Widerstand, Beinpresse
+       public var speedKmh: Double?   // Geschwindigkeit, z.B. Laufband (3,5 etc.)
+       public var seatLevel: Int?     // Sitzhöhe als Stufe
+       public var weight: Double?     // Gewicht, falls Gerät das braucht
+       public var notes: String?
     public var order: Int = 0  // Reihenfolge
     
     public init(
@@ -32,22 +36,34 @@ public final class KGGWarmup {
         patientId: UUID,
         type: String,
         duration: Int,
-        intensity: String,
-        notes: String? = nil,
-        order: Int = 0
-    ) {
-        self.id = id
-        self.patientId = patientId
-        self.type = type
-        self.duration = duration
-        self.intensity = intensity
-        self.notes = notes
-        self.order = order
-    }
-    
+       
+              level: Int? = nil,
+              speedKmh: Double? = nil,
+              seatLevel: Int? = nil,
+              weight: Double? = nil,
+              notes: String? = nil,
+              order: Int = 0
+          ) {
+              self.id = id
+              self.patientId = patientId
+              self.type = type
+              self.duration = duration
+           
+              self.level = level
+              self.speedKmh = speedKmh
+              self.seatLevel = seatLevel
+              self.weight = weight
+              self.notes = notes
+              self.order = order
+          }
     // MARK: - Helpers
     
     public var displayText: String {
-        "\(type) - \(duration) Min - \(intensity)"
-    }
+           var parts = ["\(type)", "\(duration) Min"]
+           if let level { parts.append("Stufe \(level)") }
+           if let seatLevel { parts.append("Sitzhöhe \(seatLevel)") }
+           if let speedKmh { parts.append("\(speedKmh) km/h") }
+           if let weight { parts.append("\(weight) kg") }
+           return parts.joined(separator: " - ")
+       }
 }

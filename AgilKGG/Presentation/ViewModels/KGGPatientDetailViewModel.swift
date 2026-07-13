@@ -174,20 +174,28 @@ final class KGGPatientDetailViewModel: ObservableObject {
     // MARK: - Warmup Management
 
     func addWarmup(
-        type: String,
-        duration: Int,
-        intensity: String,
-        notes: String? = nil
-    ) throws {
-        let warmup = KGGWarmup(
-            patientId: patient.id,
-            type: type,
-            duration: duration,
-            intensity: intensity,
-            notes: notes,
-            order: patient.warmupTemplate.count
-        )
-
+           type: String,
+           duration: Int,
+           level: Int? = nil,
+           speedKmh: Double? = nil,
+           seatLevel: Int? = nil,
+           
+           weight: Double? = nil,
+           notes: String? = nil
+       ) throws {
+           let warmup = KGGWarmup(
+               patientId: patient.id,
+               type: type,
+               duration: duration,
+               level: level,
+               speedKmh: speedKmh,
+               seatLevel: seatLevel,
+            
+               weight: weight,
+               notes: notes,
+               order: patient.warmupTemplate.count
+           )
+           
         patient.addWarmup(warmup)
         try modelContext.save()
         objectWillChange.send()

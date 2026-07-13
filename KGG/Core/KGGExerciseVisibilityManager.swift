@@ -10,6 +10,7 @@
 
 import Foundation
 import Combine
+import AgilCore
 
 @MainActor
 public final class KGGExerciseVisibilityManager: ObservableObject {
@@ -43,10 +44,24 @@ public final class KGGExerciseVisibilityManager: ObservableObject {
     }
     
     public func markCompleted() {
-        timer?.invalidate()
-        timer = nil
-        state = .completed
-    }
+            timer?.invalidate()
+            timer = nil
+            state = .completed
+        }
+        
+        /// Verarbeitet einen gescannten Start-Token. Gibt `false` zurück, wenn
+        /// dieser Token bereits einmal verwendet wurde (abfotografierter/alter
+        /// QR) — dann wird NICHT freigeschaltet.
+        public func consumeStartToken(_ token: KGGStartSessionToken) -> Bool {
+            let key = "KGGLastStartTokenId"
+            let lastId = UserDefaults.standard.string(forKey: key)
+            guard lastId != token.id.uuidString else {
+                return false
+            }
+            UserDefaults.standard.set(token.id.uuidString, forKey: key)
+            startSession()
+            return true
+        }
     
     public func reset() {
         timer?.invalidate()
