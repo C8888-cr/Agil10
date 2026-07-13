@@ -2,7 +2,7 @@
 //  KGGExerciseEditorViewModel.swift
 //  AgilKGG
 //
-//  Übung editieren: Reps, Sätze, Gewicht, Pause, Tempo.
+//  Übung editieren: Reps, Sätze, Gewicht, Pause, Tempo, Stufe, Sitzhöhe, Notizen.
 //  Typisierte Werte (statt Strings) — passt direkt an das gemeinsame
 //  KGGExerciseParameterForm. Änderungen werden in der History protokolliert.
 //
@@ -21,6 +21,9 @@ final class KGGExerciseEditorViewModel: ObservableObject {
     @Published var weight: Double
     @Published var pause: Int
     @Published var tempo: String
+    @Published var level: Int?
+    @Published var seatLevel: Int?
+    @Published var notes: String?
 
     @Published var isSaving = false
     @Published var errorMessage: String?
@@ -38,6 +41,9 @@ final class KGGExerciseEditorViewModel: ObservableObject {
         self.weight = exercise.weight
         self.pause = exercise.pauseBetweenSets
         self.tempo = exercise.tempo
+        self.level = exercise.level
+        self.seatLevel = exercise.seatLevel
+        self.notes = exercise.notes
     }
 
     // MARK: - Validation
@@ -65,6 +71,9 @@ final class KGGExerciseEditorViewModel: ObservableObject {
         if weight != exercise.weight { changes.append("Gewicht: \(exercise.weight.formatted())→\(weight.formatted())kg") }
         if pause != exercise.pauseBetweenSets { changes.append("Pause: \(exercise.pauseBetweenSets)→\(pause)s") }
         if tempo != exercise.tempo { changes.append("Tempo: \(exercise.tempo)→\(tempo)") }
+        if level != exercise.level { changes.append("Stufe: \(exercise.level.map(String.init) ?? "-")→\(level.map(String.init) ?? "-")") }
+        if seatLevel != exercise.seatLevel { changes.append("Sitzhöhe: \(exercise.seatLevel.map(String.init) ?? "-")→\(seatLevel.map(String.init) ?? "-")") }
+        if notes != exercise.notes { changes.append("Notizen geändert") }
 
         exercise.updateParams(
             reps: reps,
@@ -74,6 +83,14 @@ final class KGGExerciseEditorViewModel: ObservableObject {
             tempo: tempo,
             rangeOfMotion: nil   // ROM bleibt unverändert (nicht mehr im UI)
         )
+
+        // level/seatLevel/notes direkt setzen (nicht über updateParams' "nur bei
+        // != nil"-Logik, weil hier auch das bewusste Zurücksetzen auf nil
+        // ein gültiger Zustand ist, z.B. wenn eine Stufe wieder entfernt wird).
+        exercise.level = level
+        exercise.seatLevel = seatLevel
+        exercise.notes = notes
+        exercise.lastModified = Date()
 
         if !changes.isEmpty {
             let history = KGGExerciseHistory(

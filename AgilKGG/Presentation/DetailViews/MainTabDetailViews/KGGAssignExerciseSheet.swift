@@ -25,7 +25,10 @@ struct KGGAssignExerciseSheet: View {
         _ sets: Int,
         _ weight: Double,
         _ pause: Int,
-        _ tempo: String
+        _ tempo: String,
+        _ level: Int?,
+        _ seatLevel: Int?,
+        _ notes: String?
     ) -> Void
 
     // Standardwerte für Mehrfachauswahl (identisch zu den KGGExercise-Defaults)
@@ -49,7 +52,10 @@ struct KGGAssignExerciseSheet: View {
             _ sets: Int,
             _ weight: Double,
             _ pause: Int,
-            _ tempo: String
+            _ tempo: String,
+            _ level: Int?,
+            _ seatLevel: Int?,
+            _ notes: String?
         ) -> Void
     ) {
         _libraryViewModel = StateObject(wrappedValue: KGGLibraryViewModel(modelContext: modelContext, praxisId: praxisId))
@@ -85,8 +91,8 @@ struct KGGAssignExerciseSheet: View {
                 }
             }
             .fullScreenCover(item: $exerciseForParams) { exercise in
-                KGGAssignParamsSheet(exercise: exercise, accent: accent) { reps, sets, weight, pause, tempo in
-                    onAssign(exercise, reps, sets, weight, pause, tempo)
+                KGGAssignParamsSheet(exercise: exercise, accent: accent) { reps, sets, weight, pause, tempo, level, seatLevel, notes in
+                    onAssign(exercise, reps, sets, weight, pause, tempo, level, seatLevel, notes)
                     dismiss()
                 }
                 .environmentObject(themeManager)
@@ -133,7 +139,6 @@ struct KGGAssignExerciseSheet: View {
         let isSelected = multiSelection.contains(exercise.id)
 
         return HStack(spacing: 12) {
-            // Thumbnail
             Group {
                 if let data = exercise.thumbnailData, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
@@ -150,7 +155,6 @@ struct KGGAssignExerciseSheet: View {
             .frame(width: 56, height: 56)
             .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            // Titel + Kategorien
             VStack(alignment: .leading, spacing: 4) {
                 Text(exercise.title)
                     .font(.subheadline)
@@ -167,7 +171,6 @@ struct KGGAssignExerciseSheet: View {
 
             Spacer()
 
-            // Auswahlkreis (Mehrfachauswahl)
             Button {
                 toggleSelection(exercise)
             } label: {
@@ -187,7 +190,6 @@ struct KGGAssignExerciseSheet: View {
         .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
         .contentShape(Rectangle())
         .onTapGesture {
-            // Card antippen → Einzelzuweisung mit Parameter-Eingabe
             exerciseForParams = exercise
         }
     }
@@ -222,7 +224,7 @@ struct KGGAssignExerciseSheet: View {
     private func assignSelected() {
         let selected = libraryViewModel.exercises.filter { multiSelection.contains($0.id) }
         for exercise in selected {
-            onAssign(exercise, defaultReps, defaultSets, defaultWeight, defaultPause, defaultTempo)
+            onAssign(exercise, defaultReps, defaultSets, defaultWeight, defaultPause, defaultTempo, nil, nil, nil)
         }
         dismiss()
     }
@@ -262,7 +264,16 @@ struct KGGAssignExerciseSheet: View {
 private struct KGGAssignParamsSheet: View {
     let exercise: KGGLibraryExercise
     let accent: Color
-    let onConfirm: (_ reps: Int, _ sets: Int, _ weight: Double, _ pause: Int, _ tempo: String) -> Void
+    let onConfirm: (
+        _ reps: Int,
+        _ sets: Int,
+        _ weight: Double,
+        _ pause: Int,
+        _ tempo: String,
+        _ level: Int?,
+        _ seatLevel: Int?,
+        _ notes: String?
+    ) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
@@ -271,6 +282,21 @@ private struct KGGAssignParamsSheet: View {
     @State private var weight = 0.0
     @State private var pause = 60
     @State private var tempo = "2-0-2"
+    @State private var level: Int?
+    @State private var seatLevel: Int?
+    @State private var notes: String?
+
+    init(exercise: KGGLibraryExercise, accent: Color, onConfirm: @escaping (
+        _ reps: Int, _ sets: Int, _ weight: Double, _ pause: Int, _ tempo: String,
+        _ level: Int?, _ seatLevel: Int?, _ notes: String?
+    ) -> Void) {
+        self.exercise = exercise
+        self.accent = accent
+        self.onConfirm = onConfirm
+        _level = State(initialValue: nil)
+        _seatLevel = State(initialValue: nil)
+        _notes = State(initialValue: nil)
+    }
 
     var body: some View {
         NavigationStack {
@@ -283,9 +309,12 @@ private struct KGGAssignParamsSheet: View {
                 sets: $sets,
                 weight: $weight,
                 pause: $pause,
-                tempo: $tempo
+                tempo: $tempo,
+                level: $level,
+                seatLevel: $seatLevel,
+                notes: $notes
             ) {
-                onConfirm(reps, sets, weight, pause, tempo)
+                onConfirm(reps, sets, weight, pause, tempo, level, seatLevel, notes)
             }
             .navigationTitle("Parameter")
             .navigationBarTitleDisplayMode(.inline)

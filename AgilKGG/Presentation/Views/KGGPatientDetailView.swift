@@ -455,7 +455,7 @@ struct KGGPatientDetailView: View {
         }
     }
 
-    private func assignExercise(_ exercise: KGGLibraryExercise, reps: Int, sets: Int, weight: Double, pause: Int, tempo: String) {
+    private func assignExercise(_ exercise: KGGLibraryExercise, reps: Int, sets: Int, weight: Double, pause: Int, tempo: String, level: Int?, seatLevel: Int?, notes: String?) {
         do {
             try viewModel.addExercise(
                 videoId: exercise.id,
@@ -467,7 +467,10 @@ struct KGGPatientDetailView: View {
                 sets: sets,
                 weight: weight,
                 pauseBetweenSets: pause,
-                tempo: tempo
+                tempo: tempo,
+                level: level,
+                seatLevel: seatLevel,
+                notes: notes
             )
         } catch {
             errorMessage = "Übung zuweisen fehlgeschlagen: \(error.localizedDescription)"
@@ -509,11 +512,11 @@ struct KGGPatientDetailView: View {
 
     private var addExerciseSheet: some View {
         KGGAssignExerciseSheet(
-            modelContext: modelContext,
-            praxisId: viewModel.patient.praxisId
-        ) { exercise, reps, sets, weight, pause, tempo in
-            assignExercise(exercise, reps: reps, sets: sets, weight: weight, pause: pause, tempo: tempo)
-        }
+             modelContext: modelContext,
+             praxisId: viewModel.patient.praxisId
+         ) { exercise, reps, sets, weight, pause, tempo, level, seatLevel, notes in
+             assignExercise(exercise, reps: reps, sets: sets, weight: weight, pause: pause, tempo: tempo, level: level, seatLevel: seatLevel, notes: notes)
+         }
         .environmentObject(themeManager)
     }
 

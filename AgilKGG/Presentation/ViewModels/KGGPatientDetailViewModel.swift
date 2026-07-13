@@ -105,31 +105,38 @@ final class KGGPatientDetailViewModel: ObservableObject {
     // MARK: - Exercise Management
 
     func addExercise(
-        videoId: UUID,
-        videoTitle: String,
-        sparte: String,
-        muskelgruppe: String,
-        equipment: String,
-        reps: Int = 10,
-        sets: Int = 3,
-        weight: Double = 0.0,
-        pauseBetweenSets: Int = 60,
-        tempo: String = "2-0-2"
-    ) throws {
-        let exercise = KGGExercise(
-            videoId: videoId,
-            videoTitle: videoTitle,
-            sparte: sparte,
-            muskelgruppe: muskelgruppe,
-            equipment: equipment,
-            patientId: patient.id,
-            reps: reps,
-            sets: sets,
-            weight: weight,
-            pauseBetweenSets: pauseBetweenSets,
-            tempo: tempo
-        )
-
+          videoId: UUID,
+          videoTitle: String,
+          sparte: String,
+          muskelgruppe: String,
+          equipment: String,
+          reps: Int = 10,
+          sets: Int = 3,
+          weight: Double = 0.0,
+          pauseBetweenSets: Int = 60,
+          tempo: String = "2-0-2",
+          level: Int? = nil,
+          seatLevel: Int? = nil,
+          notes: String? = nil
+      ) throws {
+          let exercise = KGGExercise(
+              videoId: videoId,
+              videoTitle: videoTitle,
+              sparte: sparte,
+              muskelgruppe: muskelgruppe,
+              equipment: equipment,
+              patientId: patient.id,
+              reps: reps,
+              sets: sets,
+              weight: weight,
+              pauseBetweenSets: pauseBetweenSets,
+              tempo: tempo,
+              level: level,
+              seatLevel: seatLevel,
+              notes: notes
+          )
+          
+          
         patient.addExercise(exercise)
         logHistory(
             exerciseId: exercise.id,

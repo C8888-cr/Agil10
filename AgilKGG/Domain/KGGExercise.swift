@@ -13,6 +13,7 @@ public final class KGGExercise {
     
     // Video-Referenz
     public var videoId: UUID  // Referenz zu Video in Library
+    public var notes: String?
     public var videoTitle: String
     public var videoUrl: URL?
     
@@ -62,7 +63,8 @@ public final class KGGExercise {
         tempo: String = "2-0-2",
         rangeOfMotion: String = "Full ROM",
         level: Int? = nil,
-        seatLevel: Int? = nil
+        seatLevel: Int? = nil,
+        notes: String? = nil
     ) {
         self.id = id
         self.videoId = videoId
@@ -79,6 +81,7 @@ public final class KGGExercise {
         self.rangeOfMotion = rangeOfMotion
         self.level = level
         self.seatLevel = seatLevel
+        self.notes = notes
         self.assignedAt = Date()
         self.lastModified = Date()
     }
@@ -93,7 +96,8 @@ public final class KGGExercise {
         tempo: String? = nil,
         rangeOfMotion: String? = nil,
         level: Int? = nil,
-        seatLevel: Int? = nil
+        seatLevel: Int? = nil,
+        notes: String? = nil
     ) {
         if let reps { self.reps = reps }
         if let sets { self.sets = sets }
@@ -103,6 +107,7 @@ public final class KGGExercise {
         if let rangeOfMotion { self.rangeOfMotion = rangeOfMotion }
         if let level { self.level = level }
         if let seatLevel { self.seatLevel = seatLevel }
+        if let notes { self.notes = notes }
         self.lastModified = Date()
     }
     
