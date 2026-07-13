@@ -25,8 +25,11 @@ public struct KGGScannedExercise: Identifiable {
     public let holdSec: Int
     public let eccentricSec: Int
     public let restBetweenSetsSec: Int
-    
-    public let scannedAt: Date
+        public let level: Int?
+        public let seatLevel: Int?
+        public let notes: String?
+        
+        public let scannedAt: Date
     public let expiresAt: Date
     
     public let isCompleted: Bool
@@ -70,8 +73,11 @@ public struct KGGScannedExercise: Identifiable {
         concentricSec: Int,
         holdSec: Int,
         eccentricSec: Int,
-        restBetweenSetsSec: Int,
-        scannedAt: Date = Date(),
+               restBetweenSetsSec: Int,
+               level: Int? = nil,
+               seatLevel: Int? = nil,
+               notes: String? = nil,
+               scannedAt: Date = Date(),
         expiresAt: Date,
         isCompleted: Bool = false,
         completedAt: Date? = nil
@@ -87,10 +93,15 @@ public struct KGGScannedExercise: Identifiable {
         self.concentricSec = concentricSec
         self.holdSec = holdSec
         self.eccentricSec = eccentricSec
+        
         self.restBetweenSetsSec = restBetweenSetsSec
-        self.scannedAt = scannedAt
-        self.expiresAt = expiresAt
+               self.level = level
+               self.seatLevel = seatLevel
+               self.notes = notes
+               self.scannedAt = scannedAt
+        
         self.isCompleted = isCompleted
         self.completedAt = completedAt
+        self.expiresAt = expiresAt
     }
 }

@@ -65,7 +65,6 @@ final class KGGPatientDetailViewModel: ObservableObject {
     }
 
     // MARK: - Generate QR
-
     func generateQRCode() throws -> QRPayload {
         // Übungen zu ExerciseAssignment konvertieren
         let assignments = patient.exercises.filter { $0.isActive }.map { exercise in
@@ -77,24 +76,42 @@ final class KGGPatientDetailViewModel: ObservableObject {
                 weight: exercise.weight,
                 pauseBetweenSets: exercise.pauseBetweenSets,
                 tempo: exercise.tempo,
-                videoKey: Data(),           // Placeholder – später aus Keychain
-                encryptedVideoBase64: ""    // TODO: echtes verschlüsseltes Video als Base64
+                level: exercise.level,
+                seatLevel: exercise.seatLevel,
+                notes: exercise.notes
             )
         }
         guard !assignments.isEmpty else {
             throw QRError.noExercises
         }
 
+        // Warmup zu WarmupAssignment konvertieren
+        let warmups = patient.warmupTemplate.sorted(by: { $0.order < $1.order }).map { warmup in
+            WarmupAssignment(
+                id: warmup.id,
+                type: warmup.type,
+                duration: warmup.duration,
+                level: warmup.level,
+                seatLevel: warmup.seatLevel,
+                speedKmh: warmup.speedKmh,
+                weight: warmup.weight,
+                notes: warmup.notes,
+                order: warmup.order
+            )
+        }
+
         let payload = QRPayload(
             version: 1,
             issuedAt: Date(),
-            assignments: assignments
+            assignments: assignments,
+            warmups: warmups
         )
 
         self.qrPayload = payload
         return payload
     }
-
+    
+    
     func encodeQRContent() throws -> String {
         guard let payload = qrPayload else {
             throw QRError.noPayload

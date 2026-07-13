@@ -26,8 +26,11 @@ final class KGGScannedExerciseModel {
     var holdSec: Int
     var eccentricSec: Int
     var restBetweenSetsSec: Int
-    
-    var scannedAt: Date
+       var level: Int?
+       var seatLevel: Int?
+       var notes: String?
+       
+       var scannedAt: Date
     var expiresAt: Date
     
     var isCompleted: Bool = false
@@ -45,8 +48,11 @@ final class KGGScannedExerciseModel {
         concentricSec: Int,
         holdSec: Int,
         eccentricSec: Int,
-        restBetweenSetsSec: Int,
-        scannedAt: Date = Date(),
+              restBetweenSetsSec: Int,
+              level: Int? = nil,
+              seatLevel: Int? = nil,
+              notes: String? = nil,
+              scannedAt: Date = Date(),
         expiresAt: Date,
         isCompleted: Bool = false,
         completedAt: Date? = nil
@@ -63,7 +69,10 @@ final class KGGScannedExerciseModel {
         self.holdSec = holdSec
         self.eccentricSec = eccentricSec
         self.restBetweenSetsSec = restBetweenSetsSec
-        self.scannedAt = scannedAt
+             self.level = level
+             self.seatLevel = seatLevel
+             self.notes = notes
+             self.scannedAt = scannedAt
         self.expiresAt = expiresAt
         self.isCompleted = isCompleted
         self.completedAt = completedAt
@@ -83,7 +92,10 @@ final class KGGScannedExerciseModel {
             holdSec: holdSec,
             eccentricSec: eccentricSec,
             restBetweenSetsSec: restBetweenSetsSec,
-            scannedAt: scannedAt,
+                      level: level,
+                      seatLevel: seatLevel,
+                      notes: notes,
+                      scannedAt: scannedAt,
             expiresAt: expiresAt,
             isCompleted: isCompleted,
             completedAt: completedAt
@@ -106,7 +118,10 @@ extension KGGScannedExerciseModel {
             holdSec: entity.holdSec,
             eccentricSec: entity.eccentricSec,
             restBetweenSetsSec: entity.restBetweenSetsSec,
-            scannedAt: entity.scannedAt,
+             level: entity.level,
+             seatLevel: entity.seatLevel,
+             notes: entity.notes,
+             scannedAt: entity.scannedAt,
             expiresAt: entity.expiresAt,
             isCompleted: entity.isCompleted,
             completedAt: entity.completedAt

@@ -23,7 +23,8 @@ class PersistenceController: ObservableObject {
             VideoSchedule.self,
             TempoProtocol.self,
             WorkoutLog.self,
-            KGGScannedExerciseModel.self
+            KGGScannedExerciseModel.self,
+            KGGScannedWarmupModel.self
          //   Exercise.self
         ])
         

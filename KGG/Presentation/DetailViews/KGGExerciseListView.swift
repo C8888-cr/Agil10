@@ -19,10 +19,10 @@ struct KGGExerciseListView: View {
 
     private let repository: KGGExerciseRepository
 
-    init(repository: KGGExerciseRepository) {
-        self.repository = repository
-        _viewModel = StateObject(wrappedValue: KGGListViewModel(repository: repository))
-    }
+    init(repository: KGGExerciseRepository, warmupRepository: KGGWarmupRepository) {
+          self.repository = repository
+          _viewModel = StateObject(wrappedValue: KGGListViewModel(repository: repository, warmupRepository: warmupRepository))
+      }
 
     var body: some View {
         ZStack {
@@ -101,15 +101,19 @@ struct KGGExerciseListView: View {
             noKGGPlaceholder
 
         case .visible:
-            if viewModel.isLoading {
-                ProgressView()
-                    .frame(maxHeight: .infinity, alignment: .center)
-            } else if viewModel.visibleExercises.isEmpty {
-                emptyState
-            } else {
-                exercisesList
-            }
-
+                   if viewModel.isLoading {
+                       ProgressView()
+                           .frame(maxHeight: .infinity, alignment: .center)
+                   } else if viewModel.visibleExercises.isEmpty && viewModel.visibleWarmups.isEmpty {
+                       emptyState
+                   } else {
+                       VStack(spacing: 12) {
+                           if !viewModel.visibleWarmups.isEmpty {
+                               warmupSection
+                           }
+                           exercisesList
+                       }
+                   }
         case .completed:
             KGGCompletionView()
         }
@@ -203,6 +207,38 @@ struct KGGExerciseListView: View {
             }
         }
     }
+    
+    private var warmupSection: some View {
+          VStack(alignment: .leading, spacing: 8) {
+              Text("Aufwärmen")
+                  .font(.caption.weight(.medium))
+                  .foregroundStyle(.secondary)
+                  .padding(.horizontal, 16)
+
+              VStack(spacing: 8) {
+                  ForEach(viewModel.visibleWarmups) { warmup in
+                      warmupRow(warmup)
+                  }
+              }
+              .padding(.horizontal, 16)
+          }
+      }
+
+      private func warmupRow(_ warmup: KGGScannedWarmup) -> some View {
+          VStack(alignment: .leading, spacing: 4) {
+              Text(warmup.type)
+                  .font(.subheadline.weight(.semibold))
+                  .foregroundStyle(.primary)
+              Text(warmup.displayText)
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+          }
+          .padding(12)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .background(Color(.systemBackground))
+          .clipShape(RoundedRectangle(cornerRadius: 10))
+      }
+
 
     private func exerciseRow(_ exercise: KGGScannedExercise) -> some View {
         VStack(alignment: .leading, spacing: 10) {
