@@ -7,6 +7,9 @@
 import SwiftUI
 import Combine
 import SwiftData
+import CoreImage.CIFilterBuiltins
+import UIKit
+import AgilCore
 
 @MainActor
 final class KGGTodayViewModel: ObservableObject {
@@ -19,6 +22,12 @@ final class KGGTodayViewModel: ObservableObject {
     
     private let modelContext: ModelContext
     private let praxisId: UUID
+    
+    
+    @Published var startQRImage: UIImage?
+    private var currentStartToken: KGGStartSessionToken?
+    
+    
     
     init(modelContext: ModelContext, praxisId: UUID) {
         self.modelContext = modelContext
@@ -58,10 +67,11 @@ final class KGGTodayViewModel: ObservableObject {
     }
     
     func addToToday(_ patient: KGGPatient) {
-        guard !selectedPatients.contains(where: { $0.id == patient.id }),
-              selectedPatients.count < 3 else { return }
-        selectedPatients.append(patient)
-    }
+            guard !selectedPatients.contains(where: { $0.id == patient.id }),
+                  selectedPatients.count < 3 else { return }
+            selectedPatients.append(patient)
+            generateStartQRIfNeeded()
+        }
     
     func removeFromToday(_ patient: KGGPatient) {
             selectedPatients.removeAll { $0.id == patient.id }
@@ -79,4 +89,27 @@ final class KGGTodayViewModel: ObservableObject {
             }
             return true
         }
+
+    func generateStartQRIfNeeded() {
+        guard startQRImage == nil else { return }
+        regenerateStartQR()
+    }
+
+    func regenerateStartQR() {
+        let token = KGGStartSessionToken()
+        currentStartToken = token
+        guard let qrString = try? KGGStartSessionCoder.encode(token) else { return }
+        startQRImage = Self.makeQRImage(from: qrString)
+    }
+
+    private static func makeQRImage(from string: String) -> UIImage? {
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.setValue(Data(string.utf8), forKey: "inputMessage")
+        filter.setValue("H", forKey: "inputCorrectionLevel")
+        guard let output = filter.outputImage else { return nil }
+        let scaled = output.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
+        guard let cg = context.createCGImage(scaled, from: scaled.extent) else { return nil }
+        return UIImage(cgImage: cg)
+    }
     }

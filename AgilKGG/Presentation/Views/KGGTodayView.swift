@@ -74,16 +74,41 @@ struct KGGTodayView: View {
                         Text(viewModel.errorMessage ?? "")
                     }
         
-        .onAppear {
-            print("DEBUG KGGTodayView.onAppear - viewModel.allPatients: \(viewModel.allPatients.count)")
-            viewModel.loadPatients()
+                    .onAppear {
+                                print("DEBUG KGGTodayView.onAppear - viewModel.allPatients: \(viewModel.allPatients.count)")
+                                viewModel.loadPatients()
+                                viewModel.generateStartQRIfNeeded()
+                            }
+    }
+    
+    private var startQRCard: some View {
+        VStack(spacing: 8) {
+            if let image = viewModel.startQRImage {
+                Image(uiImage: image)
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 140, height: 140)
+            } else {
+                ProgressView()
+                    .frame(width: 140, height: 140)
+            }
+            Text("60 Min. freischalten")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity)
+        .padding(12)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
     }
     
     private var todayPatientsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(viewModel.selectedPatients) { patient in
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    startQRCard
+                    ForEach(viewModel.selectedPatients) { patient in
                     NavigationLink {
                         KGGPatientDetailView(patient: patient, modelContext: modelContext)
                             .environmentObject(themeManager)
