@@ -15,6 +15,7 @@ final class KGGTodayViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var filteredPatients: [KGGPatient] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
     
     private let modelContext: ModelContext
     private let praxisId: UUID
@@ -63,6 +64,19 @@ final class KGGTodayViewModel: ObservableObject {
     }
     
     func removeFromToday(_ patient: KGGPatient) {
-        selectedPatients.removeAll { $0.id == patient.id }
+            selectedPatients.removeAll { $0.id == patient.id }
+        }
+        
+        func clearToday() {
+            selectedPatients.removeAll()
+        }
+        
+        /// Prüft vor dem Öffnen des Auswahl-Sheets, ob noch Platz ist (max. 3).
+        func canOpenPatientSelector() -> Bool {
+            guard selectedPatients.count < 3 else {
+                errorMessage = "Bitte zuerst einen Patienten aus der Liste entfernen (max. 3 gleichzeitig möglich)."
+                return false
+            }
+            return true
+        }
     }
-}

@@ -36,24 +36,44 @@ struct KGGTodayView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    showPatientSelector = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(themeManager.currentTheme.accentColor)
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                KGGLogoMenu()
-            }
-        }
-        .sheet(isPresented: $showPatientSelector) {
-            patientSelectorSheet
-                .onAppear {
-                    print("DEBUG: Sheet geöffnet. Gefilterte Patienten: \(viewModel.filteredPatients.count)")  // ← Debug
-                }
-        }
+                            Button {
+                                if viewModel.canOpenPatientSelector() {
+                                    showPatientSelector = true
+                                }
+                            } label: {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(themeManager.currentTheme.accentColor)
+                            }
+                        }
+                        ToolbarItem(placement: .topBarLeading) {
+                            if !viewModel.selectedPatients.isEmpty {
+                                Button(role: .destructive) {
+                                    viewModel.clearToday()
+                                } label: {
+                                    Image(systemName: "trash.fill")
+                                }
+                            }
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            KGGLogoMenu()
+                        }
+                    }
+                    .sheet(isPresented: $showPatientSelector) {
+                        patientSelectorSheet
+                            .onAppear {
+                                print("DEBUG: Sheet geöffnet. Gefilterte Patienten: \(viewModel.filteredPatients.count)")  // ← Debug
+                            }
+                    }
+                    .alert("Hinweis", isPresented: Binding(
+                        get: { viewModel.errorMessage != nil },
+                        set: { newValue in if !newValue { viewModel.errorMessage = nil } }
+                    )) {
+                        Button("OK") { viewModel.errorMessage = nil }
+                    } message: {
+                        Text(viewModel.errorMessage ?? "")
+                    }
+        
         .onAppear {
             print("DEBUG KGGTodayView.onAppear - viewModel.allPatients: \(viewModel.allPatients.count)")
             viewModel.loadPatients()
