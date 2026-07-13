@@ -26,7 +26,7 @@ public final class KGGExercise {
     public var sets: Int = 3
     public var weight: Double = 0.0  // kg
     public var pauseBetweenSets: Int = 60  // Sekunden
-    public var tempo: String = "2-0-2"  // eccentric-pause-concentric
+    public var tempo: String = "2-0-2"   // concentric-hold-eccentric
     public var rangeOfMotion: String = "Full ROM"
     public var level: Int?       // Geräte-Stufe, z.B. Seilzug/Beinpresse-Widerstand
     public var seatLevel: Int?   // Sitzhöhe als Stufe, z.B. Latissimuszug/Beinpresse

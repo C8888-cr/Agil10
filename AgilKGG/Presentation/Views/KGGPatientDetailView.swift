@@ -11,6 +11,7 @@ import SwiftUI
 import SwiftData
 import AgilCore
 import CoreImage.CIFilterBuiltins
+import UIKit
 
 struct KGGPatientDetailView: View {
     @StateObject private var viewModel: KGGPatientDetailViewModel
@@ -44,6 +45,7 @@ struct KGGPatientDetailView: View {
                     warmupCard
                     exercisesCard
                     addExerciseButton
+                    printCard
                     historyRow
                 }
                 .padding(16)
@@ -375,6 +377,64 @@ struct KGGPatientDetailView: View {
         }
         .buttonStyle(.plain)
     }
+    
+    // MARK: - Druck
+
+      private var printCard: some View {
+          Button {
+              printPlan()
+          } label: {
+              HStack(spacing: 16) {
+                  Image(systemName: "printer.fill")
+                      .font(.title3)
+                      .foregroundStyle(accent)
+                      .frame(width: 40, height: 40)
+                      .background(accent.opacity(0.12))
+                      .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                  VStack(alignment: .leading, spacing: 4) {
+                      Text("Trainingsplan drucken")
+                          .font(.headline)
+                          .foregroundStyle(.primary)
+                      Text("Warmup und Übungen")
+                          .font(.caption)
+                          .foregroundStyle(.secondary)
+                  }
+
+                  Spacer()
+
+                  Image(systemName: "chevron.right")
+                      .font(.caption)
+                      .foregroundStyle(.tertiary)
+              }
+              .padding(16)
+              .background(Color(.systemBackground))
+              .clipShape(RoundedRectangle(cornerRadius: 12))
+              .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+          }
+          .buttonStyle(.plain)
+      }
+
+      private func printPlan() {
+          let service = KGGPatientPrintService()
+          let pdfData = service.generatePDF(
+              warmups: viewModel.patient.warmupTemplate,
+              exercises: viewModel.activeExercises
+          )
+
+          let printInfo = UIPrintInfo(dictionary: nil)
+          printInfo.outputType = .general
+          printInfo.jobName = "KGG Trainingsplan"
+          printInfo.duplex = .longEdge
+
+          let printController = UIPrintInteractionController.shared
+          printController.printInfo = printInfo
+          printController.printingItem = pdfData
+          printController.present(animated: true, completionHandler: nil)
+      }
+
+    
+    
 
     // MARK: - Aktionen
 
