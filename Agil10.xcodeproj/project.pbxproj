@@ -104,6 +104,11 @@
 			path = AgilKGG;
 			sourceTree = "<group>";
 		};
+		56D828673003842500598E52 /* KGG */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KGG;
+			sourceTree = "<group>";
+		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -168,6 +173,7 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
+				56D828673003842500598E52 /* KGG */,
 				56703F402FC1695B0084B2BA /* Localizable.xcstrings */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				5636C5552F837CAB0011D0CF /* Domain */,
@@ -241,6 +247,7 @@
 				5636C6E32F842E0D0011D0CF /* Data */,
 				5636C7222F8439230011D0CF /* Infrastructure */,
 				5636C7242F84396F0011D0CF /* Core */,
+				56D828673003842500598E52 /* KGG */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 			);
 			name = Agil10.0;
@@ -441,7 +448,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = YMV844AGB3;
+				DEVELOPMENT_TEAM = Y73Y989LWS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -474,7 +481,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = YMV844AGB3;
+				DEVELOPMENT_TEAM = Y73Y989LWS;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

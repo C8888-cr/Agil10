@@ -36,6 +36,13 @@ struct ContentView: View {
                 }
                 .tabItem { Label("Übungen", systemImage: "book.fill") }
                 
+                NavigationStack {
+                                   AppDependencies.shared.makeKGGExerciseListView()
+                               }
+                               .tabItem { Label("KGG", systemImage: "qrcode") }
+                               
+                           
+                
             }
             .task {
                        print("✅ Eingeloggt als: \(user.email)")

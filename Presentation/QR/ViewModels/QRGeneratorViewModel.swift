@@ -35,8 +35,28 @@ final class QRGeneratorViewModel: ObservableObject {
     
     private func loadMockAssignments() {
         assignments = [
-            ExerciseAssignment(exerciseId: UUID(), reps: 10, weight: 20, videoKey: Data()),
-            ExerciseAssignment(exerciseId: UUID(), reps: 15, weight: 5, videoKey: Data()),
+            ExerciseAssignment(
+                exerciseId: UUID(),
+                videoTitle: "Bizeps-Curls",
+                reps: 10,
+                sets: 3,
+                weight: 20,
+                pauseBetweenSets: 60,
+                tempo: "2-0-2",
+                videoKey: Data(),
+                encryptedVideoBase64: ""
+            ),
+            ExerciseAssignment(
+                exerciseId: UUID(),
+                videoTitle: "Kniebeugen",
+                reps: 15,
+                sets: 3,
+                weight: 5,
+                pauseBetweenSets: 45,
+                tempo: "2-0-2",
+                videoKey: Data(),
+                encryptedVideoBase64: ""
+            ),
         ]
     }
 }

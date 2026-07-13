@@ -1,0 +1,248 @@
+// PASTE TO: Agil/KGG/Presentation/DetailViews/KGGExerciseListView.swift (REPLACE)
+
+//
+//  KGGExerciseListView.swift
+//  Agil
+//
+//  Zeigt gescannte KGG-Übungen in Read-Only-Liste.
+//  Schalter hier legt fest, ob im Player anschließend das Video sichtbar ist.
+//
+
+import SwiftUI
+import AgilCore
+
+struct KGGExerciseListView: View {
+
+    @StateObject private var viewModel: KGGListViewModel
+    @State private var showScanner = false
+    @State private var selectedExercise: KGGScannedExercise?
+
+    /// Steuert, ob im Player das Trainingsvideo angezeigt wird.
+    /// Single Source of Truth für die Video-Sichtbarkeit im KGG-Modus.
+    @State private var isVideoVisibleInPlayer: Bool = true
+
+    private let repository: KGGExerciseRepository
+
+    init(repository: KGGExerciseRepository) {
+        self.repository = repository
+        _viewModel = StateObject(wrappedValue: KGGListViewModel(repository: repository))
+    }
+
+    var body: some View {
+        ZStack {
+            Color(.systemGroupedBackground).ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                // Header mit Video-Schalter + QR-Button
+                HStack {
+                    Text("KGG")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Toggle(isOn: $isVideoVisibleInPlayer) {
+                        Image(systemName: isVideoVisibleInPlayer ? "video.fill" : "video.slash.fill")
+                    }
+                    .toggleStyle(.button)
+                    .accessibilityLabel(isVideoVisibleInPlayer ? "Video im Training ausblenden" : "Video im Training einblenden")
+
+                    Button {
+                        showScanner = true
+                    } label: {
+                        Image(systemName: "qrcode")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color.accentColor)
+                            .clipShape(Circle())
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+                // Content
+                contentView
+
+                Spacer()
+            }
+
+            if let error = viewModel.error {
+                errorBanner(error)
+            }
+        }
+        .sheet(isPresented: $showScanner) {
+            QRScannerView { qrString in
+                viewModel.handleQRCodeScanned(qrString)
+            }
+        }
+        .fullScreenCover(item: $selectedExercise) { exercise in
+            if let video = createVideoForExercise(exercise) {
+                KGGExercisePlayerView(
+                    exercise: exercise,
+                    video: video,
+                    isVideoVisible: isVideoVisibleInPlayer,
+                    repository: repository,
+                    onComplete: {
+                        selectedExercise = nil
+                        viewModel.completeExercise(exercise.id)
+                    }
+                )
+            }
+        }
+        .onAppear {
+            viewModel.visibilityManager.checkExistingSession()
+        }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        switch viewModel.visibilityState {
+        case .noKGG:
+            noKGGPlaceholder
+
+        case .visible:
+            if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxHeight: .infinity, alignment: .center)
+            } else if viewModel.visibleExercises.isEmpty {
+                emptyState
+            } else {
+                exercisesList
+            }
+
+        case .completed:
+            KGGCompletionView()
+        }
+    }
+
+    private var noKGGPlaceholder: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "qrcode.viewfinder")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+
+            VStack(spacing: 8) {
+                Text("Keine aktive KGG")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text("Scanne einen QR-Code um zu starten")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer()
+        }
+        .padding(32)
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Text("Videos werden heruntergeladen...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            ProgressView()
+        }
+        .padding(40)
+        .frame(maxHeight: .infinity, alignment: .center)
+    }
+
+    private var exercisesList: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("\(viewModel.visibleExercises.count) Übungen")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                if viewModel.timeRemainingSeconds > 0 {
+                    let minutes = viewModel.timeRemainingSeconds / 60
+                    let seconds = viewModel.timeRemainingSeconds % 60
+                    Text(String(format: "%d:%02d", minutes, seconds))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.accentColor)
+                        .monospacedDigit()
+                }
+            }
+            .padding(.horizontal, 16)
+
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(viewModel.visibleExercises) { exercise in
+                        exerciseRow(exercise)
+                            .onTapGesture {
+                                selectedExercise = exercise
+                            }
+                    }
+                }
+                .padding(16)
+            }
+        }
+    }
+
+    private func exerciseRow(_ exercise: KGGScannedExercise) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(exercise.exerciseTitle)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            HStack(spacing: 12) {
+                Label("\(exercise.sets)×\(exercise.reps)", systemImage: "repeat")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Label("\(Int(exercise.weightKg))kg", systemImage: "scalemass")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Label(String(format: "%d:%02d", exercise.estimatedTotalDurationSec / 60, exercise.estimatedTotalDurationSec % 60), systemImage: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func errorBanner(_ error: String) -> some View {
+        VStack {
+            HStack {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundStyle(.red)
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Button { viewModel.clearError() } label: {
+                    Image(systemName: "xmark")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(12)
+            .background(Color.red.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .padding(16)
+
+            Spacer()
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func createVideoForExercise(_ exercise: KGGScannedExercise) -> Video? {
+        Video(
+            id: exercise.exerciseId,
+            title: exercise.exerciseTitle,
+            videoFileName: exercise.videoFileName,
+            category: .strength,
+            bodyRegion: .fullBody,
+            equipment: .noEquipment,
+            durationSeconds: exercise.estimatedTotalDurationSec,
+            rating: 0
+        )
+    }
+}

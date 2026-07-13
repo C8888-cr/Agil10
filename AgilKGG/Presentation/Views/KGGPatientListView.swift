@@ -31,7 +31,7 @@ struct KGGPatientListView: View {
             if viewModel.isLoading && viewModel.filteredPatients.isEmpty {
                 loadingView
             } else if viewModel.filteredPatients.isEmpty {
-                EmptyStateView()
+                EmptyStateView(onAddTapped: { showAddSheet = true })
             } else {
                 PatientListView( viewModel: viewModel)
             }

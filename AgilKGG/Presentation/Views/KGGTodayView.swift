@@ -27,7 +27,7 @@ struct KGGTodayView: View {
             Color(.systemGroupedBackground).ignoresSafeArea()
             
             if viewModel.selectedPatients.isEmpty {
-                EmptyStateView()  // ← Reuse bestehendes
+                EmptyStateView(onAddTapped: { showPatientSelector = true })
             } else {
                 todayPatientsList
             }

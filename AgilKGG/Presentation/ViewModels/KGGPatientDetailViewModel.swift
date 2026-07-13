@@ -71,12 +71,16 @@ final class KGGPatientDetailViewModel: ObservableObject {
         let assignments = patient.exercises.filter { $0.isActive }.map { exercise in
             ExerciseAssignment(
                 exerciseId: exercise.videoId,
+                videoTitle: exercise.videoTitle,
                 reps: exercise.reps,
+                sets: exercise.sets,
                 weight: exercise.weight,
-                videoKey: Data()  // Placeholder – später aus Keychain
+                pauseBetweenSets: exercise.pauseBetweenSets,
+                tempo: exercise.tempo,
+                videoKey: Data(),           // Placeholder – später aus Keychain
+                encryptedVideoBase64: ""    // TODO: echtes verschlüsseltes Video als Base64
             )
         }
-
         guard !assignments.isEmpty else {
             throw QRError.noExercises
         }
