@@ -307,14 +307,21 @@ struct KGGPatientDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.videoTitle)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                    Text("\(exercise.reps)x\(exercise.sets) · \(Int(exercise.weight))kg · Pause \(exercise.pauseBetweenSets)s")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
+                                  Text(exercise.videoTitle)
+                                      .font(.caption)
+                                      .fontWeight(.semibold)
+                                      .foregroundStyle(.primary)
+                                  Text(exerciseParameterSummary(exercise))
+                                      .font(.caption2)
+                                      .foregroundStyle(.secondary)
+                                  if let notes = exercise.notes, !notes.isEmpty {
+                                      Text(notes)
+                                          .font(.caption2)
+                                          .foregroundStyle(.secondary)
+                                          .italic()
+                                          .lineLimit(1)
+                                  }
+                              }
                 Spacer()
                 Image(systemName: "pencil.circle.fill")
                     .foregroundStyle(accent)
@@ -332,7 +339,15 @@ struct KGGPatientDetailView: View {
             }
         }
     }
-
+    
+    private func exerciseParameterSummary(_ exercise: KGGExercise) -> String {
+        var parts = ["\(exercise.reps)x\(exercise.sets)", "\(Int(exercise.weight))kg", "Pause \(exercise.pauseBetweenSets)s", "Tempo \(exercise.tempo)"]
+        if let level = exercise.level { parts.append("Stufe \(level)") }
+        if let seatLevel = exercise.seatLevel { parts.append("Sitzhöhe Stufe \(seatLevel)") }
+        return parts.joined(separator: " · ")
+    }
+    
+    
     private var addExerciseButton: some View {
         Button {
             showingAddExercise = true
