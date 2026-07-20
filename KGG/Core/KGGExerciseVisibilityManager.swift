@@ -19,7 +19,26 @@ public final class KGGExerciseVisibilityManager: ObservableObject {
     @Published public private(set) var timeRemainingSeconds: Int = 0
     
     private var timer: Timer?
-    private var completionTime: Date?
+
+       private static let completionTimeKey = "KGGSessionCompletionTime"
+
+       /// Persistiert über UserDefaults, damit die Sichtbarkeit die 60 Minuten
+       /// auch übersteht, wenn dieser Manager neu erzeugt wird (Sheet verlassen
+       /// und wieder öffnen, Aus-/Einloggen, App-Neustart).
+       private var completionTime: Date? {
+           get {
+               let timestamp = UserDefaults.standard.double(forKey: Self.completionTimeKey)
+               return timestamp > 0 ? Date(timeIntervalSince1970: timestamp) : nil
+           }
+           set {
+               if let newValue {
+                   UserDefaults.standard.set(newValue.timeIntervalSince1970, forKey: Self.completionTimeKey)
+               } else {
+                   UserDefaults.standard.removeObject(forKey: Self.completionTimeKey)
+               }
+           }
+       }
+    
     
     public enum VisibilityState {
         case noKGG                 // Kein aktiver KGG-Scan

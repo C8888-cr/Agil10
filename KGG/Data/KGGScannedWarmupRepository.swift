@@ -38,13 +38,14 @@ public final class KGGScannedWarmupRepository: KGGWarmupRepository {
     }
 
     public func fetchVisible() async throws -> [KGGScannedWarmup] {
-        let now = Date()
-        let descriptor = FetchDescriptor<KGGScannedWarmupModel>(
-            sortBy: [SortDescriptor(\.order)]
-        )
-        let models = try modelContext.fetch(descriptor)
-        return models.filter { $0.expiresAt > now }.map { $0.toDomain() }
-    }
+          // Sichtbarkeit läuft ausschließlich über die Session-Uhr, siehe
+          // KGGScannedExerciseRepository.fetchVisibleExercises().
+          let descriptor = FetchDescriptor<KGGScannedWarmupModel>(
+              sortBy: [SortDescriptor(\.order)]
+          )
+          let models = try modelContext.fetch(descriptor)
+          return models.map { $0.toDomain() }
+      }
 
     public func deleteExpired() async throws {
         let now = Date()

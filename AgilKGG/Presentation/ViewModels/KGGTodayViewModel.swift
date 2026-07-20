@@ -77,8 +77,10 @@ final class KGGTodayViewModel: ObservableObject {
             selectedPatients.removeAll { $0.id == patient.id }
         }
         
-        func clearToday() {
+    func clearToday() {
             selectedPatients.removeAll()
+            startQRImage = nil
+            currentStartToken = nil
         }
         
         /// Prüft vor dem Öffnen des Auswahl-Sheets, ob noch Platz ist (max. 3).

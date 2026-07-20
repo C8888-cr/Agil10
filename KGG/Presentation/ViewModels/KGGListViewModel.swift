@@ -159,6 +159,18 @@ public final class KGGListViewModel: ObservableObject {
             }
         }
     }
+    
+    /// Schließt die "Übungen aktualisiert"-Bestätigung manuell (X-Button).
+      public func dismissAssignmentConfirmation() {
+          confirmationDismissTask?.cancel()
+          showAssignmentConfirmation = false
+      }
+
+    
+    /// Beendet die aktuelle KGG-Sitzung manuell, unabhängig vom 60-Minuten-Timer.
+    public func endSessionNow() {
+        visibilityManager.markCompleted()
+    }
 
     /// Löscht abgelaufene Übungen + Warmups (Cleanup)
     public func cleanupExpired() {

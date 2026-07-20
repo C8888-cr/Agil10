@@ -33,14 +33,17 @@ public final class KGGScannedExerciseRepository: KGGExerciseRepository {
     }
     
     public func fetchVisibleExercises() async throws -> [KGGScannedExercise] {
-        let now = Date()
-        let descriptor = FetchDescriptor<KGGScannedExerciseModel>(
-            sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
-        )
-        let allModels = try modelContext.fetch(descriptor)
-        let filtered = allModels.filter { $0.expiresAt > now && !$0.isCompleted }
-        return filtered.map { $0.toDomain() }
-    }
+          // Sichtbarkeit läuft ausschließlich über die Session-Uhr
+          // (KGGExerciseVisibilityManager, gestartet durch den Start-QR).
+          // Kein Pro-Übung-Ablauf mehr — der ViewModel lädt hier nur,
+          // solange visibilityState == .visible ist.
+          let descriptor = FetchDescriptor<KGGScannedExerciseModel>(
+              sortBy: [SortDescriptor(\.scannedAt, order: .reverse)]
+          )
+          let allModels = try modelContext.fetch(descriptor)
+          let filtered = allModels.filter { !$0.isCompleted }
+          return filtered.map { $0.toDomain() }
+      }
     
     public func fetchAll() async throws -> [KGGScannedExercise] {
         let descriptor = FetchDescriptor<KGGScannedExerciseModel>(

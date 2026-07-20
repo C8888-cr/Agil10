@@ -16,7 +16,8 @@ struct KGGExerciseListView: View {
     @StateObject private var viewModel: KGGListViewModel
     @State private var showScanner = false
     @State private var selectedExercise: KGGScannedExercise?
-
+    @State private var showEndSessionConfirm = false
+    
     private let repository: KGGExerciseRepository
 
     init(repository: KGGExerciseRepository, warmupRepository: KGGWarmupRepository) {
@@ -50,21 +51,41 @@ struct KGGExerciseListView: View {
         .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showScanner = true
-                        } label: {
-                            Image(systemName: "qrcode")
-                                .resizable()
-                                .scaledToFit()
-                                .padding(6)
-                                .foregroundStyle(.white)
-                                .frame(width: 32, height: 32)
-                                .background(Color.accentColor)
-                                .clipShape(Circle())
-                        }
-                    }
-                }
+                                   if viewModel.visibilityState == .visible {
+                                       ToolbarItem(placement: .topBarLeading) {
+                                           Button("Beenden") {
+                                               showEndSessionConfirm = true
+                                           }
+                                           .foregroundStyle(.secondary)
+                                       }
+                                   }
+                                   ToolbarItem(placement: .topBarTrailing) {
+                                       Button {
+                                           showScanner = true
+                                       } label: {
+                                           Image(systemName: "qrcode")
+                                               .resizable()
+                                               .scaledToFit()
+                                               .padding(6)
+                                               .foregroundStyle(.white)
+                                               .frame(width: 32, height: 32)
+                                               .background(Color.accentColor)
+                                               .clipShape(Circle())
+                                       }
+                                   }
+                               }
+                               .confirmationDialog(
+                                   "KGG für heute beenden?",
+                                   isPresented: $showEndSessionConfirm,
+                                   titleVisibility: .visible
+                               ) {
+                                   Button("Beenden", role: .destructive) {
+                                       viewModel.endSessionNow()
+                                   }
+                                   Button("Abbrechen", role: .cancel) {}
+                               } message: {
+                                   Text("Die Übungen werden ausgeblendet, auch wenn die Zeit noch nicht abgelaufen ist.")
+                               }
                 .sheet(isPresented: $showScanner) {
                     QRScannerView { qrString in
                         viewModel.handleQRCodeScanned(qrString)
@@ -153,27 +174,32 @@ struct KGGExerciseListView: View {
     }
 
     private var assignmentConfirmationBanner: some View {
-            VStack {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text(viewModel.assignmentConfirmationMessage)
-                        .font(.caption)
-                        .foregroundStyle(.primary)
-                    Spacer()
-                }
-                .padding(12)
-                .background(Color.green.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(16)
+             VStack {
+                 Spacer()
 
-                Spacer()
-            }
-            .frame(maxHeight: .infinity, alignment: .top)
-            .transition(.move(edge: .top).combined(with: .opacity))
-            .animation(.easeInOut(duration: 0.25), value: viewModel.showAssignmentConfirmation)
-        }
-
+                 HStack {
+                     Image(systemName: "checkmark.circle.fill")
+                         .foregroundStyle(.green)
+                     Text(viewModel.assignmentConfirmationMessage)
+                         .font(.caption)
+                         .foregroundStyle(.primary)
+                     Spacer()
+                     Button { viewModel.dismissAssignmentConfirmation() } label: {
+                         Image(systemName: "xmark")
+                             .foregroundStyle(.secondary)
+                     }
+                 }
+                 .padding(12)
+                 .background(Color.green.opacity(0.12))
+                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                 .padding(16)
+             }
+             .frame(maxHeight: .infinity, alignment: .bottom)
+             .transition(.move(edge: .bottom).combined(with: .opacity))
+             .animation(.easeInOut(duration: 0.25), value: viewModel.showAssignmentConfirmation)
+         }
+    
+    
     private var exercisesList: some View {
         VStack(spacing: 12) {
             HStack {
@@ -241,55 +267,77 @@ struct KGGExerciseListView: View {
 
 
     private func exerciseRow(_ exercise: KGGScannedExercise) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(exercise.exerciseTitle)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
+           VStack(alignment: .leading, spacing: 10) {
+               Text(exercise.exerciseTitle)
+                   .font(.subheadline.weight(.semibold))
+                   .foregroundStyle(.primary)
 
-            HStack(spacing: 12) {
-                Label("\(exercise.sets)×\(exercise.reps)", systemImage: "repeat")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+               HStack(spacing: 12) {
+                   Label("\(exercise.sets)×\(exercise.reps)", systemImage: "repeat")
+                       .font(.caption)
+                       .foregroundStyle(.secondary)
 
-                Label("\(Int(exercise.weightKg))kg", systemImage: "scalemass")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                   Label("\(Int(exercise.weightKg))kg", systemImage: "scalemass")
+                       .font(.caption)
+                       .foregroundStyle(.secondary)
 
-                Label(String(format: "%d:%02d", exercise.estimatedTotalDurationSec / 60, exercise.estimatedTotalDurationSec % 60), systemImage: "clock")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-    }
+                   Label(String(format: "%d:%02d", exercise.estimatedTotalDurationSec / 60, exercise.estimatedTotalDurationSec % 60), systemImage: "clock")
+                       .font(.caption)
+                       .foregroundStyle(.secondary)
+               }
+
+               if exercise.level != nil || exercise.seatLevel != nil {
+                   HStack(spacing: 12) {
+                       if let level = exercise.level {
+                           Label("Stufe \(level)", systemImage: "dial.medium")
+                               .font(.caption)
+                               .foregroundStyle(.secondary)
+                       }
+                       if let seatLevel = exercise.seatLevel {
+                           Label("Sitzhöhe \(seatLevel)", systemImage: "chair")
+                               .font(.caption)
+                               .foregroundStyle(.secondary)
+                       }
+                   }
+               }
+
+               if let notes = exercise.notes, !notes.isEmpty {
+                   Text(notes)
+                       .font(.caption)
+                       .foregroundStyle(.secondary)
+                       .italic()
+               }
+           }
+           .padding(12)
+           .frame(maxWidth: .infinity, alignment: .leading)
+           .background(Color(.systemBackground))
+           .clipShape(RoundedRectangle(cornerRadius: 10))
+       }
 
     private func errorBanner(_ error: String) -> some View {
-        VStack {
-            HStack {
-                Image(systemName: "exclamationmark.circle.fill")
-                    .foregroundStyle(.red)
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.primary)
-                Spacer()
-                Button { viewModel.clearError() } label: {
-                    Image(systemName: "xmark")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(12)
-            .background(Color.red.opacity(0.1))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .padding(16)
+           VStack {
+               Spacer()
 
-            Spacer()
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
-    }
-
+               HStack {
+                   Image(systemName: "exclamationmark.circle.fill")
+                       .foregroundStyle(.red)
+                   Text(error)
+                       .font(.caption)
+                       .foregroundStyle(.primary)
+                   Spacer()
+                   Button { viewModel.clearError() } label: {
+                       Image(systemName: "xmark")
+                           .foregroundStyle(.secondary)
+                   }
+               }
+               .padding(12)
+               .background(Color.red.opacity(0.1))
+               .clipShape(RoundedRectangle(cornerRadius: 8))
+               .padding(16)
+           }
+           .frame(maxHeight: .infinity, alignment: .bottom)
+       }
+    
     private func createVideoForExercise(_ exercise: KGGScannedExercise) -> Video? {
         Video(
             id: exercise.exerciseId,
@@ -302,4 +350,5 @@ struct KGGExerciseListView: View {
             rating: 0
         )
     }
+    
 }
