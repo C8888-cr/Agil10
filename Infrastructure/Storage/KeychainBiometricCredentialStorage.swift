@@ -11,7 +11,6 @@ import Security
 import LocalAuthentication
 import AgilCore
 
-
 final class KeychainBiometricCredentialStorage: BiometricCredentialStorage {
 
     private let keychain = KeychainStore(service: "com.agil.biometric.credentials")

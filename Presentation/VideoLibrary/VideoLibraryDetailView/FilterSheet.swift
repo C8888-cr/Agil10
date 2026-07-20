@@ -3,6 +3,9 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
+
+>>>>>>> 7288db34fae98b95aff1d9f14fb45eb024b7712b
+
 struct FilterSheet: View {
     
     

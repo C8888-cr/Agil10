@@ -8,7 +8,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct ThemePickerSection: View {
     @EnvironmentObject var themeManager: ThemeManager
     

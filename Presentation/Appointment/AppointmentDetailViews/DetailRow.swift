@@ -18,8 +18,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
-
 struct DetailRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     

@@ -5,7 +5,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 struct AppointmentToolbar: ToolbarContent {
     
     @EnvironmentObject var themeManager: ThemeManager

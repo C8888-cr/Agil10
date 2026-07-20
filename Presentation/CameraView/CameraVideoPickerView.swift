@@ -12,7 +12,6 @@ import AVKit
 import UIKit
 import AgilCore
 
-
 // MARK: - Orientation Observer
 
 /// Beobachtet die Geräteausrichtung und liefert den Rotationswinkel

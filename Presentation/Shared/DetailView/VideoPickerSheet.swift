@@ -8,7 +8,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct VideoPickerSheet: View {
     @EnvironmentObject var viewModel: VideoLibraryViewModel
     @EnvironmentObject var session: SessionManager

@@ -11,7 +11,6 @@ import SwiftUI
 import UserNotifications
 import AgilCore
 
-
 struct NotificationSettingsSheet: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
     @Environment(\.dismiss) private var dismiss

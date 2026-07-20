@@ -10,9 +10,8 @@ import MapKit
 import UserNotifications
 import AgilCore
 
-
 struct PraxisCard: View {
-    @Bindable var user: User 
+    @Bindable var user: User
     let praxis: Praxis
     @Binding var isEditing: Bool
     @State private var showPraxisSelectionSheet = false

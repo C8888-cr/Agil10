@@ -11,22 +11,14 @@
 //  AgilKGG
 //
 //  Warmup anlegen: fester Typ-Katalog (Wheel) + eigener Typ,
-//  Dauer als Stepper, Geräte-Parameter (Stufe/Sitzhöhe/Speed/Gewicht) optional.
+//  Dauer als Stepper, Intensität als Freitext.
 //
 
 import SwiftUI
 
 struct KGGAddWarmupSheet: View {
     let accent: Color
-    let onConfirm: (
-        _ type: String,
-        _ duration: Int,
-        _ level: Int?,
-        _ seatLevel: Int?,
-        _ speedKmh: Double?,
-        _ weight: Double?,
-        _ notes: String?
-    ) -> Void
+    let onConfirm: (_ type: String, _ duration: Int, _ intensity: String, _ notes: String?) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
@@ -36,11 +28,7 @@ struct KGGAddWarmupSheet: View {
     @State private var selectedType = "Fahrrad"
     @State private var customType = ""
     @State private var duration = 10
-
-    @State private var levelText = ""
-    @State private var seatLevelText = ""
-    @State private var speedText = ""
-    @State private var weightText = ""
+    @State private var intensity = ""
     @State private var notes = ""
 
     private var resolvedType: String {
@@ -50,7 +38,8 @@ struct KGGAddWarmupSheet: View {
     }
 
     private var isValid: Bool {
-        !resolvedType.isEmpty && duration > 0
+        !resolvedType.isEmpty && duration > 0 &&
+        !intensity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var body: some View {
@@ -72,23 +61,9 @@ struct KGGAddWarmupSheet: View {
 
                 Section {
                     Stepper("Dauer: \(duration) Min", value: $duration, in: 1...60)
+                    TextField("Intensität, z.B. Widerstand Level 3", text: $intensity)
                 } header: {
                     Text("Belastung")
-                }
-
-                Section {
-                    TextField("Stufe (optional)", text: $levelText)
-                        .keyboardType(.numberPad)
-                    TextField("Sitzhöhe, Stufe (optional)", text: $seatLevelText)
-                        .keyboardType(.numberPad)
-                    TextField("Speed, km/h (optional)", text: $speedText)
-                        .keyboardType(.decimalPad)
-                    TextField("Gewicht, kg (optional)", text: $weightText)
-                        .keyboardType(.decimalPad)
-                } header: {
-                    Text("Geräte-Einstellungen")
-                } footer: {
-                    Text("Nur ausfüllen, was für dieses Gerät zutrifft. Leere Felder werden später nicht angezeigt.")
                 }
 
                 Section("Notiz (optional)") {
@@ -97,7 +72,9 @@ struct KGGAddWarmupSheet: View {
 
                 Section {
                     Button {
-                        confirm()
+                        let note = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+                        onConfirm(resolvedType, duration, intensity.trimmingCharacters(in: .whitespacesAndNewlines), note.isEmpty ? nil : note)
+                        dismiss()
                     } label: {
                         HStack {
                             Spacer()
@@ -120,23 +97,8 @@ struct KGGAddWarmupSheet: View {
             }
         }
     }
-
-    private func confirm() {
-        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        onConfirm(
-            resolvedType,
-            duration,
-            Int(levelText.trimmingCharacters(in: .whitespacesAndNewlines)),
-            Int(seatLevelText.trimmingCharacters(in: .whitespacesAndNewlines)),
-            Double(speedText.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")),
-            Double(weightText.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")),
-            trimmedNotes.isEmpty ? nil : trimmedNotes
-        )
-        dismiss()
-    }
 }
 
 #Preview {
-    KGGAddWarmupSheet(accent: .pink) { _, _, _, _, _, _, _ in }
+    KGGAddWarmupSheet(accent: .pink) { _, _, _, _ in }
 }

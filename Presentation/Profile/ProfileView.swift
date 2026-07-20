@@ -4,7 +4,6 @@ import MapKit
 import UserNotifications
 import AgilCore
 
-
 struct ProfileView: View {
     
     @EnvironmentObject var session: SessionManager

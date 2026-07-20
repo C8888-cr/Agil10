@@ -7,9 +7,6 @@
 import SwiftUI
 import Combine
 import SwiftData
-import CoreImage.CIFilterBuiltins
-import UIKit
-import AgilCore
 
 @MainActor
 final class KGGTodayViewModel: ObservableObject {
@@ -18,16 +15,9 @@ final class KGGTodayViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var filteredPatients: [KGGPatient] = []
     @Published var isLoading = false
-    @Published var errorMessage: String?
     
     private let modelContext: ModelContext
     private let praxisId: UUID
-    
-    
-    @Published var startQRImage: UIImage?
-    private var currentStartToken: KGGStartSessionToken?
-    
-    
     
     init(modelContext: ModelContext, praxisId: UUID) {
         self.modelContext = modelContext
@@ -67,13 +57,13 @@ final class KGGTodayViewModel: ObservableObject {
     }
     
     func addToToday(_ patient: KGGPatient) {
-            guard !selectedPatients.contains(where: { $0.id == patient.id }),
-                  selectedPatients.count < 3 else { return }
-            selectedPatients.append(patient)
-            generateStartQRIfNeeded()
-        }
+        guard !selectedPatients.contains(where: { $0.id == patient.id }),
+              selectedPatients.count < 3 else { return }
+        selectedPatients.append(patient)
+    }
     
     func removeFromToday(_ patient: KGGPatient) {
+<<<<<<< HEAD
             selectedPatients.removeAll { $0.id == patient.id }
         }
         
@@ -114,4 +104,8 @@ final class KGGTodayViewModel: ObservableObject {
         guard let cg = context.createCGImage(scaled, from: scaled.extent) else { return nil }
         return UIImage(cgImage: cg)
     }
+=======
+        selectedPatients.removeAll { $0.id == patient.id }
+>>>>>>> 59fbc7932ee5d2ed75fc87dc8baa38684d4c2411
     }
+}

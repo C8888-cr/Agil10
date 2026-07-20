@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
+
 @main
 struct AgilApp: App {
     @StateObject private var themeManager = ThemeManager()

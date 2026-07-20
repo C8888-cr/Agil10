@@ -13,7 +13,6 @@ import SwiftData
 import AgilCore
 
 
-
 struct LocationSection: View {
     let appointment: Appointment
     let showMap: Bool

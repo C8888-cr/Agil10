@@ -9,7 +9,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct AppointmentYearView: View {
 
     @ObservedObject var viewModel: AppointmentPlannerViewModel

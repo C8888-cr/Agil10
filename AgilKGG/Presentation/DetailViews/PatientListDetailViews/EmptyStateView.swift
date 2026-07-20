@@ -13,7 +13,7 @@ struct EmptyStateView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.modelContext) private var modelContext
     
-    let onAddTapped: () -> Void
+    @State private var showAddSheet = false
     
     var body: some View {
         
@@ -34,7 +34,7 @@ struct EmptyStateView: View {
             }
             
             Button {
-                onAddTapped()
+                showAddSheet = true
             } label: {
                 Label("Patient hinzufügen", systemImage: "plus.circle.fill")
                     .font(.headline)

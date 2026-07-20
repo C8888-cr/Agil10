@@ -10,7 +10,6 @@ import MapKit
 import UserNotifications
 import AgilCore
 
-
 struct ProfileHeaderCard: View {
     let user: User
     @Binding var isEditing: Bool

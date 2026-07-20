@@ -4,6 +4,7 @@ import MapKit
 import SwiftData
 import AgilCore
 
+
 struct AppointmentDetailView: View {
     @EnvironmentObject var session: SessionManager
     @Environment(\.modelContext) private var modelContext

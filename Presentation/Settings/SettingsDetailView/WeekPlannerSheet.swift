@@ -10,7 +10,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 struct WeekPlannerSheet: View {
     
     // Neue State-Variablen oben ergänzen:

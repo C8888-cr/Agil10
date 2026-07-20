@@ -1,8 +1,8 @@
 // MARK: - ViewModels/QRGeneratorViewModel.swift
-/*
+
 import Foundation
 import Combine
-import AgilCore
+import AgilCore//import AgilCore
 
 @MainActor
 final class QRGeneratorViewModel: ObservableObject {
@@ -35,25 +35,8 @@ final class QRGeneratorViewModel: ObservableObject {
     
     private func loadMockAssignments() {
         assignments = [
-            ExerciseAssignment(
-                          exerciseId: UUID(),
-                          videoTitle: "Bizeps-Curls",
-                          reps: 10,
-                          sets: 3,
-                          weight: 20,
-                          pauseBetweenSets: 60,
-                          tempo: "2-0-2"
-                      ),
-                      ExerciseAssignment(
-                          exerciseId: UUID(),
-                          videoTitle: "Kniebeugen",
-                          reps: 15,
-                          sets: 3,
-                          weight: 5,
-                          pauseBetweenSets: 45,
-                          tempo: "2-0-2"
-                      ),
+            ExerciseAssignment(exerciseId: UUID(), reps: 10, weight: 20, videoKey: Data()),
+            ExerciseAssignment(exerciseId: UUID(), reps: 15, weight: 5, videoKey: Data()),
         ]
     }
 }
-*/

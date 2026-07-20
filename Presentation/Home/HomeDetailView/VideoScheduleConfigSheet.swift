@@ -290,7 +290,6 @@ import AgilCore
 
 
 
-
 struct VideoScheduleConfigSheet: View {
     
     @Environment(\.dismiss) private var dismiss

@@ -8,9 +8,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
-
-
 struct PraxisSelectionSheet: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) var modelContext

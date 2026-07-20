@@ -8,7 +8,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 // MARK: - Overall Statistics Card
 struct OverallStatisticsCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel

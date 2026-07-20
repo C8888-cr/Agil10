@@ -8,7 +8,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 struct WeeklyProgressCard: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel

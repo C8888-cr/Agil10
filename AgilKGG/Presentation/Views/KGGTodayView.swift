@@ -27,7 +27,7 @@ struct KGGTodayView: View {
             Color(.systemGroupedBackground).ignoresSafeArea()
             
             if viewModel.selectedPatients.isEmpty {
-                EmptyStateView(onAddTapped: { showPatientSelector = true })
+                EmptyStateView()  // ← Reuse bestehendes
             } else {
                 todayPatientsList
             }
@@ -36,79 +36,34 @@ struct KGGTodayView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                if viewModel.canOpenPatientSelector() {
-                                    showPatientSelector = true
-                                }
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(themeManager.currentTheme.accentColor)
-                            }
-                        }
-                        ToolbarItem(placement: .topBarLeading) {
-                            if !viewModel.selectedPatients.isEmpty {
-                                Button(role: .destructive) {
-                                    viewModel.clearToday()
-                                } label: {
-                                    Image(systemName: "trash.fill")
-                                }
-                            }
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            KGGLogoMenu()
-                        }
-                    }
-                    .sheet(isPresented: $showPatientSelector) {
-                        patientSelectorSheet
-                            .onAppear {
-                                print("DEBUG: Sheet geöffnet. Gefilterte Patienten: \(viewModel.filteredPatients.count)")  // ← Debug
-                            }
-                    }
-                    .alert("Hinweis", isPresented: Binding(
-                        get: { viewModel.errorMessage != nil },
-                        set: { newValue in if !newValue { viewModel.errorMessage = nil } }
-                    )) {
-                        Button("OK") { viewModel.errorMessage = nil }
-                    } message: {
-                        Text(viewModel.errorMessage ?? "")
-                    }
-        
-                    .onAppear {
-                                print("DEBUG KGGTodayView.onAppear - viewModel.allPatients: \(viewModel.allPatients.count)")
-                                viewModel.loadPatients()
-                                viewModel.generateStartQRIfNeeded()
-                            }
-    }
-    
-    private var startQRCard: some View {
-        VStack(spacing: 8) {
-            if let image = viewModel.startQRImage {
-                Image(uiImage: image)
-                    .interpolation(.none)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 140, height: 140)
-            } else {
-                ProgressView()
-                    .frame(width: 140, height: 140)
+                Button {
+                    showPatientSelector = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(themeManager.currentTheme.accentColor)
+                }
             }
-            Text("60 Min. freischalten")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            ToolbarItem(placement: .topBarTrailing) {
+                KGGLogoMenu()
+            }
         }
-        .frame(maxWidth: .infinity)
-        .padding(12)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+        .sheet(isPresented: $showPatientSelector) {
+            patientSelectorSheet
+                .onAppear {
+                    print("DEBUG: Sheet geöffnet. Gefilterte Patienten: \(viewModel.filteredPatients.count)")  // ← Debug
+                }
+        }
+        .onAppear {
+            print("DEBUG KGGTodayView.onAppear - viewModel.allPatients: \(viewModel.allPatients.count)")
+            viewModel.loadPatients()
+        }
     }
     
     private var todayPatientsList: some View {
-            ScrollView {
-                LazyVStack(spacing: 12) {
-                    startQRCard
-                    ForEach(viewModel.selectedPatients) { patient in
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(viewModel.selectedPatients) { patient in
                     NavigationLink {
                         KGGPatientDetailView(patient: patient, modelContext: modelContext)
                             .environmentObject(themeManager)

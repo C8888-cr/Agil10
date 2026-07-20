@@ -11,8 +11,6 @@ import SwiftData
 import AgilCore
 
 
-
-
 struct SettingsView: View {
     
     @State private var showWeekPlanner = false

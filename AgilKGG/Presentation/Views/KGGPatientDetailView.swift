@@ -11,7 +11,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 import CoreImage.CIFilterBuiltins
-import UIKit
 
 struct KGGPatientDetailView: View {
     @StateObject private var viewModel: KGGPatientDetailViewModel
@@ -45,7 +44,6 @@ struct KGGPatientDetailView: View {
                     warmupCard
                     exercisesCard
                     addExerciseButton
-                    printCard
                     historyRow
                 }
                 .padding(16)
@@ -62,17 +60,9 @@ struct KGGPatientDetailView: View {
         .sheet(isPresented: $showingAddExercise) { addExerciseSheet }
         .sheet(isPresented: $showingQRCode) { qrCodeSheet }
         .sheet(isPresented: $showingAddWarmup) {
-            KGGAddWarmupSheet(accent: accent) { type, duration, level, seatLevel, speedKmh, weight, notes in
+            KGGAddWarmupSheet(accent: accent) { type, duration, intensity, notes in
                 do {
-                    try viewModel.addWarmup(
-                        type: type,
-                        duration: duration,
-                        level: level,
-                        speedKmh: speedKmh,
-                        seatLevel: seatLevel,
-                        weight: weight,
-                        notes: notes
-                    )
+                    try viewModel.addWarmup(type: type, duration: duration, intensity: intensity, notes: notes)
                 } catch {
                     errorMessage = "Warmup konnte nicht gespeichert werden: \(error.localizedDescription)"
                 }
@@ -157,7 +147,13 @@ struct KGGPatientDetailView: View {
             showingEditTherapistInfo = true
         } label: {
             HStack(spacing: 16) {
-               
+                Image(systemName: "stethoscope")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .frame(width: 40, height: 40)
+                    .background(accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Therapie-Info")
                         .font(.headline)
@@ -231,15 +227,16 @@ struct KGGPatientDetailView: View {
 
     private func warmupRow(_ warmup: KGGWarmup) -> some View {
         HStack(spacing: 12) {
-
+            Image(systemName: "flame.fill")
+                .foregroundStyle(.orange)
             VStack(alignment: .leading, spacing: 2) {
-                         Text(warmup.type)
-                             .font(.caption)
-                             .fontWeight(.semibold)
-                         Text(warmup.displayText)
-                             .font(.caption2)
-                             .foregroundStyle(.secondary)
-                     }
+                Text(warmup.type)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                Text("\(warmup.duration) Min · \(warmup.intensity)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             Spacer()
             Button {
                 removeWarmup(warmup)
@@ -307,21 +304,14 @@ struct KGGPatientDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 VStack(alignment: .leading, spacing: 4) {
-                                  Text(exercise.videoTitle)
-                                      .font(.caption)
-                                      .fontWeight(.semibold)
-                                      .foregroundStyle(.primary)
-                                  Text(exerciseParameterSummary(exercise))
-                                      .font(.caption2)
-                                      .foregroundStyle(.secondary)
-                                  if let notes = exercise.notes, !notes.isEmpty {
-                                      Text(notes)
-                                          .font(.caption2)
-                                          .foregroundStyle(.secondary)
-                                          .italic()
-                                          .lineLimit(1)
-                                  }
-                              }
+                    Text(exercise.videoTitle)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    Text("\(exercise.reps)x\(exercise.sets) · \(Int(exercise.weight))kg · Pause \(exercise.pauseBetweenSets)s")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Image(systemName: "pencil.circle.fill")
                     .foregroundStyle(accent)
@@ -339,15 +329,7 @@ struct KGGPatientDetailView: View {
             }
         }
     }
-    
-    private func exerciseParameterSummary(_ exercise: KGGExercise) -> String {
-        var parts = ["\(exercise.reps)x\(exercise.sets)", "\(Int(exercise.weight))kg", "Pause \(exercise.pauseBetweenSets)s", "Tempo \(exercise.tempo)"]
-        if let level = exercise.level { parts.append("Stufe \(level)") }
-        if let seatLevel = exercise.seatLevel { parts.append("Sitzhöhe Stufe \(seatLevel)") }
-        return parts.joined(separator: " · ")
-    }
-    
-    
+
     private var addExerciseButton: some View {
         Button {
             showingAddExercise = true
@@ -369,6 +351,12 @@ struct KGGPatientDetailView: View {
             showingHistory = true
         } label: {
             HStack(spacing: 16) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.title3)
+                    .foregroundStyle(accent)
+                    .frame(width: 40, height: 40)
+                    .background(accent.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Historie")
@@ -392,64 +380,6 @@ struct KGGPatientDetailView: View {
         }
         .buttonStyle(.plain)
     }
-    
-    // MARK: - Druck
-
-      private var printCard: some View {
-          Button {
-              printPlan()
-          } label: {
-              HStack(spacing: 16) {
-                  Image(systemName: "printer.fill")
-                      .font(.title3)
-                      .foregroundStyle(accent)
-                      .frame(width: 40, height: 40)
-                      .background(accent.opacity(0.12))
-                      .clipShape(RoundedRectangle(cornerRadius: 10))
-
-                  VStack(alignment: .leading, spacing: 4) {
-                      Text("Trainingsplan drucken")
-                          .font(.headline)
-                          .foregroundStyle(.primary)
-                      Text("Warmup und Übungen")
-                          .font(.caption)
-                          .foregroundStyle(.secondary)
-                  }
-
-                  Spacer()
-
-                  Image(systemName: "chevron.right")
-                      .font(.caption)
-                      .foregroundStyle(.tertiary)
-              }
-              .padding(16)
-              .background(Color(.systemBackground))
-              .clipShape(RoundedRectangle(cornerRadius: 12))
-              .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
-          }
-          .buttonStyle(.plain)
-      }
-
-      private func printPlan() {
-          let service = KGGPatientPrintService()
-          let pdfData = service.generatePDF(
-              warmups: viewModel.patient.warmupTemplate,
-              exercises: viewModel.activeExercises
-          )
-
-          let printInfo = UIPrintInfo(dictionary: nil)
-          printInfo.outputType = .general
-          printInfo.jobName = "KGG Trainingsplan"
-          printInfo.duplex = .longEdge
-
-          let printController = UIPrintInteractionController.shared
-          printController.printInfo = printInfo
-          printController.printingItem = pdfData
-          printController.present(animated: true, completionHandler: nil)
-      }
-
-    
-    
 
     // MARK: - Aktionen
 
@@ -470,7 +400,7 @@ struct KGGPatientDetailView: View {
         }
     }
 
-    private func assignExercise(_ exercise: KGGLibraryExercise, reps: Int, sets: Int, weight: Double, pause: Int, tempo: String, level: Int?, seatLevel: Int?, notes: String?) {
+    private func assignExercise(_ exercise: KGGLibraryExercise, reps: Int, sets: Int, weight: Double, pause: Int, tempo: String) {
         do {
             try viewModel.addExercise(
                 videoId: exercise.id,
@@ -482,10 +412,7 @@ struct KGGPatientDetailView: View {
                 sets: sets,
                 weight: weight,
                 pauseBetweenSets: pause,
-                tempo: tempo,
-                level: level,
-                seatLevel: seatLevel,
-                notes: notes
+                tempo: tempo
             )
         } catch {
             errorMessage = "Übung zuweisen fehlgeschlagen: \(error.localizedDescription)"
@@ -527,11 +454,11 @@ struct KGGPatientDetailView: View {
 
     private var addExerciseSheet: some View {
         KGGAssignExerciseSheet(
-             modelContext: modelContext,
-             praxisId: viewModel.patient.praxisId
-         ) { exercise, reps, sets, weight, pause, tempo, level, seatLevel, notes in
-             assignExercise(exercise, reps: reps, sets: sets, weight: weight, pause: pause, tempo: tempo, level: level, seatLevel: seatLevel, notes: notes)
-         }
+            modelContext: modelContext,
+            praxisId: viewModel.patient.praxisId
+        ) { exercise, reps, sets, weight, pause, tempo in
+            assignExercise(exercise, reps: reps, sets: sets, weight: weight, pause: pause, tempo: tempo)
+        }
         .environmentObject(themeManager)
     }
 

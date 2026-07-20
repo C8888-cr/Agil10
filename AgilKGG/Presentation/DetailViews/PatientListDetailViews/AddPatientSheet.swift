@@ -73,13 +73,8 @@ struct AddPatientSheet: View {
             .navigationTitle("Patient hinzufügen")
             .navigationBarTitleDisplayMode(.inline)
         }
-                .alert("Fehler", isPresented: .constant(errorAlert != nil), presenting: errorAlert) { _ in
-                    Button("OK") { errorAlert = nil }
-                } message: { error in
-                    Text(error.message)
-                }
-                .presentationDetents([.height(280)])
-            }
+        .presentationDetents([.height(280)])
+    }
     
     // MARK: - Actions
     

@@ -9,6 +9,7 @@ import SwiftData
 import AgilCore
 
 
+
 struct DayProgressBar: View {
     let dayName: String
     let progress: Double

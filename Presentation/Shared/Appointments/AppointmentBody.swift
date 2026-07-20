@@ -15,7 +15,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct AppointmentBody: View {
     let appointment: Appointment
     @EnvironmentObject var themeManager: ThemeManager

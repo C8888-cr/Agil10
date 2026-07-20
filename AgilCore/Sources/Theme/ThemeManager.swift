@@ -1,8 +1,8 @@
 //
 //  ThemeManager.swift
-//  Agil10.0
+//  AgilCore
 //
-//  Created by Christiane Roth on 06.07.26.
+//  Created by Christiane Roth on 27.06.26.
 //
 
 

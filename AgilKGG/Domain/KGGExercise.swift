@@ -1,3 +1,12 @@
+//
+//  KGGExercise.swift
+//  Agil10.0
+//
+//  Created by Christiane Roth on 27.06.26.
+//
+
+
+//
 //  KGGExercise.swift
 //  AgilCore
 //
@@ -13,7 +22,6 @@ public final class KGGExercise {
     
     // Video-Referenz
     public var videoId: UUID  // Referenz zu Video in Library
-    public var notes: String?
     public var videoTitle: String
     public var videoUrl: URL?
     
@@ -27,11 +35,8 @@ public final class KGGExercise {
     public var sets: Int = 3
     public var weight: Double = 0.0  // kg
     public var pauseBetweenSets: Int = 60  // Sekunden
-    public var tempo: String = "2-0-2"   // concentric-hold-eccentric
+    public var tempo: String = "2-0-2"  // eccentric-pause-concentric
     public var rangeOfMotion: String = "Full ROM"
-    public var level: Int?       // Geräte-Stufe, z.B. Seilzug/Beinpresse-Widerstand
-    public var seatLevel: Int?   // Sitzhöhe als Stufe, z.B. Latissimuszug/Beinpresse
-        
     
     // Ziele
     public var goals: [String] = []  // ["Kraft", "Mobilität"]
@@ -61,10 +66,7 @@ public final class KGGExercise {
         weight: Double = 0.0,
         pauseBetweenSets: Int = 60,
         tempo: String = "2-0-2",
-        rangeOfMotion: String = "Full ROM",
-        level: Int? = nil,
-        seatLevel: Int? = nil,
-        notes: String? = nil
+        rangeOfMotion: String = "Full ROM"
     ) {
         self.id = id
         self.videoId = videoId
@@ -79,9 +81,6 @@ public final class KGGExercise {
         self.pauseBetweenSets = pauseBetweenSets
         self.tempo = tempo
         self.rangeOfMotion = rangeOfMotion
-        self.level = level
-        self.seatLevel = seatLevel
-        self.notes = notes
         self.assignedAt = Date()
         self.lastModified = Date()
     }
@@ -94,10 +93,7 @@ public final class KGGExercise {
         weight: Double? = nil,
         pauseBetweenSets: Int? = nil,
         tempo: String? = nil,
-        rangeOfMotion: String? = nil,
-        level: Int? = nil,
-        seatLevel: Int? = nil,
-        notes: String? = nil
+        rangeOfMotion: String? = nil
     ) {
         if let reps { self.reps = reps }
         if let sets { self.sets = sets }
@@ -105,9 +101,6 @@ public final class KGGExercise {
         if let pauseBetweenSets { self.pauseBetweenSets = pauseBetweenSets }
         if let tempo { self.tempo = tempo }
         if let rangeOfMotion { self.rangeOfMotion = rangeOfMotion }
-        if let level { self.level = level }
-        if let seatLevel { self.seatLevel = seatLevel }
-        if let notes { self.notes = notes }
         self.lastModified = Date()
     }
     

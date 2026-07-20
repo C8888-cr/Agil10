@@ -8,7 +8,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 struct CompactAppointmentView: View {
     let appointment: Appointment
     let onTap: () -> Void

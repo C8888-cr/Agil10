@@ -251,18 +251,6 @@ class AppDependencies: ObservableObject {
         modelContext: modelContext,
         session: sessionManager
     )
-    
-    lazy var kggExerciseRepository: KGGExerciseRepository = KGGScannedExerciseRepository(
-          modelContext: modelContext
-      )
-      lazy var kggWarmupRepository: KGGWarmupRepository = KGGScannedWarmupRepository(
-          modelContext: modelContext
-      )
-
-      func makeKGGExerciseListView() -> KGGExerciseListView {
-          KGGExerciseListView(repository: kggExerciseRepository, warmupRepository: kggWarmupRepository)
-      }
-    
     lazy var settingsViewModel = SettingsViewModel(
         modelContext: modelContext,
         session: sessionManager,

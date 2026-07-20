@@ -30,19 +30,16 @@ struct KGGExerciseEditorView: View {
     var body: some View {
         NavigationStack {
             KGGExerciseParameterForm(
-                           exerciseTitle: viewModel.exercise.videoTitle,
-                           thumbnailData: thumbnailData,
-                           confirmLabel: "Speichern",
-                           accent: themeManager.currentTheme.accentColor,
-                           reps: $viewModel.reps,
-                           sets: $viewModel.sets,
-                           weight: $viewModel.weight,
-                           pause: $viewModel.pause,
-                           tempo: $viewModel.tempo,
-                           level: $viewModel.level,
-                           seatLevel: $viewModel.seatLevel,
-                           notes: $viewModel.notes
-                       ) {
+                exerciseTitle: viewModel.exercise.videoTitle,
+                thumbnailData: thumbnailData,
+                confirmLabel: "Speichern",
+                accent: themeManager.currentTheme.accentColor,
+                reps: $viewModel.reps,
+                sets: $viewModel.sets,
+                weight: $viewModel.weight,
+                pause: $viewModel.pause,
+                tempo: $viewModel.tempo
+            ) {
                 save()
             }
             .navigationTitle("Übung bearbeiten")

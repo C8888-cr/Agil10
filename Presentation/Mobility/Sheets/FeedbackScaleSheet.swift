@@ -2,7 +2,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct FeedbackScaleSheet: View {
 
     /// Wird mit dem gewählten Wert (0.0–1.0) aufgerufen.

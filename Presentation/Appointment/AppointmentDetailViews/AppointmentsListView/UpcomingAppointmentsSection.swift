@@ -10,7 +10,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct UpcomingAppointmentsSection: View {
     let appointments: [Appointment]
     let onDelete: (Appointment) -> Void

@@ -1,5 +1,5 @@
 // MARK: - Views/QRGenerator/QRGeneratorView.swift
-/*
+
 import SwiftUI
 import AgilCore
 
@@ -120,4 +120,3 @@ struct QRCodeImage: View {
 #Preview {
     QRGeneratorView()
 }
-*/

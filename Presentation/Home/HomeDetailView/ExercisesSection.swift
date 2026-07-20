@@ -3,7 +3,6 @@ import SwiftData
 import UniformTypeIdentifiers
 import AgilCore
 
-
 struct ExercisesSection: View {
     @EnvironmentObject var progressVM: ProgressViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel

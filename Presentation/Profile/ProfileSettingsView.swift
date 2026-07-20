@@ -10,7 +10,6 @@ import SwiftUI
 import SwiftData
 import AgilCore
 
-
 struct ProfileSettingsView: View {
 
     @Environment(\.dismiss) private var dismiss

@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		5611EE852FF0285900243414 /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 56D6A3622FEBD49D00799115 /* AgilCore */; };
+		5611F16E2FF02AFD00243414 /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5611F16D2FF02AFD00243414 /* AgilCore */; };
 		56703F412FC1695B0084B2BA /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 56703F402FC1695B0084B2BA /* Localizable.xcstrings */; };
-		5681D0DB2FFD348B00F2646F /* AgilCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5681D0DA2FFD348B00F2646F /* AgilCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,11 +104,6 @@
 			path = AgilKGG;
 			sourceTree = "<group>";
 		};
-		56D828673003842500598E52 /* KGG */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = KGG;
-			sourceTree = "<group>";
-		};
 		56F4C5E32ECDB52C00417181 /* Agil */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -142,7 +137,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5681D0DB2FFD348B00F2646F /* AgilCore in Frameworks */,
+				5611F16E2FF02AFD00243414 /* AgilCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,7 +168,6 @@
 		56F4C5D82ECDB52C00417181 = {
 			isa = PBXGroup;
 			children = (
-				56D828673003842500598E52 /* KGG */,
 				56703F402FC1695B0084B2BA /* Localizable.xcstrings */,
 				561844D92F4D980F009032CE /* Agil10-0-Info.plist */,
 				5636C5552F837CAB0011D0CF /* Domain */,
@@ -215,7 +209,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				569E9E242FFCE62D0038026F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				56D6A3582FEBD29B00799115 /* AgilKGG */,
@@ -239,7 +232,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				569E9E262FFCE6340038026F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5636C5552F837CAB0011D0CF /* Domain */,
@@ -247,12 +239,11 @@
 				5636C6E32F842E0D0011D0CF /* Data */,
 				5636C7222F8439230011D0CF /* Infrastructure */,
 				5636C7242F84396F0011D0CF /* Core */,
-				56D828673003842500598E52 /* KGG */,
 				56F4C5E32ECDB52C00417181 /* Agil */,
 			);
 			name = Agil10.0;
 			packageProductDependencies = (
-				5681D0DA2FFD348B00F2646F /* AgilCore */,
+				5611F16D2FF02AFD00243414 /* AgilCore */,
 			);
 			productName = Agil;
 			productReference = 56F4C5E12ECDB52C00417181 /* Agil10.0.app */;
@@ -330,7 +321,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 56F4C5DC2ECDB52C00417181 /* Build configuration list for PBXProject "Agil10" */;
+			buildConfigurationList = 56F4C5DC2ECDB52C00417181 /* Build configuration list for PBXProject "Agil10.0" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -341,7 +332,7 @@
 			mainGroup = 56F4C5D82ECDB52C00417181;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				56A181CE2FFC0FB000BEE8C1 /* XCLocalSwiftPackageReference "AgilCore" */,
+				5611F16C2FF02AED00243414 /* XCLocalSwiftPackageReference "AgilCore" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 56F4C5E22ECDB52C00417181 /* Products */;
@@ -420,14 +411,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		569E9E242FFCE62D0038026F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 569E9E232FFCE62D0038026F /* AgilCore */;
-		};
-		569E9E262FFCE6340038026F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 569E9E252FFCE6340038026F /* AgilCore */;
-		};
 		56F4C5F02ECDB52D00417181 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 56F4C5E02ECDB52C00417181 /* Agil10.0 */;
@@ -448,7 +431,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y73Y989LWS;
+				DEVELOPMENT_TEAM = YMV844AGB3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -481,7 +464,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Y73Y989LWS;
+				DEVELOPMENT_TEAM = YMV844AGB3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -794,7 +777,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		56F4C5DC2ECDB52C00417181 /* Build configuration list for PBXProject "Agil10" */ = {
+		56F4C5DC2ECDB52C00417181 /* Build configuration list for PBXProject "Agil10.0" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				56F4C6002ECDB52D00417181 /* Debug */,
@@ -833,26 +816,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		56A181CE2FFC0FB000BEE8C1 /* XCLocalSwiftPackageReference "AgilCore" */ = {
+		5611F16C2FF02AED00243414 /* XCLocalSwiftPackageReference "AgilCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = AgilCore;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5681D0DA2FFD348B00F2646F /* AgilCore */ = {
+		5611F16D2FF02AFD00243414 /* AgilCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 56A181CE2FFC0FB000BEE8C1 /* XCLocalSwiftPackageReference "AgilCore" */;
-			productName = AgilCore;
-		};
-		569E9E232FFCE62D0038026F /* AgilCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 56A181CE2FFC0FB000BEE8C1 /* XCLocalSwiftPackageReference "AgilCore" */;
-			productName = AgilCore;
-		};
-		569E9E252FFCE6340038026F /* AgilCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 56A181CE2FFC0FB000BEE8C1 /* XCLocalSwiftPackageReference "AgilCore" */;
+			package = 5611F16C2FF02AED00243414 /* XCLocalSwiftPackageReference "AgilCore" */;
 			productName = AgilCore;
 		};
 		56D6A3622FEBD49D00799115 /* AgilCore */ = {

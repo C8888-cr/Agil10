@@ -9,7 +9,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct FeedbackOverviewCard: View {
     @EnvironmentObject var historyVM: WorkoutHistoryViewModel
     @EnvironmentObject var session: SessionManager

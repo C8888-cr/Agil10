@@ -2,7 +2,6 @@ import SwiftUI
 import Charts
 import AgilCore
 
-
 struct FeedbackDetailView: View {
     @EnvironmentObject var historyVM: WorkoutHistoryViewModel
     @EnvironmentObject var session: SessionManager

@@ -65,53 +65,32 @@ final class KGGPatientDetailViewModel: ObservableObject {
     }
 
     // MARK: - Generate QR
+
     func generateQRCode() throws -> QRPayload {
         // Übungen zu ExerciseAssignment konvertieren
         let assignments = patient.exercises.filter { $0.isActive }.map { exercise in
             ExerciseAssignment(
                 exerciseId: exercise.videoId,
-                videoTitle: exercise.videoTitle,
                 reps: exercise.reps,
-                sets: exercise.sets,
                 weight: exercise.weight,
-                pauseBetweenSets: exercise.pauseBetweenSets,
-                tempo: exercise.tempo,
-                level: exercise.level,
-                seatLevel: exercise.seatLevel,
-                notes: exercise.notes
+                videoKey: Data()  // Placeholder – später aus Keychain
             )
-        }
-        guard !assignments.isEmpty else {
-            throw QRError.noExercises
         }
 
-        // Warmup zu WarmupAssignment konvertieren
-        let warmups = patient.warmupTemplate.sorted(by: { $0.order < $1.order }).map { warmup in
-            WarmupAssignment(
-                id: warmup.id,
-                type: warmup.type,
-                duration: warmup.duration,
-                level: warmup.level,
-                seatLevel: warmup.seatLevel,
-                speedKmh: warmup.speedKmh,
-                weight: warmup.weight,
-                notes: warmup.notes,
-                order: warmup.order
-            )
+        guard !assignments.isEmpty else {
+            throw QRError.noExercises
         }
 
         let payload = QRPayload(
             version: 1,
             issuedAt: Date(),
-            assignments: assignments,
-            warmups: warmups
+            assignments: assignments
         )
 
         self.qrPayload = payload
         return payload
     }
-    
-    
+
     func encodeQRContent() throws -> String {
         guard let payload = qrPayload else {
             throw QRError.noPayload
@@ -122,38 +101,31 @@ final class KGGPatientDetailViewModel: ObservableObject {
     // MARK: - Exercise Management
 
     func addExercise(
-          videoId: UUID,
-          videoTitle: String,
-          sparte: String,
-          muskelgruppe: String,
-          equipment: String,
-          reps: Int = 10,
-          sets: Int = 3,
-          weight: Double = 0.0,
-          pauseBetweenSets: Int = 60,
-          tempo: String = "2-0-2",
-          level: Int? = nil,
-          seatLevel: Int? = nil,
-          notes: String? = nil
-      ) throws {
-          let exercise = KGGExercise(
-              videoId: videoId,
-              videoTitle: videoTitle,
-              sparte: sparte,
-              muskelgruppe: muskelgruppe,
-              equipment: equipment,
-              patientId: patient.id,
-              reps: reps,
-              sets: sets,
-              weight: weight,
-              pauseBetweenSets: pauseBetweenSets,
-              tempo: tempo,
-              level: level,
-              seatLevel: seatLevel,
-              notes: notes
-          )
-          
-          
+        videoId: UUID,
+        videoTitle: String,
+        sparte: String,
+        muskelgruppe: String,
+        equipment: String,
+        reps: Int = 10,
+        sets: Int = 3,
+        weight: Double = 0.0,
+        pauseBetweenSets: Int = 60,
+        tempo: String = "2-0-2"
+    ) throws {
+        let exercise = KGGExercise(
+            videoId: videoId,
+            videoTitle: videoTitle,
+            sparte: sparte,
+            muskelgruppe: muskelgruppe,
+            equipment: equipment,
+            patientId: patient.id,
+            reps: reps,
+            sets: sets,
+            weight: weight,
+            pauseBetweenSets: pauseBetweenSets,
+            tempo: tempo
+        )
+
         patient.addExercise(exercise)
         logHistory(
             exerciseId: exercise.id,
@@ -198,28 +170,20 @@ final class KGGPatientDetailViewModel: ObservableObject {
     // MARK: - Warmup Management
 
     func addWarmup(
-           type: String,
-           duration: Int,
-           level: Int? = nil,
-           speedKmh: Double? = nil,
-           seatLevel: Int? = nil,
-           
-           weight: Double? = nil,
-           notes: String? = nil
-       ) throws {
-           let warmup = KGGWarmup(
-               patientId: patient.id,
-               type: type,
-               duration: duration,
-               level: level,
-               speedKmh: speedKmh,
-               seatLevel: seatLevel,
-            
-               weight: weight,
-               notes: notes,
-               order: patient.warmupTemplate.count
-           )
-           
+        type: String,
+        duration: Int,
+        intensity: String,
+        notes: String? = nil
+    ) throws {
+        let warmup = KGGWarmup(
+            patientId: patient.id,
+            type: type,
+            duration: duration,
+            intensity: intensity,
+            notes: notes,
+            order: patient.warmupTemplate.count
+        )
+
         patient.addWarmup(warmup)
         try modelContext.save()
         objectWillChange.send()

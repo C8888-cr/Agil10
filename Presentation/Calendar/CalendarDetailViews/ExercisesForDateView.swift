@@ -3,6 +3,7 @@ import SwiftData
 import UniformTypeIdentifiers
 import AgilCore
 
+
 struct ExercisesForDateView: View {
     
     let selectedDate: Date

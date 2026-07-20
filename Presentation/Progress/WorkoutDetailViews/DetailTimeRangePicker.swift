@@ -17,7 +17,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct DetailTimeRangePicker: View {
     @Binding var mode: TimeRangeMode
     @Binding var offset: Int

@@ -9,7 +9,6 @@
 import SwiftUI
 import AgilCore
 
-
 struct CompactVideoCard: View {
     let title: String
     let subtitle: String
